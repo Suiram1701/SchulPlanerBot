@@ -7,6 +7,8 @@ public class Program
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         builder.AddServiceDefaults();
 
+        builder.AddDiscordClient("DiscordClient");
+
         WebApplication app = builder.Build();
         app.MapDefaultEndpoints();
 

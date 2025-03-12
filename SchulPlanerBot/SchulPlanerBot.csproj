@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Discord.Net.Interactions" Version="3.17.2" />
+    <PackageReference Include="Discord.Net.WebSocket" Version="3.17.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SchulPlanerBot.ServiceDefaults\SchulPlanerBot.ServiceDefaults.csproj" />
   </ItemGroup>
 

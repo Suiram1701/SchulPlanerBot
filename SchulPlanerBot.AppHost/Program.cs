@@ -5,7 +5,9 @@ public class Program
     public static void Main(string[] args)
     {
         IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
-        builder.AddProject<Projects.SchulPlanerBot>("discord-bot");
+
+        builder.AddProject<Projects.SchulPlanerBot>("discord-bot")
+            .WithConfiguration(builder.Configuration.GetSection("DiscordClient"), secretKeys: "Token");
 
         builder.Build().Run();
     }
