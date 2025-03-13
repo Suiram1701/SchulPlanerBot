@@ -1,5 +1,7 @@
 ﻿using Discord;
+using Discord.Interactions;
 using Discord.WebSocket;
+using OpenTelemetry.Trace;
 using SchulPlanerBot.Options;
 using SchulPlanerBot.Services;
 
@@ -7,15 +9,16 @@ namespace SchulPlanerBot;
 
 public static class DiscordExtensions
 {
-    public static IHostApplicationBuilder AddDiscordClient(this IHostApplicationBuilder builder, string configurationKey)
+    public static IServiceCollection AddDiscordSocketClient(this IServiceCollection services, string configurationKey)
     {
-        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(services);
 
-        builder.Services.AddOptions<DiscordClientOptions>()
+        services.AddOptions<DiscordClientOptions>()
             .BindConfiguration(configurationKey)
-            .ValidateDataAnnotations();
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
-        builder.Services
+        return services
             .AddSingleton<DiscordSocketConfig>(_ =>
             {
                 return new()
@@ -27,6 +30,24 @@ public static class DiscordExtensions
             })
             .AddSingleton<DiscordSocketClient>()
             .AddHostedService<DiscordClientStartup>();
-        return builder;
+    }
+
+    public static IServiceCollection AddInteractionFramework(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        return services
+            .AddSingleton(sp =>
+            {
+                DiscordSocketClient client = sp.GetRequiredService<DiscordSocketClient>();
+                return new InteractionService(client);
+            })
+            .AddHostedService<DiscordInteractionHandler>();
+    }
+
+    public static TracerProviderBuilder AddDiscordClientInstrumentation(this TracerProviderBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        return builder.AddSource(DiscordClientStartup.ActivitySourceName, DiscordInteractionHandler.ActivitySourceName);
     }
 }

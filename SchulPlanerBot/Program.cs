@@ -7,7 +7,11 @@ public class Program
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         builder.AddServiceDefaults();
 
-        builder.AddDiscordClient("DiscordClient");
+        builder.Services.AddDiscordSocketClient("DiscordClient")
+            .AddInteractionFramework();
+
+        builder.Services.AddOpenTelemetry()
+            .WithTracing(provider => provider.AddDiscordClientInstrumentation());
 
         WebApplication app = builder.Build();
         app.MapDefaultEndpoints();
