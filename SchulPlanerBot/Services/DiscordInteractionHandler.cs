@@ -23,21 +23,24 @@ internal sealed class DiscordInteractionHandler(
 
     private readonly ActivitySource _activitySource = new(ActivitySourceName);
 
-    private bool _modulesRegistered = false;
-
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         _client.Ready += Client_ReadyAsync;
         _client.InteractionCreated += Client_InteractionCreatedAsync;
+        _client.GuildAvailable += Client_GuildAvailableAsync;
+        _interaction.Log += Interaction_Log;
         _interaction.InteractionExecuted += Interaction_InteractionExecuted;
 
-        return Task.CompletedTask;
+        IEnumerable<ModuleInfo> modules = await _interaction.AddModulesAsync(typeof(ISchulPlanerBot).Assembly, _serviceProvider).ConfigureAwait(false);
+        _logger.LogInformation("{modulesCount} interaction modules added", modules.Count());
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
         _client.Ready -= Client_ReadyAsync;
         _client.InteractionCreated -= Client_InteractionCreatedAsync;
+        _client.GuildAvailable -= Client_GuildAvailableAsync;
+        _interaction.Log -= Interaction_Log;
         _interaction.InteractionExecuted -= Interaction_InteractionExecuted;
 
         return Task.CompletedTask;
@@ -45,27 +48,29 @@ internal sealed class DiscordInteractionHandler(
 
     private async Task Client_ReadyAsync()
     {
-        using Activity? activity = _activitySource.StartActivity("Initializing interaction framework");
+        await _interaction.RegisterCommandsGloballyAsync().ConfigureAwait(false);
+        _logger.LogTrace("Commands registered globally");
+    }
 
-        if (!_modulesRegistered)
-        {
-            IEnumerable<ModuleInfo> modules = await _interaction.AddModulesAsync(typeof(ISchulPlanerBot).Assembly, _serviceProvider).ConfigureAwait(false);
-            _logger.LogInformation("{modules} interaction modules added", modules.Count());
-            _modulesRegistered = true;
-        }
-
-        await _interaction.AddCommandsGloballyAsync(deleteMissing: true).ConfigureAwait(false);     // Commands that could be removed
-        _logger.LogInformation("Application commands registered globally");
+    private async Task Client_GuildAvailableAsync(SocketGuild guild)
+    {
+        await _interaction.RegisterCommandsToGuildAsync(guild.Id).ConfigureAwait(false);
+        _logger.LogTrace("Commands registered to guild {guild} ({guildId})", guild.Name, guild.Id);
     }
 
     private async Task Client_InteractionCreatedAsync(SocketInteraction interaction)
     {
         Activity.Current = null;     // This activity doesn't have a parent
-        using Activity? activity = _activitySource.StartActivity("Interaction received", ActivityKind.Server);
-        using IServiceScope serviceScope = _serviceProvider.CreateScope();
+        using Activity? activity = _activitySource.StartActivity("Interaction received", ActivityKind.Server, parentId: null, tags: new Dictionary<string, object?>
+        {
+            { "GuildId", interaction.GuildId },
+            { "User", interaction.User.Username },
+            { "UserId", interaction.User.Id }
+        });
 
         try
         {
+            using IServiceScope serviceScope = _serviceProvider.CreateScope();
             SocketInteractionContext context = new(_client, interaction);
             IResult executionResult = await _interaction.ExecuteCommandAsync(context, serviceScope.ServiceProvider).ConfigureAwait(false);
 
@@ -90,12 +95,29 @@ internal sealed class DiscordInteractionHandler(
         }
     }
 
-    private Task Interaction_InteractionExecuted(ICommandInfo command, IInteractionContext context, IResult result)
+    private Task Interaction_Log(LogMessage arg)
     {
-        _logger.LogError("A interaction failed to execute: {error} = {reason}", result.Error, result.ErrorReason);
+        LogLevel level = arg.Severity switch
+        {
+            LogSeverity.Critical => LogLevel.Critical,
+            LogSeverity.Error => LogLevel.Error,
+            LogSeverity.Warning => LogLevel.Warning,
+            LogSeverity.Info => LogLevel.Information,
+            LogSeverity.Verbose => LogLevel.Trace,
+            LogSeverity.Debug => LogLevel.Debug,
+            _ => throw new NotImplementedException()
+        };
+        _logger.Log(level, arg.Exception, "{LogSource}: {LogMessage}", arg.Source, arg.Message);
+
         return Task.CompletedTask;
     }
 
+    private Task Interaction_InteractionExecuted(ICommandInfo command, IInteractionContext context, IResult result)
+    {
+        if (!result.IsSuccess)
+            _logger.LogError("A interaction failed to execute: {error} = {reason}", result.Error, result.ErrorReason);
+        return Task.CompletedTask;
+    }
 
     public void Dispose() => _activitySource.Dispose();
 }

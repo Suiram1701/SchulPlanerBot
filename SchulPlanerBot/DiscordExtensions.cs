@@ -25,7 +25,14 @@ public static class DiscordExtensions
                 {
                     DefaultRetryMode = RetryMode.AlwaysRetry,
                     GatewayIntents = GatewayIntents.AllUnprivileged,
-                    LogGatewayIntentWarnings = true
+                    LogGatewayIntentWarnings = true,
+
+                    /*
+                     * The snowflake of an object is always specified in UTC while the server could use a local time.
+                     * To prevent the response cancellation because of the three second timeout (a different time zone causes a difference of one hour) the time
+                     * where the message were received have to be used.
+                    */
+                    UseInteractionSnowflakeDate = false
                 };
             })
             .AddSingleton<DiscordSocketClient>()
@@ -40,7 +47,11 @@ public static class DiscordExtensions
             .AddSingleton(sp =>
             {
                 DiscordSocketClient client = sp.GetRequiredService<DiscordSocketClient>();
-                return new InteractionService(client);
+                return new InteractionService(client, new InteractionServiceConfig
+                {
+                    DefaultRunMode = RunMode.Sync,     // Idk exactly why but async always fails
+                    UseCompiledLambda = true
+                });
             })
             .AddHostedService<DiscordInteractionHandler>();
     }
