@@ -10,4 +10,6 @@ public class DiscordClientOptions
 
     [Required]
     public string Token { get; set; } = default!;
+
+    public ulong? TestGuild { get; set; }
 }

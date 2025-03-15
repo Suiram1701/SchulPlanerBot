@@ -2,44 +2,49 @@
 using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
+using Microsoft.Extensions.Options;
+using SchulPlanerBot.Options;
 using System.Diagnostics;
 using IResult = Discord.Interactions.IResult;
 
 namespace SchulPlanerBot.Services;
 
 internal sealed class DiscordInteractionHandler(
+    IHostEnvironment environment,
     ILogger<DiscordInteractionHandler> logger,
     IServiceProvider serviceProvider,
+    IOptions<DiscordClientOptions> optionsAccessor,
     DiscordSocketClient client,
     InteractionService interaction)
     : IHostedService, IDisposable
 {
     public const string ActivitySourceName = "Discord.InteractionHandler";
 
+    private readonly IHostEnvironment _environment = environment;
     private readonly ILogger _logger = logger;
     private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly DiscordClientOptions _options = optionsAccessor.Value;
     private readonly DiscordSocketClient _client = client;
     private readonly InteractionService _interaction = interaction;
 
     private readonly ActivitySource _activitySource = new(ActivitySourceName);
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    private bool _modulesAdded = false;
+
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         _client.Ready += Client_ReadyAsync;
         _client.InteractionCreated += Client_InteractionCreatedAsync;
-        _client.GuildAvailable += Client_GuildAvailableAsync;
         _interaction.Log += Interaction_Log;
         _interaction.InteractionExecuted += Interaction_InteractionExecuted;
 
-        IEnumerable<ModuleInfo> modules = await _interaction.AddModulesAsync(typeof(ISchulPlanerBot).Assembly, _serviceProvider).ConfigureAwait(false);
-        _logger.LogInformation("{modulesCount} interaction modules added", modules.Count());
+        return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
         _client.Ready -= Client_ReadyAsync;
         _client.InteractionCreated -= Client_InteractionCreatedAsync;
-        _client.GuildAvailable -= Client_GuildAvailableAsync;
         _interaction.Log -= Interaction_Log;
         _interaction.InteractionExecuted -= Interaction_InteractionExecuted;
 
@@ -48,24 +53,36 @@ internal sealed class DiscordInteractionHandler(
 
     private async Task Client_ReadyAsync()
     {
-        await _interaction.RegisterCommandsGloballyAsync().ConfigureAwait(false);
-        _logger.LogTrace("Commands registered globally");
-    }
+        using Activity? activity = _activitySource.StartActivity("Register commands");
+        if (!_modulesAdded)
+        {
+            IEnumerable<ModuleInfo> modules = await _interaction.AddModulesAsync(typeof(ISchulPlanerBot).Assembly, _serviceProvider).ConfigureAwait(false);
+            _logger.LogInformation("{modulesCount} interaction modules added", modules.Count());
+            _modulesAdded = true;
+        }
 
-    private async Task Client_GuildAvailableAsync(SocketGuild guild)
-    {
-        await _interaction.RegisterCommandsToGuildAsync(guild.Id).ConfigureAwait(false);
-        _logger.LogTrace("Commands registered to guild {guild} ({guildId})", guild.Name, guild.Id);
+        if (_environment.IsDevelopment() && _options.TestGuild is not null)
+        {
+            await _interaction.RegisterCommandsToGuildAsync(_options.TestGuild.Value).ConfigureAwait(false);
+            _logger.LogInformation("Commands registered for test guild {guildId}", _options.TestGuild);
+        }
+        else
+        {
+            await _interaction.RegisterCommandsGloballyAsync().ConfigureAwait(false);
+            _logger.LogInformation("Commands registered globally");
+        }
     }
 
     private async Task Client_InteractionCreatedAsync(SocketInteraction interaction)
     {
         Activity.Current = null;     // This activity doesn't have a parent
-        using Activity? activity = _activitySource.StartActivity("Interaction received", ActivityKind.Server, parentId: null, tags: new Dictionary<string, object?>
+        using Activity? activity = _activitySource.StartActivity("Discord Interaction", ActivityKind.Server, parentId: null, tags: new Dictionary<string, object?>
         {
-            { "GuildId", interaction.GuildId },
+            { "Id", interaction.Id },
+            { "Type", interaction.Type },
             { "User", interaction.User.Username },
-            { "UserId", interaction.User.Id }
+            { "UserId", interaction.User.Id },
+            { "GuildId", interaction.GuildId },
         });
 
         try
