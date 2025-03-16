@@ -1,3 +1,5 @@
+using SchulPlanerBot.ServiceDefaults;
+
 namespace SchulPlanerBot;
 
 public class Program
@@ -6,12 +8,17 @@ public class Program
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         builder.AddServiceDefaults();
+        builder.AddBotDatabase(ResourceNames.BotDatabase);
+
+        builder.Services.AddDatabaseManagers();
 
         builder.Services.AddDiscordSocketClient("DiscordClient")
             .AddInteractionFramework();
 
         builder.Services.AddOpenTelemetry()
-            .WithTracing(provider => provider.AddDiscordClientInstrumentation());
+            .WithTracing(provider => provider
+                .AddBotDatabaseInstrumentation()
+                .AddDiscordClientInstrumentation());
 
         WebApplication app = builder.Build();
         app.MapDefaultEndpoints();

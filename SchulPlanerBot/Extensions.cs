@@ -2,13 +2,34 @@
 using Discord.Interactions;
 using Discord.WebSocket;
 using OpenTelemetry.Trace;
+using SchulPlanerBot.Business;
+using SchulPlanerBot.Business.Database;
 using SchulPlanerBot.Options;
+using SchulPlanerBot.ServiceDefaults;
 using SchulPlanerBot.Services;
 
 namespace SchulPlanerBot;
 
-public static class DiscordExtensions
+public static class Extensions
 {
+    public static IHostApplicationBuilder AddBotDatabase(this IHostApplicationBuilder builder, string connectionName)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionName);
+
+        builder.AddNpgsqlDbContext<BotDbContext>(ResourceNames.BotDatabase, configureDbContextOptions: options =>
+        {
+            if (builder.Environment.IsDevelopment())
+            {
+                options.EnableDetailedErrors();
+                options.EnableSensitiveDataLogging();
+            }
+        });
+        builder.Services.AddHostedService<DatabaseStartup>();
+
+        return builder;
+    }
+
     public static IServiceCollection AddDiscordSocketClient(this IServiceCollection services, string configurationKey)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -50,15 +71,28 @@ public static class DiscordExtensions
                 return new InteractionService(client, new InteractionServiceConfig
                 {
                     DefaultRunMode = RunMode.Sync,     // Idk exactly why but async always fails
+                    AutoServiceScopes = false,     // Scopes managed by DiscordInteractionHandler
                     UseCompiledLambda = true
                 });
             })
             .AddHostedService<DiscordInteractionHandler>();
     }
 
+    public static IServiceCollection AddDatabaseManagers(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        return services.AddScoped<SchulPlanerManager>();
+    }
+
     public static TracerProviderBuilder AddDiscordClientInstrumentation(this TracerProviderBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
         return builder.AddSource(DiscordClientStartup.ActivitySourceName, DiscordInteractionHandler.ActivitySourceName);
+    }
+
+    public static TracerProviderBuilder AddBotDatabaseInstrumentation(this TracerProviderBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        return builder.AddSource(DatabaseStartup.ActivitySourceName);
     }
 }
