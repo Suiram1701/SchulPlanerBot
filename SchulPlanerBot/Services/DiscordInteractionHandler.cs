@@ -3,6 +3,7 @@ using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Options;
+using SchulPlanerBot.Discord.Interactions;
 using SchulPlanerBot.Options;
 using System.Diagnostics;
 using IResult = Discord.Interactions.IResult;
@@ -12,7 +13,7 @@ namespace SchulPlanerBot.Services;
 internal sealed class DiscordInteractionHandler(
     IHostEnvironment environment,
     ILogger<DiscordInteractionHandler> logger,
-    IServiceProvider serviceProvider,
+    IServiceScopeFactory scopeFactory,
     IOptions<DiscordClientOptions> optionsAccessor,
     DiscordSocketClient client,
     InteractionService interaction)
@@ -22,7 +23,7 @@ internal sealed class DiscordInteractionHandler(
 
     private readonly IHostEnvironment _environment = environment;
     private readonly ILogger _logger = logger;
-    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
     private readonly DiscordClientOptions _options = optionsAccessor.Value;
     private readonly DiscordSocketClient _client = client;
     private readonly InteractionService _interaction = interaction;
@@ -54,9 +55,11 @@ internal sealed class DiscordInteractionHandler(
     private async Task Client_ReadyAsync()
     {
         using Activity? activity = _activitySource.StartActivity("Register commands");
+        using IServiceScope scope = _scopeFactory.CreateScope();
+
         if (!_modulesAdded)
         {
-            IEnumerable<ModuleInfo> modules = await _interaction.AddModulesAsync(typeof(ISchulPlanerBot).Assembly, _serviceProvider).ConfigureAwait(false);
+            IEnumerable<ModuleInfo> modules = await _interaction.AddModulesAsync(typeof(ISchulPlanerBot).Assembly, scope.ServiceProvider).ConfigureAwait(false);
             _logger.LogInformation("{modulesCount} interaction modules added", modules.Count());
             _modulesAdded = true;
         }
@@ -87,9 +90,11 @@ internal sealed class DiscordInteractionHandler(
 
         try
         {
-            using IServiceScope serviceScope = _serviceProvider.CreateScope();
-            SocketInteractionContext context = new(_client, interaction);
-            IResult executionResult = await _interaction.ExecuteCommandAsync(context, serviceScope.ServiceProvider).ConfigureAwait(false);
+            using IServiceScope scope = _scopeFactory.CreateScope();
+            using CancellationTokenSource tokenSource = new(TimeSpan.FromSeconds(3));
+
+            CancellableSocketContext context = new(_client, interaction, tokenSource.Token);
+            IResult executionResult = await _interaction.ExecuteCommandAsync(context, scope.ServiceProvider).ConfigureAwait(false);     // AutoScope is enabled
 
             // Due to async nature of InteractionFramework, the result here may always be success.
             // That's why we also need to handle the InteractionExecuted event.
@@ -106,8 +111,9 @@ internal sealed class DiscordInteractionHandler(
             // response, or at least let the user know that something went wrong during the command execution.
             if (interaction.Type is InteractionType.ApplicationCommand)
             {
-                RestInteractionMessage msg = await interaction.GetOriginalResponseAsync().ConfigureAwait(false);
-                await msg.DeleteAsync().ConfigureAwait(false);
+                RestInteractionMessage? msg = await interaction.GetOriginalResponseAsync().ConfigureAwait(false);
+                if (msg is not null)
+                    await msg.DeleteAsync().ConfigureAwait(false);
             }
         }
     }
