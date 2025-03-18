@@ -9,8 +9,9 @@ using System.Text;
 
 namespace SchulPlanerBot.Modules;
 
+[RequireContext(ContextType.Guild)]
 [CommandContextType(InteractionContextType.Guild)]
-[RequireUserPermission(GuildPermission.ManageGuild)]
+[DefaultMemberPermissions(GuildPermission.ManageGuild)]
 [Group("schulplaner", "Manages settings of this app on the server.")]
 public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, SchulPlanerManager manager) : InteractionModuleBase<CancellableSocketContext>
 {
