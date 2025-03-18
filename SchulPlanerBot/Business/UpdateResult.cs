@@ -16,5 +16,7 @@ public class UpdateResult
 
     public static UpdateResult Succeeded() => new(true, []);
 
+    public static UpdateResult Failed(string name, string description) => new(false, [new(name, description)]);
+
     public static UpdateResult Failed(params UpdateError[] errors) => new(false, errors);
 }
