@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Humanizer;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Models;
+using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.Interactions;
 using System.Text;
 
@@ -37,15 +38,9 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, SchulPl
 
         messageBuilder.Append("Notification: ");
         if (guild.NotificationsEnabled)
-        {
-            messageBuilder.Append(
-                $"Every {guild.BetweenNotifications!.Value.Humanize()} " +
-                $"starting on <t:{guild.StartNotifications!.Value.ToUnixTimeSeconds()}:f>");
-        }
+            messageBuilder.Append($"Every {guild.BetweenNotifications!.Value.Humanize()} starting on {Utilities.Timestamp(guild.StartNotifications!.Value, TimestampKind.ShortDateTime)}");
         else
-        {
             messageBuilder.Append("Not yet enabled");
-        }
 
         await RespondAsync(messageBuilder.ToString()).ConfigureAwait(false);
     }
@@ -59,7 +54,7 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, SchulPl
         if (channel is not null)
         {
             await _manager.SetChannelAsync(Guild.Id, channel.Id, CancellationToken).ConfigureAwait(false);
-            await RespondAsync($"User interaction channel successfully updated to <#{channel.Id}>").ConfigureAwait(false);
+            await RespondAsync($"User interaction channel successfully updated to {Utilities.Mention(channel)}").ConfigureAwait(false);
         }
         else
         {
@@ -84,9 +79,11 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, SchulPl
         if (result.Success)
         {
             Guild guild = await _manager.GetGuildAsync(Guild.Id, CancellationToken).ConfigureAwait(false);
-
             DateTimeOffset startOffset = new(start);
-            await RespondAsync($"Notifying in channel <#{guild.ChannelId}> every {between.Humanize()} starting at <t:{startOffset.ToUnixTimeSeconds()}:f>").ConfigureAwait(false);
+
+            await RespondAsync(
+                $"Notifying in channel {Utilities.Mention(guild.ChannelId!.Value, MentionType.Channel)} every {between.Humanize()}" +
+                $" starting at {Utilities.Timestamp(startOffset, TimestampKind.ShortDateTime)}").ConfigureAwait(false);
         }
         else
         {

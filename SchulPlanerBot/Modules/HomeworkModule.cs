@@ -3,6 +3,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Models;
+using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.Interactions;
 using SchulPlanerBot.Modals;
 
@@ -10,7 +11,7 @@ namespace SchulPlanerBot.Modules;
 
 [RequireContext(ContextType.Guild)]
 [CommandContextType(InteractionContextType.Guild)]
-[Group("homework", "Manages homeworks on the server.")]
+[Group("homeworks", "Manages homeworks on the server.")]
 public sealed class HomeworkModule(ILogger<HomeworkModule> logger, SchulPlanerManager manager) : InteractionModuleBase<CancellableSocketContext>
 {
     private readonly ILogger _logger = logger;
@@ -29,22 +30,27 @@ public sealed class HomeworkModule(ILogger<HomeworkModule> logger, SchulPlanerMa
         [Summary(description: "The subject to retrieve the homeworks of. Leave empty to not filter.")] string? subject = null)
     {
         IEnumerable<Homework> homeworks = await _manager.GetHomeworksAsync(Guild.Id, start, end, subject, CancellationToken).ConfigureAwait(false);
-        IEnumerable<Embed> homeworkEmbeds = homeworks.Select(homework =>
-            new EmbedBuilder()
-                .WithAuthor(new EmbedAuthorBuilder().WithName(homework.Subject))
-                .WithTitle(homework.Title)
-                .WithDescription(homework.Details)
-                .AddField("Due", $"<t:{homework.Due.ToUnixTimeSeconds()}:R>")
-                .AddField("Creator", $"<@{homework.CreatedBy}>")
-                .AddField("Created", $"<t:{homework.CreatedAt.ToUnixTimeSeconds()}:D>")
-                .AddField("Id", $"||{homework.Id}||")
-                .Build());
 
-        Embed[] embeds = [.. homeworkEmbeds];
+        Embed[] embeds = [.. homeworks.Select(HomeworkToEmbed)];
         if (embeds.Length > 0)
-            await RespondAsync(embeds: [.. embeds], allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+        {
+            int sentEmbeds = 0;
+            do
+            {
+                Embed[] embedPart = [.. embeds.Skip(sentEmbeds).Take(10)];
+                if (!Context.Interaction.HasResponded)
+                    await RespondAsync(embeds: embedPart, allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+                else
+                    await ReplyAsync(embeds: embedPart, allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+
+                sentEmbeds += embedPart.Length;
+            }
+            while (sentEmbeds < embeds.Length);
+        }
         else
+        {
             await RespondAsync("No homeworks available").ConfigureAwait(false);
+        }
     }
 
     [SlashCommand("create", "Creates a new homework.")]
@@ -68,22 +74,9 @@ public sealed class HomeworkModule(ILogger<HomeworkModule> logger, SchulPlanerMa
             homeworkModal.Details,
             CancellationToken).ConfigureAwait(false);
         if (result.Success && homework is not null)
-        {
-            Embed embed = new EmbedBuilder()
-                .WithAuthor(new EmbedAuthorBuilder().WithName(homework.Subject))
-                .WithTitle(homework.Title)
-                .WithDescription(homework.Details)
-                .AddField("Due", $"<t:{homework.Due.ToUnixTimeSeconds()}:R>")
-                .AddField("Creator", $"<@{homework.CreatedBy}>")
-                .AddField("Created", $"<t:{homework.CreatedAt.ToUnixTimeSeconds()}:D>")
-                .AddField("Id", $"||{homework.Id}||")
-                .Build();
-            await RespondAsync("Homework created:", embeds: [embed], allowedMentions: AllowedMentions.None).ConfigureAwait(false);
-        }
+            await RespondAsync("Homework created:", embeds: [HomeworkToEmbed(homework)], allowedMentions: AllowedMentions.None).ConfigureAwait(false);
         else
-        {
             await RespondAsync(result.Errors[0].Description).ConfigureAwait(false);
-        }
     }
 
     [SlashCommand("delete", "Removes a homework by its ID")]
@@ -116,5 +109,18 @@ public sealed class HomeworkModule(ILogger<HomeworkModule> logger, SchulPlanerMa
             await RespondAsync("Deleted").ConfigureAwait(false);
         else
             await RespondAsync(deleteResult.Errors[0].Description).ConfigureAwait(false);
+    }
+
+    private static Embed HomeworkToEmbed(Homework homework)
+    {
+        return new EmbedBuilder()
+            .WithAuthor(new EmbedAuthorBuilder().WithName(homework.Subject))
+            .WithTitle(homework.Title)
+            .WithDescription(homework.Details)
+            .AddField("Due", Utilities.Timestamp(homework.Due, TimestampKind.Relative))
+            .AddField("Creator", Utilities.Mention(homework.CreatedBy, MentionType.User))
+            .AddField("Created", Utilities.Timestamp(homework.CreatedAt, TimestampKind.ShortDate))
+            .AddField("Id", $"||{homework.Id}||")
+            .Build();
     }
 }
