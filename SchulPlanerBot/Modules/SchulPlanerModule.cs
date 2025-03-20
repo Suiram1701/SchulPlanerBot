@@ -14,7 +14,7 @@ namespace SchulPlanerBot.Modules;
 [CommandContextType(InteractionContextType.Guild)]
 [DefaultMemberPermissions(GuildPermission.ManageGuild)]
 [Group("schulplaner", "Manages settings of this app on the server.")]
-public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, SchulPlanerManager manager) : InteractionModuleBase<CancellableSocketContext>
+public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, SchulPlanerManager manager) : InteractionModuleBase<ExtendedSocketContext>
 {
     private readonly ILogger _logger = logger;
     private readonly SchulPlanerManager _manager = manager;

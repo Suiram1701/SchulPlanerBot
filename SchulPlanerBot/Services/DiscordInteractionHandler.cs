@@ -3,6 +3,7 @@ using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Options;
+using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.Interactions;
 using SchulPlanerBot.Options;
 using System.Diagnostics;
@@ -37,7 +38,7 @@ internal sealed class DiscordInteractionHandler(
         _client.Ready += Client_ReadyAsync;
         _client.InteractionCreated += Client_InteractionCreatedAsync;
         _interaction.Log += Interaction_Log;
-        _interaction.InteractionExecuted += Interaction_InteractionExecuted;
+        _interaction.InteractionExecuted += Interaction_InteractionExecutedAsync;
 
         return Task.CompletedTask;
     }
@@ -47,7 +48,7 @@ internal sealed class DiscordInteractionHandler(
         _client.Ready -= Client_ReadyAsync;
         _client.InteractionCreated -= Client_InteractionCreatedAsync;
         _interaction.Log -= Interaction_Log;
-        _interaction.InteractionExecuted -= Interaction_InteractionExecuted;
+        _interaction.InteractionExecuted -= Interaction_InteractionExecutedAsync;
 
         return Task.CompletedTask;
     }
@@ -79,7 +80,7 @@ internal sealed class DiscordInteractionHandler(
     private async Task Client_InteractionCreatedAsync(SocketInteraction interaction)
     {
         Activity.Current = null;     // This activity doesn't have a parent
-        using Activity? activity = _activitySource.StartActivity("Discord Interaction", ActivityKind.Server, parentId: null, tags: new Dictionary<string, object?>
+        Activity? activity = _activitySource.StartActivity("Discord Interaction", ActivityKind.Server, parentId: null, tags: new Dictionary<string, object?>     // Activity disposed by event via context.
         {
             { "Id", interaction.Id },
             { "Type", interaction.Type },
@@ -93,15 +94,8 @@ internal sealed class DiscordInteractionHandler(
             using IServiceScope scope = _scopeFactory.CreateScope();
             using CancellationTokenSource tokenSource = new(TimeSpan.FromSeconds(3));
 
-            CancellableSocketContext context = new(_client, interaction, tokenSource.Token);
-            IResult executionResult = await _interaction.ExecuteCommandAsync(context, scope.ServiceProvider).ConfigureAwait(false);     // AutoScope is enabled
-
-            // Due to async nature of InteractionFramework, the result here may always be success.
-            // That's why we also need to handle the InteractionExecuted event.
-            if (!executionResult.IsSuccess)
-            {
-                _logger.LogError("A interaction failed to execute: {error} = {reason}", executionResult.Error, executionResult.ErrorReason);
-            }
+            ExtendedSocketContext context = new(_client, interaction, activity, tokenSource.Token);
+            var a = await _interaction.ExecuteCommandAsync(context, scope.ServiceProvider).ConfigureAwait(false);     // AutoScope is enabled; result handled by event
         }
         catch (Exception ex)
         {
@@ -120,26 +114,39 @@ internal sealed class DiscordInteractionHandler(
 
     private Task Interaction_Log(LogMessage arg)
     {
-        LogLevel level = arg.Severity switch
-        {
-            LogSeverity.Critical => LogLevel.Critical,
-            LogSeverity.Error => LogLevel.Error,
-            LogSeverity.Warning => LogLevel.Warning,
-            LogSeverity.Info => LogLevel.Information,
-            LogSeverity.Verbose => LogLevel.Trace,
-            LogSeverity.Debug => LogLevel.Debug,
-            _ => throw new NotImplementedException()
-        };
-        _logger.Log(level, arg.Exception, "{LogSource}: {LogMessage}", arg.Source, arg.Message);
-
+        _logger.Log(Utilities.ConvertLogLevel(arg.Severity), arg.Exception, "{LogSource}: {LogMessage}", arg.Source, arg.Message);
         return Task.CompletedTask;
     }
 
-    private Task Interaction_InteractionExecuted(ICommandInfo command, IInteractionContext context, IResult result)
+    private async Task Interaction_InteractionExecutedAsync(ICommandInfo command, IInteractionContext context, IResult result)
     {
-        if (!result.IsSuccess)
-            _logger.LogError("A interaction failed to execute: {error} = {reason}", result.Error, result.ErrorReason);
-        return Task.CompletedTask;
+        if (!result.IsSuccess && result.Error is not null)
+        {
+            string? response = null;
+
+            switch (result)
+            {
+                case ExecuteResult executeResult and { Error: InteractionCommandError.Exception }:
+                    Activity? activity = Activity.Current;
+                    response = $"An unexpected error occurred during the execution!\n||TraceId: {activity?.TraceId}\nSpanId: {activity?.SpanId}||";
+
+                    _logger.LogError(executeResult.Exception, executeResult.ErrorReason);
+                    break;
+                case PreconditionResult preconditionResult and { Error: InteractionCommandError.UnmetPrecondition }:
+                    response = $"A precondition of this command was not meet: {preconditionResult.ErrorReason}";
+                    break;
+                case TypeConverterResult typeConverterResult:
+                    response = $"Unable to parse a provided parameter: {typeConverterResult.ErrorReason}";
+                    break;
+            }
+
+            response ??= "An unexpected error occurred occurred!";
+            if (!context.Interaction.HasResponded)
+                await context.Interaction.RespondAsync(response).ConfigureAwait(false);
+        }
+
+        if (context is ExtendedSocketContext extendedContext)
+            extendedContext.Activity?.Dispose();
     }
 
     public void Dispose() => _activitySource.Dispose();

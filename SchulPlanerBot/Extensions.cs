@@ -1,9 +1,11 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Database;
+using SchulPlanerBot.Discord;
 using SchulPlanerBot.Options;
 using SchulPlanerBot.ServiceDefaults;
 using SchulPlanerBot.Services;
@@ -40,10 +42,13 @@ public static class Extensions
             .ValidateOnStart();
 
         return services
-            .AddSingleton<DiscordSocketConfig>(_ =>
+            .AddTransient<DiscordSocketConfig>(sp =>
             {
+                LogLevel minLogLevel = GetMinimumLogLevel(sp, nameof(DiscordClientStartup));
+
                 return new()
                 {
+                    LogLevel = Utilities.ConvertLogLevel(minLogLevel),
                     DefaultRetryMode = RetryMode.AlwaysRetry,
                     GatewayIntents = GatewayIntents.AllUnprivileged,
                     LogGatewayIntentWarnings = true,
@@ -65,15 +70,24 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(services);
 
         return services
+            .AddTransient<InteractionServiceConfig>(sp =>
+            {
+                LogLevel minLogLevel = GetMinimumLogLevel(sp, nameof(DiscordInteractionHandler));
+
+                return new()
+                {
+                    LogLevel = Utilities.ConvertLogLevel(minLogLevel),
+                    DefaultRunMode = RunMode.Sync,     // Idk exactly why but async always fails
+                    AutoServiceScopes = false,     // Scopes managed by DiscordInteractionHandler
+                    UseCompiledLambda = true,
+                };
+            })
             .AddSingleton(sp =>
             {
                 DiscordSocketClient client = sp.GetRequiredService<DiscordSocketClient>();
-                return new InteractionService(client, new InteractionServiceConfig
-                {
-                    DefaultRunMode = RunMode.Sync,     // Idk exactly why but async always fails
-                    AutoServiceScopes = false,     // Scopes managed by DiscordInteractionHandler
-                    UseCompiledLambda = true
-                });
+                InteractionServiceConfig config = sp.GetRequiredService<InteractionServiceConfig>();
+
+                return new InteractionService(client, config);
             })
             .AddHostedService<DiscordInteractionHandler>();
     }
@@ -94,5 +108,12 @@ public static class Extensions
     {
         ArgumentNullException.ThrowIfNull(builder);
         return builder.AddSource(DatabaseStartup.ActivitySourceName);
+    }
+
+    private static LogLevel GetMinimumLogLevel(IServiceProvider provider, string categoryName)
+    {
+        LoggerFilterOptions loggerOptions = provider.GetRequiredService<IOptionsMonitor<LoggerFilterOptions>>().CurrentValue;
+        return loggerOptions.Rules.FirstOrDefault(f => f.CategoryName?.EndsWith(categoryName) ?? false)?.LogLevel
+            ?? loggerOptions.MinLevel;
     }
 }

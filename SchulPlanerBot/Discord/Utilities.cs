@@ -4,6 +4,34 @@ namespace SchulPlanerBot.Discord;
 
 public static class Utilities
 {
+    public static LogLevel ConvertLogLevel(LogSeverity severity)
+    {
+        return severity switch
+        {
+            LogSeverity.Critical => LogLevel.Critical,
+            LogSeverity.Error => LogLevel.Error,
+            LogSeverity.Warning => LogLevel.Warning,
+            LogSeverity.Info => LogLevel.Information,
+            LogSeverity.Verbose => LogLevel.Trace,
+            LogSeverity.Debug => LogLevel.Debug,
+            _ => throw new NotImplementedException()
+        };
+    }
+
+    public static LogSeverity ConvertLogLevel(LogLevel level)
+    {
+        return level switch
+        {
+            LogLevel.Critical => LogSeverity.Critical,
+            LogLevel.Error => LogSeverity.Error,
+            LogLevel.Warning => LogSeverity.Warning,
+            LogLevel.Information => LogSeverity.Info,
+            LogLevel.Trace => LogSeverity.Verbose,
+            LogLevel.Debug => LogSeverity.Debug,
+            _ => throw new NotImplementedException()
+        };
+    }
+
     public static string Mention(IUser user) => $"<@{user.Id}>";
 
     public static string Mention(IChannel channel) => $"<#{channel.Id}>";

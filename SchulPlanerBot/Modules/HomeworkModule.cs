@@ -12,7 +12,7 @@ namespace SchulPlanerBot.Modules;
 [RequireContext(ContextType.Guild)]
 [CommandContextType(InteractionContextType.Guild)]
 [Group("homeworks", "Manages homeworks on the server.")]
-public sealed class HomeworkModule(ILogger<HomeworkModule> logger, SchulPlanerManager manager) : InteractionModuleBase<CancellableSocketContext>
+public sealed class HomeworkModule(ILogger<HomeworkModule> logger, SchulPlanerManager manager) : InteractionModuleBase<ExtendedSocketContext>
 {
     private readonly ILogger _logger = logger;
     private readonly SchulPlanerManager _manager = manager;
