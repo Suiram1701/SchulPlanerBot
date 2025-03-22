@@ -97,28 +97,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="settings.response.channel" xml:space="preserve">
-    <value>Text channel: {0}</value>
+  <data name="noChannel" xml:space="preserve">
+    <value>A notification channel must be set before this action!</value>
   </data>
-  <data name="settings.response.noChannel" xml:space="preserve">
-    <value>Text channel: Not yet configured</value>
+  <data name="lowTimeBetween" xml:space="preserve">
+    <value>The provided time in between the notifications must be at least {0}!</value>
   </data>
-  <data name="settings.response.notifications" xml:space="preserve">
-    <value>Notifications: Every {0} starting at {1}</value>
+  <data name="dueTooLow" xml:space="preserve">
+    <value>The provided due have to be at least {0} in the future!</value>
   </data>
-  <data name="settings.response.noNotifications" xml:space="preserve">
-    <value>Notifications: Not yet enabled</value>
-  </data>
-  <data name="channel.updated" xml:space="preserve">
-    <value>Notification channel updated to {0}.</value>
-  </data>
-  <data name="channel.removed" xml:space="preserve">
-    <value>Notification channel removed. If automated notifications were enabled they are also disabled because there is not channel to notify in.</value>
-  </data>
-  <data name="notifications.updated" xml:space="preserve">
-    <value>Notifying in channel {0} every {1} starting at {2}.</value>
-  </data>
-  <data name="disable-notifications.disabled" xml:space="preserve">
-    <value>Automated notifications disabled.</value>
+  <data name="homeworkNotFound" xml:space="preserve">
+    <value>A homework with the specified ID could not be found!</value>
   </data>
 </root>

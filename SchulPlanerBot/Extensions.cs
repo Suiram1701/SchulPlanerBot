@@ -5,12 +5,12 @@ using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Database;
+using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Options;
 using SchulPlanerBot.ServiceDefaults;
 using SchulPlanerBot.Services;
 using System.Globalization;
 using System.Reflection;
-using System.Resources;
 
 namespace SchulPlanerBot;
 
@@ -88,10 +88,10 @@ public static class Extensions
             .AddHostedService<DiscordInteractionHandler>();
     }
 
-    public static IServiceCollection AddInteractionResxLocalization<T>(this IServiceCollection services, string baseResource, params CultureInfo[] supportedLocales) =>
-        AddInteractionResxLocalization(services, baseResource, typeof(T).Assembly, supportedLocales);
+    public static IServiceCollection AddInteractionResXLocalization<T>(this IServiceCollection services, string baseResource, params CultureInfo[] supportedLocales) =>
+        AddInteractionResXLocalization(services, baseResource, typeof(T).Assembly, supportedLocales);
 
-    public static IServiceCollection AddInteractionResxLocalization(this IServiceCollection services, string baseResource, Assembly resourceAssembly, params CultureInfo[] supportedLocales)
+    public static IServiceCollection AddInteractionResXLocalization(this IServiceCollection services, string baseResource, Assembly resourceAssembly, params CultureInfo[] supportedLocales)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrWhiteSpace(baseResource);
@@ -109,7 +109,10 @@ public static class Extensions
     public static IServiceCollection AddDatabaseManagers(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        return services.AddScoped<SchulPlanerManager>();
+
+        return services
+            .AddTransient<ErrorService>()
+            .AddScoped<SchulPlanerManager>();
     }
 
     public static TracerProviderBuilder AddDiscordClientInstrumentation(this TracerProviderBuilder builder)
@@ -122,12 +125,5 @@ public static class Extensions
     {
         ArgumentNullException.ThrowIfNull(builder);
         return builder.AddSource(DatabaseStartup.ActivitySourceName);
-    }
-
-    private static LogLevel GetMinimumLogLevel(IServiceProvider provider, string categoryName)
-    {
-        LoggerFilterOptions loggerOptions = provider.GetRequiredService<IOptionsMonitor<LoggerFilterOptions>>().CurrentValue;
-        return loggerOptions.Rules.FirstOrDefault(f => f.CategoryName?.EndsWith(categoryName) ?? false)?.LogLevel
-            ?? loggerOptions.MinLevel;
     }
 }

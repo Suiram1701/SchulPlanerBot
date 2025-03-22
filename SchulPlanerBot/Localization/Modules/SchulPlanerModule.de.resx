@@ -121,7 +121,4 @@
   <data name="notifications.updated" xml:space="preserve">
     <value>Benachrichtige alle {1} ab dem {2} in {0}.</value>
   </data>
-  <data name="notifications.tooShort" xml:space="preserve">
-    <value>Die angegebene Zeit zwischen den Benachrichtigungen muss mindestens {0} betragen!</value>
-  </data>
 </root>

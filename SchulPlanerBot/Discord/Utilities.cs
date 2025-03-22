@@ -32,10 +32,6 @@ public static class Utilities
         };
     }
 
-    public static string Mention(this IUser user) => $"<@{user.Id}>";
-
-    public static string Mention(this IChannel channel) => $"<#{channel.Id}>";
-
     public static string Mention(ulong id, MentionType type)
     {
         char prefix = type switch
@@ -47,7 +43,7 @@ public static class Utilities
         return $"<{prefix}{id}>";
     }
 
-    public static string Timestamp(this DateTimeOffset dateTime, TimestampKind kind)
+    public static string Timestamp(DateTimeOffset dateTime, TimestampKind kind)
     {
         string suffix = kind switch
         {

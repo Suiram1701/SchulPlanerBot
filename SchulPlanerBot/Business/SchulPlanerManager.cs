@@ -1,13 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SchulPlanerBot.Business.Database;
+using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Business.Models;
 
 namespace SchulPlanerBot.Business;
 
-public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, BotDbContext dbContext)
+public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, BotDbContext dbContext, ErrorService errorService)
 {
     private readonly ILogger _logger = logger;
     private readonly BotDbContext _dbContext = dbContext;
+    private readonly ErrorService _errorService = errorService;
 
     public async Task<Guild> GetGuildAsync(ulong guildId, CancellationToken ct)
     {
@@ -47,11 +49,11 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, BotDbContext
     public async Task<UpdateResult> EnableNotificationsAsync(ulong guildId, DateTimeOffset start, TimeSpan between, CancellationToken ct = default)
     {
         Guild guild = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);
-        if (guild.ChannelId is null)
-            return UpdateResult.Failed("NoChannel", "An interaction channel must be set!");
 
+        if (guild.ChannelId is null)
+            return _errorService.NoChannel();
         if (between < TimeSpan.FromMinutes(10))
-            return UpdateResult.Failed("LowTimeBetween", "The provided time in between the notifications must be at least 10 min!");
+            return _errorService.LowTimeBetween(TimeSpan.FromMinutes(10));
 
         guild.NotificationsEnabled = true;
         guild.StartNotifications = start.ToUniversalTime();
@@ -75,7 +77,8 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, BotDbContext
         return await _dbContext.Homeworks
             .AsNoTracking()
             .Where(h => h.OwnerId == guildId)
-            .SingleOrDefaultAsync(h => h.Id == id, ct).ConfigureAwait(false);
+            .SingleOrDefaultAsync(h => h.Id == id, ct)
+            .ConfigureAwait(false);
     }
 
     public async Task<IEnumerable<Homework>> GetHomeworksAsync(ulong guildId, DateTimeOffset? start = null, DateTimeOffset? end = null, string? subject = null, CancellationToken ct = default)
@@ -95,15 +98,16 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, BotDbContext
 
     public async Task<(Homework? homework, UpdateResult result)> CreateHomeworkAsync(ulong guildId, ulong userId, DateTimeOffset due, string? subject, string title, string? details, CancellationToken ct = default)
     {
+        due = due.ToUniversalTime();
         if (due <= DateTimeOffset.UtcNow.AddMinutes(10))
-            return (null, UpdateResult.Failed("DueInPast", "The provided due have to be at least 10 minutes in the future!"));
+            return (null, _errorService.DueMustInFuture(TimeSpan.FromMinutes(10)));
 
         _ = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);     // Ensure the a guild with this id exists
 
         Homework homework = new()
         {
             OwnerId = guildId,
-            Due = due.ToUniversalTime(),
+            Due = due,
             Subject = subject,
             Title = title,
             Details = details,
@@ -122,9 +126,9 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, BotDbContext
             .AsNoTracking()
             .Where(h => h.OwnerId == guildId && h.Id == id)
             .ExecuteDeleteAsync(ct).ConfigureAwait(false);
-        if (count == 0)
-            return UpdateResult.Failed("HomeworkNotFound", "The specified homework doesn't exists.");
-        return UpdateResult.Succeeded();
+        return count != 0
+            ? UpdateResult.Succeeded()
+            : _errorService.HomeworkNotFound();
     }
 
     private async Task<Guild> GetOrAddGuildAsync(ulong guildId, CancellationToken ct = default)

@@ -3,6 +3,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Localization;
 using SchulPlanerBot.Business;
+using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.Interactions;
@@ -17,11 +18,13 @@ public sealed class HomeworksModule(
     ILogger<HomeworksModule> logger,
     IStringLocalizer<HomeworksModule> localizer,
     IStringLocalizer<CreateHomeworkModal> modalLocalizer,
+    ErrorService errorService,
     SchulPlanerManager manager) : InteractionModuleBase<ExtendedSocketContext>
 {
     private readonly ILogger _logger = logger;
     private readonly IStringLocalizer _localizer = localizer;
     private readonly IStringLocalizer _modalLocalizer = modalLocalizer;
+    private readonly ErrorService _errorService = errorService;
     private readonly SchulPlanerManager _manager = manager;
 
     public SocketUser User => Context.User;
@@ -41,11 +44,11 @@ public sealed class HomeworksModule(
             int sentEmbeds = 0;
             do
             {
-                Embed[] embedPart = [.. embeds.Skip(sentEmbeds).Take(10)];
+                Embed[] embedPart = [.. embeds.Skip(sentEmbeds).Take(DiscordConfig.MaxEmbedsPerMessage)];
                 if (!Context.Interaction.HasResponded)
-                    await RespondAsync(embeds: embedPart, allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+                    await RespondAsync(embeds: embedPart, allowedMentions: AllowedMentions.None).ConfigureAwait(false);     // Only one time can be responded directly
                 else
-                    await ReplyAsync(embeds: embedPart, allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+                    await FollowupAsync(embeds: embedPart, allowedMentions: AllowedMentions.None).ConfigureAwait(false);
 
                 sentEmbeds += embedPart.Length;
             }
@@ -73,18 +76,20 @@ public sealed class HomeworksModule(
             return;
         }
 
-        (Homework? homework, UpdateResult result) = await _manager.CreateHomeworkAsync(
+        (Homework? homework, UpdateResult creationResult) = await _manager.CreateHomeworkAsync(
             Guild.Id,
             User.Id,
             due,
             homeworkModal.Subject,
             homeworkModal.Title,
             homeworkModal.Details,
-            CancellationToken).ConfigureAwait(false);
-        if (result.Success && homework is not null)
+            CancellationToken)
+            .ConfigureAwait(false);
+
+        if (creationResult.Success && homework is not null)
             await RespondAsync(_localizer["createHomework.created"], embeds: [HomeworkToEmbed(homework)], allowedMentions: AllowedMentions.None).ConfigureAwait(false);
         else
-            await RespondAsync(result.Errors[0].Description).ConfigureAwait(false);
+            await this.RespondWithErrorAsync(creationResult.Errors, _logger).ConfigureAwait(false);
     }
 
     [SlashCommand("delete", "Deletes a homework by its ID. A homework can only be deleted by its creator or a mod.")]
@@ -99,7 +104,7 @@ public sealed class HomeworksModule(
         Homework? homework = await _manager.GetHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
         if (homework is null)
         {
-            await RespondAsync("Homework not found").ConfigureAwait(false);
+            await this.RespondWithErrorAsync(_errorService.HomeworkNotFound().Errors, _logger).ConfigureAwait(false);
             return;
         }
 
@@ -114,7 +119,7 @@ public sealed class HomeworksModule(
         if (deleteResult.Success)
             await RespondAsync(_localizer["delete.deleted", homework.Title]).ConfigureAwait(false);
         else
-            await RespondAsync(deleteResult.Errors[0].Description).ConfigureAwait(false);
+            await this.RespondWithErrorAsync(deleteResult.Errors, _logger).ConfigureAwait(false);
     }
 
     private Embed HomeworkToEmbed(Homework homework)
@@ -123,9 +128,9 @@ public sealed class HomeworksModule(
             .WithAuthor(new EmbedAuthorBuilder().WithName(homework.Subject))
             .WithTitle(homework.Title)
             .WithDescription(homework.Details)
-            .AddField(_localizer["homeworkEmbed.due"], homework.Due.Timestamp(TimestampKind.Relative))
+            .AddField(_localizer["homeworkEmbed.due"], Utilities.Timestamp(homework.Due, TimestampKind.Relative))
             .AddField(_localizer["homeworkEmbed.creator"], Utilities.Mention(homework.CreatedBy, MentionType.User))
-            .AddField(_localizer["homeworkEmbed.created"], homework.CreatedAt.Timestamp(TimestampKind.ShortDate))
+            .AddField(_localizer["homeworkEmbed.created"], Utilities.Timestamp(homework.CreatedAt, TimestampKind.ShortDate))
             .AddField(_localizer["homeworkEmbed.id"], $"||{homework.Id}||")
             .Build();
     }

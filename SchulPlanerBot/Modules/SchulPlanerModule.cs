@@ -38,7 +38,7 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
             guild.NotificationsEnabled
                 ? _localizer["settings.response.notifications",
                     guild.BetweenNotifications.Value.Humanize(),
-                    guild.StartNotifications.Value.Timestamp(TimestampKind.ShortDateTime)]
+                    Utilities.Timestamp(guild.StartNotifications.Value, TimestampKind.ShortDateTime)]
                 : _localizer["settings.response.noNotifications"]
             ]);
         await RespondAsync(message).ConfigureAwait(false);
@@ -62,39 +62,32 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
     [SlashCommand("notifications", "Configures when notifications will be made.")]
     public async Task SetNotificationsAsync(DateTime start, TimeSpan between)
     {
-        if (between < TimeSpan.FromMinutes(10))
-            await RespondAsync(_localizer["notifications.tooShort", between.Humanize()]).ConfigureAwait(false);
-
-        UpdateResult result = await _manager.EnableNotificationsAsync(Guild.Id, start, between, CancellationToken).ConfigureAwait(false);
-        if (result.Success)
+        UpdateResult enableResult = await _manager.EnableNotificationsAsync(Guild.Id, start, between, CancellationToken).ConfigureAwait(false);
+        if (enableResult.Success)
         {
             Guild guild = await _manager.GetGuildAsync(Guild.Id, CancellationToken).ConfigureAwait(false);
             DateTimeOffset startOffset = new(start);
 
             await RespondAsync(_localizer[
-                "notifications.updated",
-                Utilities.Mention(guild.ChannelId!.Value, MentionType.Channel),
-                between.Humanize(),
-                startOffset.Timestamp(TimestampKind.ShortDateTime)])
+                    "notifications.updated",
+                    Utilities.Mention(guild.ChannelId!.Value, MentionType.Channel),
+                    between.Humanize(),
+                    Utilities.Timestamp(startOffset, TimestampKind.ShortDateTime)])
                 .ConfigureAwait(false);
         }
         else
         {
-            switch (result.Errors.First())
-            {
-                case { Name: "NoChannel" }:
-                    await RespondAsync("An interaction channel must be configured before enabling notifications!").ConfigureAwait(false);
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }
+            await this.RespondWithErrorAsync(enableResult.Errors, _logger).ConfigureAwait(false);
         }
     }
 
     [SlashCommand("disable-notifications", "Disables any automated notifications.")]
     public async Task DisableNotificationsAsync()
     {
-        await _manager.DisableNotificationsAsync(Guild.Id, CancellationToken).ConfigureAwait(false);
-        await RespondAsync(_localizer["disable-notifications.disabled"]).ConfigureAwait(false);
+        UpdateResult disableResult = await _manager.DisableNotificationsAsync(Guild.Id, CancellationToken).ConfigureAwait(false);
+        if (disableResult.Success)
+            await RespondAsync(_localizer["disable-notifications.disabled"]).ConfigureAwait(false);
+        else
+            await this.RespondWithErrorAsync(disableResult.Errors, _logger).ConfigureAwait(false);
     }
 }
