@@ -5,10 +5,12 @@ using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Database;
-using SchulPlanerBot.Discord;
 using SchulPlanerBot.Options;
 using SchulPlanerBot.ServiceDefaults;
 using SchulPlanerBot.Services;
+using System.Globalization;
+using System.Reflection;
+using System.Resources;
 
 namespace SchulPlanerBot;
 
@@ -42,27 +44,26 @@ public static class Extensions
             .ValidateOnStart();
 
         return services
-            .AddTransient<DiscordSocketConfig>(sp =>
+            .Configure<DiscordSocketConfig>(config =>
             {
-                LogLevel minLogLevel = GetMinimumLogLevel(sp, nameof(DiscordClientStartup));
+                config.LogLevel = LogSeverity.Debug;     // Managed by ILogger<DiscordSocketClient>
+                config.DefaultRetryMode = RetryMode.AlwaysRetry;
+                config.GatewayIntents = GatewayIntents.AllUnprivileged;
+                config.LogGatewayIntentWarnings = true;
 
-                return new()
-                {
-                    LogLevel = Utilities.ConvertLogLevel(minLogLevel),
-                    DefaultRetryMode = RetryMode.AlwaysRetry,
-                    GatewayIntents = GatewayIntents.AllUnprivileged,
-                    LogGatewayIntentWarnings = true,
-
-                    /*
-                     * The snowflake of an object is always specified in UTC while the server could use a local time.
-                     * To prevent the response cancellation because of the three second timeout (a different time zone causes a difference of one hour) the time
-                     * where the message were received have to be used.
-                    */
-                    UseInteractionSnowflakeDate = false
-                };
+                /*
+                 * The snowflake of an object is always specified in UTC while the server could use a local time.
+                 * To prevent the response cancellation because of the three second timeout (a different time zone causes a difference of one hour) the time
+                 * where the message were received have to be used.
+                */
+                config.UseInteractionSnowflakeDate = false;
             })
-            .AddSingleton<DiscordSocketClient>()
-            .AddHostedService<DiscordClientStartup>();
+            .AddSingleton<DiscordSocketClient>(sp =>
+            {
+                IOptionsMonitor<DiscordSocketConfig> monitor = sp.GetRequiredService<IOptionsMonitor<DiscordSocketConfig>>();
+                return new(monitor.CurrentValue);
+            })
+            .AddHostedService<DiscordClientManager>();
     }
 
     public static IServiceCollection AddInteractionFramework(this IServiceCollection services)
@@ -70,27 +71,40 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(services);
 
         return services
-            .AddTransient<InteractionServiceConfig>(sp =>
+            .Configure<InteractionServiceConfig>(config =>
             {
-                LogLevel minLogLevel = GetMinimumLogLevel(sp, nameof(DiscordInteractionHandler));
-
-                return new()
-                {
-                    LogLevel = Utilities.ConvertLogLevel(minLogLevel),
-                    DefaultRunMode = RunMode.Sync,     // Idk exactly why but async always fails
-                    AutoServiceScopes = false,     // Scopes managed by DiscordInteractionHandler
-                    UseCompiledLambda = true,
-                };
+                config.LogLevel = LogSeverity.Debug;     // Managed by ILogger<InteractionService>
+                config.DefaultRunMode = RunMode.Sync;     // Idk exactly why but async always fails
+                config.AutoServiceScopes = false;     // Scopes managed by DiscordInteractionHandler
+                config.UseCompiledLambda = true;
             })
             .AddSingleton(sp =>
             {
                 DiscordSocketClient client = sp.GetRequiredService<DiscordSocketClient>();
-                InteractionServiceConfig config = sp.GetRequiredService<InteractionServiceConfig>();
+                IOptionsMonitor<InteractionServiceConfig> monitor = sp.GetRequiredService<IOptionsMonitor<InteractionServiceConfig>>();
 
-                return new InteractionService(client, config);
+                return new InteractionService(client, monitor.CurrentValue);
             })
             .AddHostedService<DiscordInteractionHandler>();
     }
+
+    public static IServiceCollection AddInteractionResxLocalization<T>(this IServiceCollection services, string baseResource, params CultureInfo[] supportedLocales) =>
+        AddInteractionResxLocalization(services, baseResource, typeof(T).Assembly, supportedLocales);
+
+    public static IServiceCollection AddInteractionResxLocalization(this IServiceCollection services, string baseResource, Assembly resourceAssembly, params CultureInfo[] supportedLocales)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentException.ThrowIfNullOrWhiteSpace(baseResource);
+        ArgumentNullException.ThrowIfNull(resourceAssembly);
+        if (supportedLocales.Length == 0)
+            throw new ArgumentException("At least one locale is required!", nameof(supportedLocales));
+
+        ResxLocalizationManager localizationManager = new(baseResource, resourceAssembly, supportedLocales);
+        services.Configure<InteractionServiceConfig>(config => config.LocalizationManager = localizationManager);
+
+        return services;
+    }
+
 
     public static IServiceCollection AddDatabaseManagers(this IServiceCollection services)
     {
@@ -101,7 +115,7 @@ public static class Extensions
     public static TracerProviderBuilder AddDiscordClientInstrumentation(this TracerProviderBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        return builder.AddSource(DiscordClientStartup.ActivitySourceName, DiscordInteractionHandler.ActivitySourceName);
+        return builder.AddSource(DiscordClientManager.ActivitySourceName, DiscordInteractionHandler.ActivitySourceName);
     }
 
     public static TracerProviderBuilder AddBotDatabaseInstrumentation(this TracerProviderBuilder builder)

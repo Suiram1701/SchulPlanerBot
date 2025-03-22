@@ -2,6 +2,7 @@
 using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.Interactions;
@@ -13,8 +14,10 @@ namespace SchulPlanerBot.Services;
 
 internal sealed class DiscordInteractionHandler(
     IHostEnvironment environment,
-    ILogger<DiscordInteractionHandler> logger,
     IServiceScopeFactory scopeFactory,
+    ILogger<DiscordInteractionHandler> logger,
+    ILogger<InteractionService> interactionLogger,
+    IStringLocalizer<DiscordInteractionHandler> localizer,
     IOptions<DiscordClientOptions> optionsAccessor,
     DiscordSocketClient client,
     InteractionService interaction)
@@ -23,8 +26,10 @@ internal sealed class DiscordInteractionHandler(
     public const string ActivitySourceName = "Discord.InteractionHandler";
 
     private readonly IHostEnvironment _environment = environment;
-    private readonly ILogger _logger = logger;
     private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+    private readonly ILogger _logger = logger;
+    private readonly ILogger _interactionLogger = interactionLogger;
+    private readonly IStringLocalizer _localizer = localizer;
     private readonly DiscordClientOptions _options = optionsAccessor.Value;
     private readonly DiscordSocketClient _client = client;
     private readonly InteractionService _interaction = interaction;
@@ -95,7 +100,7 @@ internal sealed class DiscordInteractionHandler(
             using CancellationTokenSource tokenSource = new(TimeSpan.FromSeconds(3));
 
             ExtendedSocketContext context = new(_client, interaction, activity, tokenSource.Token);
-            var a = await _interaction.ExecuteCommandAsync(context, scope.ServiceProvider).ConfigureAwait(false);     // AutoScope is enabled; result handled by event
+            await _interaction.ExecuteCommandAsync(context, scope.ServiceProvider).ConfigureAwait(false);     // AutoScope is enabled; result handled by event
         }
         catch (Exception ex)
         {
@@ -114,7 +119,7 @@ internal sealed class DiscordInteractionHandler(
 
     private Task Interaction_Log(LogMessage arg)
     {
-        _logger.Log(Utilities.ConvertLogLevel(arg.Severity), arg.Exception, "{LogSource}: {LogMessage}", arg.Source, arg.Message);
+        _interactionLogger.Log(Utilities.ConvertLogLevel(arg.Severity), arg.Exception, "{LogSource}: {LogMessage}", arg.Source, arg.Message);
         return Task.CompletedTask;
     }
 
@@ -122,27 +127,28 @@ internal sealed class DiscordInteractionHandler(
     {
         if (!result.IsSuccess && result.Error is not null)
         {
-            string? response = null;
-
+            string responseMessage = _localizer["errorResponse.unknown"];
             switch (result)
             {
                 case ExecuteResult executeResult and { Error: InteractionCommandError.Exception }:
-                    Activity? activity = Activity.Current;
-                    response = $"An unexpected error occurred during the execution!\n||TraceId: {activity?.TraceId}\nSpanId: {activity?.SpanId}||";
-
-                    _logger.LogError(executeResult.Exception, executeResult.ErrorReason);
+                    _logger.LogError(executeResult.Exception, "Reason: {errorReason}", executeResult.ErrorReason);
+                    responseMessage = _localizer["errorResponse.exception"];
                     break;
                 case PreconditionResult preconditionResult and { Error: InteractionCommandError.UnmetPrecondition }:
-                    response = $"A precondition of this command was not meet: {preconditionResult.ErrorReason}";
+                    responseMessage = _localizer["errorResponse.precondition", preconditionResult.ErrorReason];
                     break;
                 case TypeConverterResult typeConverterResult:
-                    response = $"Unable to parse a provided parameter: {typeConverterResult.ErrorReason}";
+                    responseMessage = _localizer["errorResponse.typeConverter", typeConverterResult.ErrorReason];
                     break;
             }
 
-            response ??= "An unexpected error occurred occurred!";
             if (!context.Interaction.HasResponded)
-                await context.Interaction.RespondAsync(response).ConfigureAwait(false);
+            {
+                Activity? activity = Activity.Current;
+                responseMessage += $"\n||TraceId: {activity?.TraceId}\nSpanId: {activity?.SpanId}||";
+
+                await context.Interaction.RespondAsync(responseMessage, ephemeral: true).ConfigureAwait(false);
+            }
         }
 
         if (context is ExtendedSocketContext extendedContext)

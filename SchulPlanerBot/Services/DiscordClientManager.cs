@@ -7,15 +7,17 @@ using System.Diagnostics;
 
 namespace SchulPlanerBot.Services;
 
-internal sealed class DiscordClientStartup(
-    ILogger<DiscordSocketClient> logger,
+internal sealed class DiscordClientManager(
+    ILogger<DiscordClientManager> logger,
+    ILogger<DiscordSocketClient> clientLogger,
     IOptions<DiscordClientOptions> clientOptionsAccessor,
     DiscordSocketClient client)
     : IHostedService, IDisposable
 {
-    public const string ActivitySourceName = "Discord.ClientStartup";
+    public const string ActivitySourceName = "Discord.ClientManager";
 
     private readonly ILogger _logger = logger;
+    private readonly ILogger _clientLogger = clientLogger;
     private readonly DiscordClientOptions _clientOptions = clientOptionsAccessor.Value;
     private readonly DiscordSocketClient _client = client;
 
@@ -58,7 +60,7 @@ internal sealed class DiscordClientStartup(
 
     private Task Client_Log(LogMessage arg)
     {
-        _logger.Log(Utilities.ConvertLogLevel(arg.Severity), arg.Exception, "{LogSource}: {LogMessage}", arg.Source, arg.Message);
+        _clientLogger.Log(Utilities.ConvertLogLevel(arg.Severity), arg.Exception, "{LogSource}: {LogMessage}", arg.Source, arg.Message);
         return Task.CompletedTask;
     }
 
