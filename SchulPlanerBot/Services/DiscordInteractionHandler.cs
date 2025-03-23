@@ -8,6 +8,8 @@ using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.Interactions;
 using SchulPlanerBot.Options;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using System.Globalization;
 using IResult = Discord.Interactions.IResult;
 
 namespace SchulPlanerBot.Services;
@@ -94,6 +96,11 @@ internal sealed class DiscordInteractionHandler(
             { "GuildId", interaction.GuildId },
         });
 
+        // Required by IStringLocalizer
+        CultureInfo userCulture = new(interaction.UserLocale);
+        CultureInfo.CurrentCulture = userCulture;
+        CultureInfo.CurrentUICulture = userCulture;
+
         try
         {
             using IServiceScope scope = _scopeFactory.CreateScope();
@@ -105,15 +112,6 @@ internal sealed class DiscordInteractionHandler(
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unexpected exception occurred while executing a interaction");
-
-            // If Slash Command execution fails it is most likely that the original interaction acknowledgement will persist. It is a good idea to delete the original
-            // response, or at least let the user know that something went wrong during the command execution.
-            if (interaction.Type is InteractionType.ApplicationCommand)
-            {
-                RestInteractionMessage? msg = await interaction.GetOriginalResponseAsync().ConfigureAwait(false);
-                if (msg is not null)
-                    await msg.DeleteAsync().ConfigureAwait(false);
-            }
         }
     }
 

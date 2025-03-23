@@ -26,7 +26,9 @@ public class Program
         builder.Services.AddOpenTelemetry()
             .WithTracing(provider => provider
                 .AddBotDatabaseInstrumentation()
-                .AddDiscordClientInstrumentation());
+                .AddDiscordNetInstrumentation())
+            .WithMetrics(provider => provider
+                .AddDiscordNetInstrumentation());
 
         WebApplication app = builder.Build();
         app.MapDefaultEndpoints();
