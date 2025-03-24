@@ -116,16 +116,16 @@ public static class Extensions
             .AddScoped<SchulPlanerManager>();
     }
 
-    public static TracerProviderBuilder AddDiscordNetInstrumentation(this TracerProviderBuilder builder)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        return builder.AddSource(DiscordClientManager.ActivitySourceName, DiscordInteractionHandler.ActivitySourceName);
-    }
-
     public static TracerProviderBuilder AddBotDatabaseInstrumentation(this TracerProviderBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
         return builder.AddSource(DatabaseStartup.ActivitySourceName);
+    }
+
+    public static TracerProviderBuilder AddDiscordNetInstrumentation(this TracerProviderBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        return builder.AddSource(DiscordClientManager.ActivitySourceName, DiscordClientMetrics.ActivitySourceName, DiscordInteractionHandler.ActivitySourceName);
     }
 
     public static MeterProviderBuilder AddDiscordNetInstrumentation(this MeterProviderBuilder builder)

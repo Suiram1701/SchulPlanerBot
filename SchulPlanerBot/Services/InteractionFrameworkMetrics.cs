@@ -1,7 +1,5 @@
 ﻿using Discord;
 using Discord.Interactions;
-using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using IResult = Discord.Interactions.IResult;
 
@@ -16,8 +14,6 @@ public sealed class InteractionFrameworkMetrics : IDisposable
     private readonly Meter _meter;
     private readonly Counter<long> _totalInteractions;
     private readonly Histogram<double> _interactionDuration;
-
-    private readonly ConcurrentDictionary<ulong, Stopwatch> _watches = new();
 
     public InteractionFrameworkMetrics(IMeterFactory factory, InteractionService interaction)
     {
