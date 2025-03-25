@@ -135,6 +135,9 @@ internal sealed class DiscordInteractionHandler(
                 case PreconditionResult preconditionResult and { Error: InteractionCommandError.UnmetPrecondition }:
                     responseMessage = _localizer["errorResponse.precondition", preconditionResult.ErrorReason];
                     break;
+                case ParseResult parseResult:
+                    responseMessage = _localizer["errorResponse.typeConverter", parseResult.ErrorReason];
+                    break;
                 case TypeConverterResult typeConverterResult:
                     responseMessage = _localizer["errorResponse.typeConverter", typeConverterResult.ErrorReason];
                     break;

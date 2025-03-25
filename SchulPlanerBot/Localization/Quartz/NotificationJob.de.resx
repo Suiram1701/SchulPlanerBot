@@ -97,22 +97,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="list.noHomeworks" xml:space="preserve">
-    <value>Keine Hausaufgaben verfügbar.</value>
+  <data name="noHomeworks" xml:space="preserve">
+    <value>Bis zur nächsten Benachrichtigung {0} gibt es keine Hausaufgaben.</value>
   </data>
-  <data name="createHomework.parseDueFailed" xml:space="preserve">
-    <value>Es wurde kein gültiges Fälligkeitsdatum angegeben!</value>
-  </data>
-  <data name="createHomework.created" xml:space="preserve">
-    <value>Hausaufgabe erstellt:</value>
-  </data>
-  <data name="delete.parseIdFailed" xml:space="preserve">
-    <value>Eine ungültige ID wurde angegeben!</value>
-  </data>
-  <data name="delete.unauthorized" xml:space="preserve">
-    <value>Sie sind nicht autorisiert diese Hausaufgabe zu löschen!</value>
-  </data>
-  <data name="delete.deleted" xml:space="preserve">
-    <value>Hausaufgabe {0} gelöscht.</value>
+  <data name="homeworks" xml:space="preserve">
+    <value>Dies sind die Hausaufgaben bis zur nächsten Benachrichtigung {0}:</value>
   </data>
 </root>

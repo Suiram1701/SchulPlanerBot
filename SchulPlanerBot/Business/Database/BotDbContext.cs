@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AppAny.Quartz.EntityFrameworkCore.Migrations;
+using AppAny.Quartz.EntityFrameworkCore.Migrations.PostgreSQL;
+using Microsoft.EntityFrameworkCore;
 using SchulPlanerBot.Business.Models;
 
 namespace SchulPlanerBot.Business.Database;
@@ -41,5 +43,7 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
 
             builder.HasKey(h => h.Id);
         });
+
+        modelBuilder.AddQuartz(options => options.UsePostgreSql());
     }
 }

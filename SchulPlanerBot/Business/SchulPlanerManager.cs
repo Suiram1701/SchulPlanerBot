@@ -1,13 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Quartz;
 using SchulPlanerBot.Business.Database;
 using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Business.Models;
+using SchulPlanerBot.Quartz;
 
 namespace SchulPlanerBot.Business;
 
-public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, BotDbContext dbContext, ErrorService errorService)
+public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlanerManager> logger, ISchedulerFactory schedulerFactory, BotDbContext dbContext, ErrorService errorService)
 {
+    private readonly IHostEnvironment _environment = environment;
     private readonly ILogger _logger = logger;
+    private readonly ISchedulerFactory _schedulerFactory = schedulerFactory;
     private readonly BotDbContext _dbContext = dbContext;
     private readonly ErrorService _errorService = errorService;
 
@@ -42,7 +46,9 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, BotDbContext
         guild.ChannelId = null;
         guild.NotificationsEnabled = false;
 
+        await RemoveSchedulerForGuildAsync(guild, ct).ConfigureAwait(false);
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+
         return UpdateResult.Succeeded();
     }
 
@@ -52,14 +58,16 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, BotDbContext
 
         if (guild.ChannelId is null)
             return _errorService.NoChannel();
-        if (between < TimeSpan.FromMinutes(10))
+        if (between < TimeSpan.FromMinutes(10) && !_environment.IsDevelopment())     // Disable minimum time for dev purpose
             return _errorService.LowTimeBetween(TimeSpan.FromMinutes(10));
 
         guild.NotificationsEnabled = true;
         guild.StartNotifications = start.ToUniversalTime();
         guild.BetweenNotifications = between;
 
+        await UpdateSchedulerForGuildAsync(guild, ct).ConfigureAwait(false);     // Call before SaveChanges to ensure exceptions are called before the changes are persisted
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+
         return UpdateResult.Succeeded();
     }
 
@@ -68,7 +76,9 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, BotDbContext
         Guild guild = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);
         guild.NotificationsEnabled = false;
 
+        await RemoveSchedulerForGuildAsync(guild, ct).ConfigureAwait(false);
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+
         return UpdateResult.Succeeded();
     }
 
@@ -99,7 +109,7 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, BotDbContext
     public async Task<(Homework? homework, UpdateResult result)> CreateHomeworkAsync(ulong guildId, ulong userId, DateTimeOffset due, string? subject, string title, string? details, CancellationToken ct = default)
     {
         due = due.ToUniversalTime();
-        if (due <= DateTimeOffset.UtcNow.AddMinutes(10))
+        if (due <= DateTimeOffset.UtcNow.AddMinutes(10) && !_environment.IsDevelopment())     // Disable minimum time for dev purpose
             return (null, _errorService.DueMustInFuture(TimeSpan.FromMinutes(10)));
 
         _ = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);     // Ensure the a guild with this id exists
@@ -141,5 +151,45 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, BotDbContext
         }
 
         return guild;
+    }
+
+    private async Task UpdateSchedulerForGuildAsync(Guild guild, CancellationToken ct)
+    {
+        if (!guild.NotificationsEnabled)
+            throw new InvalidOperationException();
+
+        IScheduler scheduler = await _schedulerFactory.GetScheduler(ct).ConfigureAwait(false);
+
+        TriggerKey triggerKey = Keys.NotificationTrigger(guild.Id);
+        bool triggerExists = await scheduler.CheckExists(triggerKey, ct).ConfigureAwait(false);
+
+        ITrigger trigger = TriggerBuilder.Create()
+            .WithIdentity(triggerKey)
+            .WithDescription("Notifies users of a certain server at a configured time")
+            .ForJob(Keys.NotificationJob)
+            .UsingJobData(DataKeys.GuildId, guild.Id.ToString())
+            .StartAt(guild.StartNotifications.Value)
+            .WithSimpleSchedule(schedule => schedule
+                .WithInterval(guild.BetweenNotifications.Value)
+                .RepeatForever()
+                .WithMisfireHandlingInstructionNextWithRemainingCount())
+            .Build();
+
+        DateTimeOffset? nextFiring = !triggerExists
+            ? await scheduler.ScheduleJob(trigger, ct).ConfigureAwait(false)
+            : await scheduler.RescheduleJob(triggerKey, trigger, ct).ConfigureAwait(false);
+        _logger.LogTrace("Notifications for guild {guildId} scheduled. Next firing at {next}", guild.Id, nextFiring!);
+    }
+
+    private async Task RemoveSchedulerForGuildAsync(Guild guild, CancellationToken ct)
+    {
+        IScheduler scheduler = await _schedulerFactory.GetScheduler(ct).ConfigureAwait(false);
+
+        TriggerKey triggerKey = Keys.NotificationTrigger(guild.Id);
+        if (await scheduler.CheckExists(triggerKey, ct).ConfigureAwait(false))
+        {
+            await scheduler.UnscheduleJob(triggerKey, ct).ConfigureAwait(false);
+            _logger.LogTrace("Notification for guild {guildId} removed from scheduler", guild.Id);
+        }
     }
 }

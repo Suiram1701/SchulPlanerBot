@@ -7,6 +7,7 @@ using OpenTelemetry.Trace;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Database;
 using SchulPlanerBot.Business.Errors;
+using SchulPlanerBot.Discord;
 using SchulPlanerBot.Options;
 using SchulPlanerBot.ServiceDefaults;
 using SchulPlanerBot.Services;
@@ -72,6 +73,7 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(services);
 
         return services
+            .AddTransient<EmbedsService>()
             .Configure<InteractionServiceConfig>(config =>
             {
                 config.LogLevel = LogSeverity.Debug;     // Managed by ILogger<InteractionService>

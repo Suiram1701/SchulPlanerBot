@@ -18,14 +18,16 @@ public sealed class HomeworksModule(
     ILogger<HomeworksModule> logger,
     IStringLocalizer<HomeworksModule> localizer,
     IStringLocalizer<CreateHomeworkModal> modalLocalizer,
+    SchulPlanerManager manager,
     ErrorService errorService,
-    SchulPlanerManager manager) : InteractionModuleBase<ExtendedSocketContext>
+    EmbedsService embedsService) : InteractionModuleBase<ExtendedSocketContext>
 {
     private readonly ILogger _logger = logger;
     private readonly IStringLocalizer _localizer = localizer;
     private readonly IStringLocalizer _modalLocalizer = modalLocalizer;
-    private readonly ErrorService _errorService = errorService;
     private readonly SchulPlanerManager _manager = manager;
+    private readonly ErrorService _errorService = errorService;
+    private readonly EmbedsService _embedsService = embedsService;
 
     public SocketUser User => Context.User;
 
@@ -38,7 +40,7 @@ public sealed class HomeworksModule(
     {
         IEnumerable<Homework> homeworks = await _manager.GetHomeworksAsync(Guild.Id, start, end, subject, CancellationToken).ConfigureAwait(false);
 
-        Embed[] embeds = [.. homeworks.Select(HomeworkToEmbed)];
+        Embed[] embeds = [.. homeworks.Select(_embedsService.Homework)];
         if (embeds.Length > 0)
         {
             int sentEmbeds = 0;
@@ -87,7 +89,7 @@ public sealed class HomeworksModule(
             .ConfigureAwait(false);
 
         if (creationResult.Success && homework is not null)
-            await RespondAsync(_localizer["createHomework.created"], embeds: [HomeworkToEmbed(homework)], allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+            await RespondAsync(_localizer["createHomework.created"], embeds: [_embedsService.Homework(homework)], allowedMentions: AllowedMentions.None).ConfigureAwait(false);
         else
             await this.RespondWithErrorAsync(creationResult.Errors, _logger).ConfigureAwait(false);
     }
@@ -120,18 +122,5 @@ public sealed class HomeworksModule(
             await RespondAsync(_localizer["delete.deleted", homework.Title]).ConfigureAwait(false);
         else
             await this.RespondWithErrorAsync(deleteResult.Errors, _logger).ConfigureAwait(false);
-    }
-
-    private Embed HomeworkToEmbed(Homework homework)
-    {
-        return new EmbedBuilder()
-            .WithAuthor(new EmbedAuthorBuilder().WithName(homework.Subject))
-            .WithTitle(homework.Title)
-            .WithDescription(homework.Details)
-            .AddField(_localizer["homeworkEmbed.due"], Utilities.Timestamp(homework.Due, TimestampKind.Relative))
-            .AddField(_localizer["homeworkEmbed.creator"], Utilities.Mention(homework.CreatedBy, MentionType.User))
-            .AddField(_localizer["homeworkEmbed.created"], Utilities.Timestamp(homework.CreatedAt, TimestampKind.ShortDate))
-            .AddField(_localizer["homeworkEmbed.id"], $"||{homework.Id}||")
-            .Build();
     }
 }

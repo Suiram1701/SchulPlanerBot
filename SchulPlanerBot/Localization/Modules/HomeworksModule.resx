@@ -115,16 +115,4 @@
   <data name="delete.deleted" xml:space="preserve">
     <value>Homework {0} deleted.</value>
   </data>
-  <data name="homeworkEmbed.due" xml:space="preserve">
-    <value>Due</value>
-  </data>
-  <data name="homeworkEmbed.creator" xml:space="preserve">
-    <value>Creator</value>
-  </data>
-  <data name="homeworkEmbed.created" xml:space="preserve">
-    <value>Created at</value>
-  </data>
-  <data name="homeworkEmbed.id" xml:space="preserve">
-    <value>ID</value>
-  </data>
 </root>
