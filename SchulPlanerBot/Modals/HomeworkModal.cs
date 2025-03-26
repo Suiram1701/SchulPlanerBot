@@ -4,42 +4,42 @@ using Microsoft.Extensions.Localization;
 
 namespace SchulPlanerBot.Modals;
 
-public class CreateHomeworkModal : IModal
+public class HomeworkModal : IModal
 {
-    string IModal.Title => "Create homework";
+    string IModal.Title => string.Empty;
 
     [RequiredInput]
     [InputLabel("Due date")]
-    [ModalTextInput("due_date", placeholder: "20.01.2020", maxLength: 10)]
+    [ModalTextInput(nameof(Due), placeholder: "20.01.2020", maxLength: 19)]     // 10 is the max length using the format 'dd.mm.yyyy hh:MM:ss'
     public string Due { get; set; } = default!;
 
     [InputLabel("Subject")]
-    [ModalTextInput("subject", placeholder: "Math", minLength: 0, maxLength: 32)]
+    [ModalTextInput(nameof(Subject), placeholder: "Math", minLength: 0, maxLength: 32)]
     public string? Subject { get; set; } = default!;
 
     [RequiredInput]
     [InputLabel("Title")]
-    [ModalTextInput("title", placeholder: "Do page 97 task 2d", maxLength: 64)]
+    [ModalTextInput(nameof(Title), placeholder: "Do page 97 task 2d", maxLength: 64)]
     public string Title { get; set; } = default!;
 
     [RequiredInput(isRequired: false)]
     [InputLabel("Details")]
-    [ModalTextInput("details", TextInputStyle.Paragraph, placeholder: "Solve quadratic equation", minLength: 0)]
+    [ModalTextInput(nameof(Details), TextInputStyle.Paragraph, placeholder: "Solve quadratic equation", minLength: 0)]
     public string? Details { get; set; } = string.Empty;
 
-    internal static void LocalizeModal(ModalBuilder builder, IStringLocalizer localizer)
+    internal static void LocalizeModal(ModalBuilder builder, IStringLocalizer localizer, bool create = true)
     {
         builder
-            .WithTitle(localizer["modalTitle"])
-            .UpdateTextInput("due_date", input => input
+            .WithTitle(localizer[create ? "title.create" : "title.modify"])
+            .UpdateTextInput(nameof(Due), input => input
                 .WithLabel(localizer["due_date"]))
-            .UpdateTextInput("subject", input => input
+            .UpdateTextInput(nameof(Subject), input => input
                 .WithLabel(localizer["subject"])
                 .WithPlaceholder(localizer["subject.placeholder"]))
-            .UpdateTextInput("title", input => input
+            .UpdateTextInput(nameof(Title), input => input
                 .WithLabel(localizer["title"])
                 .WithPlaceholder(localizer["title.placeholder"]))
-            .UpdateTextInput("details", input => input
+            .UpdateTextInput(nameof(Details), input => input
                 .WithLabel(localizer["details"])
                 .WithPlaceholder(localizer["details.placeholder"]));
     }

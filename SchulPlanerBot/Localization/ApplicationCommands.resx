@@ -179,7 +179,19 @@
     <value>create</value>
   </data>
   <data name="homeworks.create.description" xml:space="preserve">
-    <value>Opens the form to create a new homework.</value>
+    <value>Opens the dialog to create a new homework.</value>
+  </data>
+  <data name="homeworks.modify.name" xml:space="preserve">
+    <value>edit</value>
+  </data>
+  <data name="homeworks.modify.description" xml:space="preserve">
+    <value>Opens the dialog to modify an existing homework. Can only be done by its creator or a mod.</value>
+  </data>
+  <data name="homeworks.modify.id.name" xml:space="preserve">
+    <value>id</value>
+  </data>
+  <data name="homeworks.modify.id.description" xml:space="preserve">
+    <value>The ID of the homework to modify.</value>
   </data>
   <data name="homeworks.delete.name" xml:space="preserve">
     <value>delete</value>

@@ -193,4 +193,16 @@
   <data name="homeworks.delete.id.description" xml:space="preserve">
     <value>Die ID der zu entfernenden Hausaufgabe.</value>
   </data>
+  <data name="homeworks.modify.name" xml:space="preserve">
+    <value>bearbeiten</value>
+  </data>
+  <data name="homeworks.modify.description" xml:space="preserve">
+    <value>Öffnet den Dialog zum bearbeiten einer Hausaufgabe. Nur vom Ersteller oder einem Mod durchführbar.</value>
+  </data>
+  <data name="homeworks.modify.id.name" xml:space="preserve">
+    <value>id</value>
+  </data>
+  <data name="homeworks.modify.id.description" xml:space="preserve">
+    <value>Die ID der zu bearbeitenden Hausaufgabe.</value>
+  </data>
 </root>

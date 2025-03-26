@@ -17,7 +17,7 @@ namespace SchulPlanerBot.Modules;
 public sealed class HomeworksModule(
     ILogger<HomeworksModule> logger,
     IStringLocalizer<HomeworksModule> localizer,
-    IStringLocalizer<CreateHomeworkModal> modalLocalizer,
+    IStringLocalizer<HomeworkModal> modalLocalizer,
     SchulPlanerManager manager,
     ErrorService errorService,
     EmbedsService embedsService) : InteractionModuleBase<ExtendedSocketContext>
@@ -63,18 +63,15 @@ public sealed class HomeworksModule(
     }
 
     [SlashCommand("create", "Opens the form to create a new homework.")]
-    public async Task CreateHomeworkAsync() =>
-        await RespondWithModalAsync<CreateHomeworkModal>(
-            ComponentIds.CreateHomeworkModal,
-            modifyModal: builder => CreateHomeworkModal.LocalizeModal(builder, _modalLocalizer))
-        .ConfigureAwait(false);
+    public async Task CreateHomeworkAsync() => 
+        await RespondWithModalAsync<HomeworkModal>(ComponentIds.CreateHomeworkModal, modifyModal: LocalizeHomeworkModal).ConfigureAwait(false);
 
     [ModalInteraction(ComponentIds.CreateHomeworkModal, ignoreGroupNames: true)]
-    public async Task CreateHomework_SubmitAsync(CreateHomeworkModal homeworkModal)
+    public async Task CreateHomework_SubmitAsync(HomeworkModal homeworkModal)
     {
         if (!DateTimeOffset.TryParse(homeworkModal.Due, out DateTimeOffset due))
         {
-            await RespondAsync(_localizer["createHomework.parseDueFailed"], ephemeral: true).ConfigureAwait(false);
+            await RespondAsync(_localizer["create.parseDueFailed"], ephemeral: true).ConfigureAwait(false);
             return;
         }
 
@@ -89,9 +86,54 @@ public sealed class HomeworksModule(
             .ConfigureAwait(false);
 
         if (creationResult.Success && homework is not null)
-            await RespondAsync(_localizer["createHomework.created"], embeds: [_embedsService.Homework(homework)], allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+            await RespondAsync(_localizer["create.created"], embeds: [_embedsService.Homework(homework)], allowedMentions: AllowedMentions.None).ConfigureAwait(false);
         else
             await this.RespondWithErrorAsync(creationResult.Errors, _logger).ConfigureAwait(false);
+    }
+
+    [SlashCommand("modify", "Modifies an existing homework.")]
+    public async Task ModifyHomeworkAsync(string id)
+    {
+        if (!Guid.TryParse(id, out Guid homeworkId))
+        {
+            await RespondAsync(_localizer["modify.parseIdFailed"], ephemeral: true).ConfigureAwait(false);
+            return;
+        }
+
+        Homework? homework = await _manager.GetHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
+        if (homework is null)
+        {
+            await this.RespondWithErrorAsync(_errorService.HomeworkNotFound().Errors, _logger).ConfigureAwait(false);
+            return;
+        }
+
+        // Check authorization
+        SocketGuildUser guildUser = Guild.GetUser(User.Id);
+        if (!guildUser.GuildPermissions.Has(GuildPermission.ModerateMembers) && homework?.CreatedBy != User.Id)
+        {
+            await RespondAsync(_localizer["modify.unauthorized"], ephemeral: true).ConfigureAwait(false);
+            return;
+        }
+
+        HomeworkModal modal = new()
+        {
+            Due = homework.Due.ToString("g"),     // g Serializes in similar format than the user input
+            Subject = homework.Subject,
+            Title = homework.Title,
+            Details = homework.Details
+        };
+        await RespondWithModalAsync(ComponentIds.ModifyHomeworkModalId(homework.Id.ToString()), modal, modifyModal: LocalizeHomeworkModal).ConfigureAwait(false);
+    }
+
+    [ModalInteraction(ComponentIds.ModifyHomeworkModal, ignoreGroupNames: true)]
+    public async Task ModifyHomework_SubmitAsync(string id, HomeworkModal homeworkModal)
+    {
+        Guid homeworkId = Guid.Parse(id);
+        if (!DateTimeOffset.TryParse(homeworkModal.Due, out DateTimeOffset due))
+        {
+            await RespondAsync(_localizer["modify.parseDueFailed"], ephemeral: true).ConfigureAwait(false);
+            return;
+        }
     }
 
     [SlashCommand("delete", "Deletes a homework by its ID. A homework can only be deleted by its creator or a mod.")]
@@ -110,6 +152,7 @@ public sealed class HomeworksModule(
             return;
         }
 
+        // Check authorization
         SocketGuildUser guildUser = Guild.GetUser(User.Id);
         if (!guildUser.GuildPermissions.Has(GuildPermission.ModerateMembers) && homework?.CreatedBy != User.Id)
         {
@@ -123,4 +166,6 @@ public sealed class HomeworksModule(
         else
             await this.RespondWithErrorAsync(deleteResult.Errors, _logger).ConfigureAwait(false);
     }
+
+    private void LocalizeHomeworkModal(ModalBuilder builder) => HomeworkModal.LocalizeModal(builder, _modalLocalizer);
 }

@@ -100,11 +100,20 @@
   <data name="list.noHomeworks" xml:space="preserve">
     <value>No homeworks available.</value>
   </data>
-  <data name="createHomework.parseDueFailed" xml:space="preserve">
+  <data name="create.parseDueFailed" xml:space="preserve">
     <value>An invalid due was provided!</value>
   </data>
-  <data name="createHomework.created" xml:space="preserve">
+  <data name="create.created" xml:space="preserve">
     <value>Homework created:</value>
+  </data>
+  <data name="modify.parseIdFailed" xml:space="preserve">
+    <value>An invalid ID was provided!</value>
+  </data>
+  <data name="modify.unauthorized" xml:space="preserve">
+    <value>You're unauthorized to edit this homework!</value>
+  </data>
+  <data name="modify.parseDueFailed" xml:space="preserve">
+    <value>An invalid due was provided!</value>
   </data>
   <data name="delete.parseIdFailed" xml:space="preserve">
     <value>An invalid ID was provided!</value>

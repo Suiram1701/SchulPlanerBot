@@ -100,11 +100,17 @@
   <data name="list.noHomeworks" xml:space="preserve">
     <value>Keine Hausaufgaben verfügbar.</value>
   </data>
-  <data name="createHomework.parseDueFailed" xml:space="preserve">
+  <data name="create.parseDueFailed" xml:space="preserve">
     <value>Es wurde kein gültiges Fälligkeitsdatum angegeben!</value>
   </data>
-  <data name="createHomework.created" xml:space="preserve">
+  <data name="create.created" xml:space="preserve">
     <value>Hausaufgabe erstellt:</value>
+  </data>
+  <data name="modify.parseIdFailed" xml:space="preserve">
+    <value>Eine ungültige ID wurde angegeben!</value>
+  </data>
+  <data name="modify.unauthorized" xml:space="preserve">
+    <value>Sie sind nicht autorisiert diese Hausaufgabe zu bearbeiten!</value>
   </data>
   <data name="delete.parseIdFailed" xml:space="preserve">
     <value>Eine ungültige ID wurde angegeben!</value>
@@ -114,5 +120,8 @@
   </data>
   <data name="delete.deleted" xml:space="preserve">
     <value>Hausaufgabe {0} gelöscht.</value>
+  </data>
+  <data name="modify.parseDueFailed" xml:space="preserve">
+    <value>Es wurde kein gültiges Fälligkeitsdatum angegeben!</value>
   </data>
 </root>

@@ -118,7 +118,10 @@
   <data name="details.placeholder" xml:space="preserve">
     <value>quadratische Gleichung lösen.</value>
   </data>
-  <data name="modalTitle" xml:space="preserve">
+  <data name="modalTitle.create" xml:space="preserve">
     <value>Hausaufgabe erstellen</value>
+  </data>
+  <data name="modalTitle.modify" xml:space="preserve">
+    <value>Hausaufgabe bearbeiten</value>
   </data>
 </root>
