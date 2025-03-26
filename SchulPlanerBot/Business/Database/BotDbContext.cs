@@ -25,7 +25,7 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
             builder.HasMany<Homework>()
                 .WithOne()
                 .HasPrincipalKey(h => h.Id)
-                .HasForeignKey(h => h.OwnerId)
+                .HasForeignKey(h => h.GuildId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
         });
@@ -33,13 +33,15 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
         modelBuilder.Entity<Homework>(builder =>
         {
             builder.Property(h => h.Id).ValueGeneratedOnAdd().IsRequired();
-            builder.Property(h => h.OwnerId).IsRequired();
+            builder.Property(h => h.GuildId).IsRequired();
             builder.Property(h => h.Due).IsRequired();
             builder.Property(h => h.Subject);
             builder.Property(h => h.Title).IsRequired();
             builder.Property(h => h.Details);
             builder.Property(h => h.CreatedAt).ValueGeneratedOnAdd().IsRequired();
             builder.Property(h => h.CreatedBy).IsRequired();
+            builder.Property(h => h.LastModifiedAt);
+            builder.Property(h => h.LastModifiedBy);
 
             builder.HasKey(h => h.Id);
         });

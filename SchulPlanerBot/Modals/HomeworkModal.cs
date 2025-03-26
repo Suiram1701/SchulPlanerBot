@@ -30,7 +30,7 @@ public class HomeworkModal : IModal
     internal static void LocalizeModal(ModalBuilder builder, IStringLocalizer localizer, bool create = true)
     {
         builder
-            .WithTitle(localizer[create ? "title.create" : "title.modify"])
+            .WithTitle(localizer[create ? "modalTitle.create" : "modalTitle.modify"])
             .UpdateTextInput(nameof(Due), input => input
                 .WithLabel(localizer["due_date"]))
             .UpdateTextInput(nameof(Subject), input => input

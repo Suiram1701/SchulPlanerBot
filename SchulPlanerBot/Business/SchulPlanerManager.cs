@@ -3,6 +3,7 @@ using Quartz;
 using SchulPlanerBot.Business.Database;
 using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Business.Models;
+using SchulPlanerBot.Migrations;
 using SchulPlanerBot.Quartz;
 
 namespace SchulPlanerBot.Business;
@@ -86,7 +87,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
     {
         return await _dbContext.Homeworks
             .AsNoTracking()
-            .Where(h => h.OwnerId == guildId)
+            .Where(h => h.GuildId == guildId)
             .SingleOrDefaultAsync(h => h.Id == id, ct)
             .ConfigureAwait(false);
     }
@@ -98,7 +99,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
 
         IQueryable<Homework> query = _dbContext.Homeworks
             .AsNoTracking()
-            .Where(h => h.OwnerId == guildId)
+            .Where(h => h.GuildId == guildId)
             .Where(h => h.Due >= start && h.Due <= end);
         if (string.IsNullOrEmpty(subject))
             return await query.ToListAsync(ct).ConfigureAwait(false);
@@ -116,7 +117,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
 
         Homework homework = new()
         {
-            OwnerId = guildId,
+            GuildId = guildId,
             Due = due,
             Subject = subject,
             Title = title,
@@ -130,11 +131,32 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
         return (homework, UpdateResult.Succeeded());
     }
 
+    public async Task<(Homework? homework, UpdateResult result)> ModifyHomeworkAsync(Guid homeworkId, ulong userId, DateTimeOffset newDue, string? newSubject, string newTitle, string? newDetails, CancellationToken ct = default)
+    {
+        newDue = newDue.ToUniversalTime();
+        if (newDue <= DateTimeOffset.UtcNow.AddMinutes(10) && !_environment.IsDevelopment())     // Disable minimum time for dev purpose
+            return (null, _errorService.DueMustInFuture(TimeSpan.FromMinutes(10)));
+
+        Homework? homework = await _dbContext.Homeworks.FindAsync([homeworkId], ct).AsTask().ConfigureAwait(false);
+        if (homework is null)
+            return (null, _errorService.HomeworkNotFound());
+
+        homework.Due = newDue;
+        homework.Subject = newSubject;
+        homework.Title = newTitle;
+        homework.Details = newDetails;
+        homework.LastModifiedAt = newDue;
+        homework.LastModifiedBy = userId;
+        await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+
+        return (homework, UpdateResult.Succeeded());
+    }
+
     public async Task<UpdateResult> DeleteHomeworkAsync(ulong guildId, Guid id, CancellationToken ct = default)
     {
         int count = await _dbContext.Homeworks
             .AsNoTracking()
-            .Where(h => h.OwnerId == guildId && h.Id == id)
+            .Where(h => h.GuildId == guildId && h.Id == id)
             .ExecuteDeleteAsync(ct).ConfigureAwait(false);
         return count != 0
             ? UpdateResult.Succeeded()

@@ -82,11 +82,10 @@ public sealed class HomeworksModule(
             homeworkModal.Subject,
             homeworkModal.Title,
             homeworkModal.Details,
-            CancellationToken)
-            .ConfigureAwait(false);
+            CancellationToken).ConfigureAwait(false);
 
         if (creationResult.Success && homework is not null)
-            await RespondAsync(_localizer["create.created"], embeds: [_embedsService.Homework(homework)], allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+            await RespondAsync(_localizer["create.created"], embed: _embedsService.Homework(homework), allowedMentions: AllowedMentions.None).ConfigureAwait(false);
         else
             await this.RespondWithErrorAsync(creationResult.Errors, _logger).ConfigureAwait(false);
     }
@@ -134,6 +133,20 @@ public sealed class HomeworksModule(
             await RespondAsync(_localizer["modify.parseDueFailed"], ephemeral: true).ConfigureAwait(false);
             return;
         }
+
+        (Homework? homework, UpdateResult modifyResult) = await _manager.ModifyHomeworkAsync(
+            homeworkId,
+            User.Id,
+            due,
+            homeworkModal.Subject,
+            homeworkModal.Title,
+            homeworkModal.Details,
+            CancellationToken).ConfigureAwait(false);
+
+        if (modifyResult.Success && homework is not null)
+            await RespondAsync(_localizer["modify.updated"], embed: _embedsService.Homework(homework), allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+        else
+            await this.RespondWithErrorAsync(modifyResult.Errors, _logger).ConfigureAwait(false);
     }
 
     [SlashCommand("delete", "Deletes a homework by its ID. A homework can only be deleted by its creator or a mod.")]

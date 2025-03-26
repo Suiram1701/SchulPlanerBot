@@ -4,7 +4,7 @@ public class Homework
 {
     public Guid Id { get; set; }
 
-    public ulong OwnerId { get; set; }
+    public ulong GuildId { get; set; }
 
     public DateTimeOffset Due { get; set; }
 
@@ -17,4 +17,8 @@ public class Homework
     public DateTimeOffset CreatedAt { get; set; }
 
     public ulong CreatedBy { get; set; }
+
+    public DateTimeOffset? LastModifiedAt { get; set; }
+
+    public ulong? LastModifiedBy { get; set; }
 }

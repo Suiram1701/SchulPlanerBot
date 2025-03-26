@@ -109,4 +109,10 @@
   <data name="homeworkEmbed.due" xml:space="preserve">
     <value>Due</value>
   </data>
+  <data name="homeworkEmbed.lastEditor" xml:space="preserve">
+    <value>Last editor</value>
+  </data>
+  <data name="homeworkEmbed.lastEdited" xml:space="preserve">
+    <value>Last edited at</value>
+  </data>
 </root>
