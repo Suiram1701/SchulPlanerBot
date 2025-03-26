@@ -107,7 +107,7 @@
     <value>Ersteller</value>
   </data>
   <data name="homeworkEmbed.due" xml:space="preserve">
-    <value>Fällig in</value>
+    <value>Fällig</value>
   </data>
   <data name="homeworkEmbed.lastEditor" xml:space="preserve">
     <value>Letzter Bearbeiter</value>

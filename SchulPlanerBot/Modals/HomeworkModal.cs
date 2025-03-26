@@ -13,6 +13,7 @@ public class HomeworkModal : IModal
     [ModalTextInput(nameof(Due), placeholder: "20.01.2020", maxLength: 19)]     // 10 is the max length using the format 'dd.mm.yyyy hh:MM:ss'
     public string Due { get; set; } = default!;
 
+    [RequiredInput(isRequired: false)]
     [InputLabel("Subject")]
     [ModalTextInput(nameof(Subject), placeholder: "Math", minLength: 0, maxLength: 32)]
     public string? Subject { get; set; } = default!;
