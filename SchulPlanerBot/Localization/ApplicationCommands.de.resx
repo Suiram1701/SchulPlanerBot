@@ -205,4 +205,58 @@
   <data name="homeworks.modify.id.description" xml:space="preserve">
     <value>Die ID der zu bearbeitenden Hausaufgabe.</value>
   </data>
+  <data name="homeworks.subscribe-all.name" xml:space="preserve">
+    <value>alle-abonnieren</value>
+  </data>
+  <data name="homeworks.unsubscribe-all.name" xml:space="preserve">
+    <value>alle-deabonnieren</value>
+  </data>
+  <data name="homeworks.subscribe.name" xml:space="preserve">
+    <value>abonnieren</value>
+  </data>
+  <data name="homeworks.unsubscribe.name" xml:space="preserve">
+    <value>deabonnieren</value>
+  </data>
+  <data name="homeworks.subscribe.description" xml:space="preserve">
+    <value>Abonniert Benachrichtigungen für bestimmte Fächer.</value>
+  </data>
+  <data name="homeworks.subscribe-all.description" xml:space="preserve">
+    <value>Abonniert Benachrichtigungen für alle Fächer.</value>
+  </data>
+  <data name="homeworks.unsubscribe-all.description" xml:space="preserve">
+    <value>Deabonniert Benachrichtigungen für alle Fächer. Manuell hinzugefügte Fächer verbleiben.</value>
+  </data>
+  <data name="homeworks.subscribe.no-subject.description" xml:space="preserve">
+    <value>Erhalten Sie Benachrichtigungen für Hausaufgaben bei dehnen kein Fach angegeben ist.</value>
+  </data>
+  <data name="homeworks.subscribe.subjects.name" xml:space="preserve">
+    <value>fächer</value>
+  </data>
+  <data name="homeworks.subscribe.subjects.description" xml:space="preserve">
+    <value>Fächer für Sie Benachrichtigungen erhalten werden. Trennen Sie diese mit , oder ;.</value>
+  </data>
+  <data name="homeworks.subscribe.no-subject.name" xml:space="preserve">
+    <value>kein-fach</value>
+  </data>
+  <data name="homeworks.unsubscribe.description" xml:space="preserve">
+    <value>Deabonniert Benachrichtigungen für alle angegebenen Fächer.</value>
+  </data>
+  <data name="homeworks.unsubscribe.subjects.name" xml:space="preserve">
+    <value>fächer</value>
+  </data>
+  <data name="homeworks.unsubscribe.subjects.description" xml:space="preserve">
+    <value>Fächer für die Sie keine Benachrichtigungen mehr erhalten werden. Trennen Sie diese mit , oder ;.</value>
+  </data>
+  <data name="homeworks.unsubscribe.no-subject.name" xml:space="preserve">
+    <value>kein-fach</value>
+  </data>
+  <data name="homeworks.unsubscribe.no-subject.description" xml:space="preserve">
+    <value>Gibt an, ob Benachrichtigungen von Hausaufgaben ohne Fach deaktiviert werden sollen.</value>
+  </data>
+  <data name="homeworks.subscriptions.name" xml:space="preserve">
+    <value>abonnements</value>
+  </data>
+  <data name="homeworks.subscriptions.description" xml:space="preserve">
+    <value>Zeigt Ihre Benachrichtigungs Abonnements.</value>
+  </data>
 </root>

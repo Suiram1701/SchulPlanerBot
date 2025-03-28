@@ -11,6 +11,8 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
 
     public DbSet<Homework> Homeworks => Set<Homework>();
 
+    public DbSet<HomeworkSubscription> HomeworkSubscriptions => Set<HomeworkSubscription>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Guild>(builder =>
@@ -22,10 +24,15 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
             builder.Property(g => g.BetweenNotifications);
 
             builder.HasKey(g => g.Id);
+
             builder.HasMany<Homework>()
                 .WithOne()
-                .HasPrincipalKey(h => h.Id)
                 .HasForeignKey(h => h.GuildId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+            builder.HasMany<HomeworkSubscription>()
+                .WithOne()
+                .HasForeignKey(s => s.GuildId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
         });
@@ -44,6 +51,17 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
             builder.Property(h => h.LastModifiedBy);
 
             builder.HasKey(h => h.Id);
+        });
+
+        modelBuilder.Entity<HomeworkSubscription>(builder =>
+        {
+            builder.Property(s => s.GuildId).IsRequired();
+            builder.Property(s => s.UserId).IsRequired();
+            builder.Property(s => s.AnySubject).HasDefaultValue(true);
+            builder.Property(s => s.NoSubject).HasDefaultValue(false);
+            builder.Property(s => s.Include);
+
+            builder.HasKey(s => new { s.GuildId, s.UserId });
         });
 
         modelBuilder.AddQuartz(options => options.UsePostgreSql());

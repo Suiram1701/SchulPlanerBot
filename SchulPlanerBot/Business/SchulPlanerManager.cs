@@ -5,6 +5,7 @@ using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Migrations;
 using SchulPlanerBot.Quartz;
+using System.Linq;
 
 namespace SchulPlanerBot.Business;
 
@@ -104,7 +105,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
         if (string.IsNullOrEmpty(subject))
             return await query.ToListAsync(ct).ConfigureAwait(false);
         else
-            return await query.Where(h => h.Subject == subject).ToListAsync(ct).ConfigureAwait(false);
+            return await query.Where(h => EF.Functions.ILike(h.Subject!, subject)).ToListAsync(ct).ConfigureAwait(false);
     }
 
     public async Task<(Homework? homework, UpdateResult result)> CreateHomeworkAsync(ulong guildId, ulong userId, DateTimeOffset due, string? subject, string title, string? details, CancellationToken ct = default)
@@ -125,9 +126,9 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
             CreatedAt = DateTimeOffset.UtcNow,
             CreatedBy = userId
         };
-        await _dbContext.Homeworks.AddAsync(homework, ct).AsTask().ConfigureAwait(false);
-        await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+        _dbContext.Homeworks.Add(homework);
 
+        await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return (homework, UpdateResult.Succeeded());
     }
 
@@ -163,17 +164,87 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
             : _errorService.HomeworkNotFound();
     }
 
+    public async Task<HomeworkSubscription?> GetHomeworkSubscriptionAsync(ulong guildId, ulong userId, CancellationToken ct = default)
+    {
+        return await _dbContext.HomeworkSubscriptions
+            .AsNoTracking()
+            .SingleOrDefaultAsync(s => s.GuildId == guildId && s.UserId == userId, ct)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<UpdateResult> SetSubscribeToAllSubjectsAsync(ulong guildId, ulong userId, bool subscribe, CancellationToken ct = default)
+    {
+        HomeworkSubscription subscription = await GetOrAddSubscriptionAsync(guildId, userId, ct).ConfigureAwait(false);
+
+        subscription.AnySubject = subscribe;
+        if (IsSubscriptionNotNeeded(subscription))
+            _dbContext.HomeworkSubscriptions.Remove(subscription);
+
+        await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+        return UpdateResult.Succeeded();
+    }
+
+    public async Task<UpdateResult> SubscribeToSubjectsAsync(ulong guildId, ulong userId, bool noSubject, string[] subjects, CancellationToken ct = default)
+    {
+        HomeworkSubscription subscription = await GetOrAddSubscriptionAsync(guildId, userId, ct).ConfigureAwait(false);
+
+        subscription.AnySubject = false;
+        subscription.NoSubject = noSubject || subscription.NoSubject;     // Sets NoSubject to true when noSubject true
+        subscription.Include = [.. subscription.Include, .. subjects.Except(subscription.Include, StringComparer.InvariantCultureIgnoreCase)];
+
+        await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+        return UpdateResult.Succeeded();
+    }
+
+    public async Task<UpdateResult> UnsubscribeFromSubjectsAsync(ulong guildId, ulong userId, bool noSubject, string[] subjects, CancellationToken ct = default)
+    {
+        HomeworkSubscription subscription = await GetOrAddSubscriptionAsync(guildId, userId, ct).ConfigureAwait(false);
+
+        subscription.AnySubject = false;
+        subscription.NoSubject = !noSubject && subscription.NoSubject;     // Sets NoSubject to false when noSubject true
+        subscription.Include = [.. subscription.Include.Except(subjects, StringComparer.InvariantCultureIgnoreCase)];
+
+        if (IsSubscriptionNotNeeded(subscription))
+            _dbContext.HomeworkSubscriptions.Remove(subscription);
+        await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+
+        return UpdateResult.Succeeded();
+    }
+
     private async Task<Guild> GetOrAddGuildAsync(ulong guildId, CancellationToken ct = default)
     {
         Guild? guild = await _dbContext.Guilds.FindAsync([guildId], ct).AsTask().ConfigureAwait(false);
         if (guild is null)
         {
             guild = new() { Id = guildId };
-            await _dbContext.Guilds.AddAsync(guild, ct).AsTask().ConfigureAwait(false);
+            _dbContext.Guilds.Add(guild);
         }
 
         return guild;
     }
+
+    private async Task<HomeworkSubscription> GetOrAddSubscriptionAsync(ulong guildId, ulong userId, CancellationToken ct)
+    {
+        _ = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);
+
+        HomeworkSubscription? subscription = await _dbContext.HomeworkSubscriptions
+            .FindAsync([guildId, userId], ct)
+            .AsTask()
+            .ConfigureAwait(false);
+        if (subscription is null)
+        {
+            subscription = new()
+            {
+                GuildId = guildId,
+                UserId = userId
+            };
+            _dbContext.HomeworkSubscriptions.Add(subscription);
+        }
+
+        return subscription;
+    }
+
+    private static bool IsSubscriptionNotNeeded(HomeworkSubscription subscription) => subscription is { AnySubject: false, NoSubject: false, Include.Length: 0 };
 
     private async Task UpdateSchedulerForGuildAsync(Guild guild, CancellationToken ct)
     {

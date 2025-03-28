@@ -205,4 +205,58 @@
   <data name="homeworks.delete.id.description" xml:space="preserve">
     <value>The ID of the homework to remove.</value>
   </data>
+  <data name="homeworks.subscriptions.name" xml:space="preserve">
+    <value>subscriptions</value>
+  </data>
+  <data name="homeworks.subscriptions.description" xml:space="preserve">
+    <value>Shows your homework notification subscriptions.</value>
+  </data>
+  <data name="homeworks.subscribe-all.name" xml:space="preserve">
+    <value>subscribe-all</value>
+  </data>
+  <data name="homeworks.subscribe-all.description" xml:space="preserve">
+    <value>Subscribes to notifications for all subjects.</value>
+  </data>
+  <data name="homeworks.unsubscribe-all.name" xml:space="preserve">
+    <value>unsubscribe-all</value>
+  </data>
+  <data name="homeworks.unsubscribe-all.description" xml:space="preserve">
+    <value>Unsubscribes from notifications of all subjects. Manuel added subjects will remain.</value>
+  </data>
+  <data name="homeworks.subscribe.name" xml:space="preserve">
+    <value>subscribe</value>
+  </data>
+  <data name="homeworks.subscribe.description" xml:space="preserve">
+    <value>Subscribes to notifications from specific subjects or no subject.</value>
+  </data>
+  <data name="homeworks.subscribe.subjects.name" xml:space="preserve">
+    <value>subjects</value>
+  </data>
+  <data name="homeworks.subscribe.subjects.description" xml:space="preserve">
+    <value>Subjects you will receive notifications for. Separate theme using , or ;.</value>
+  </data>
+  <data name="homeworks.subscribe.no-subject.name" xml:space="preserve">
+    <value>no-subject</value>
+  </data>
+  <data name="homeworks.subscribe.no-subject.description" xml:space="preserve">
+    <value>Receive notification for homeworks without a subject. Can't unsubscribe from this with false.</value>
+  </data>
+  <data name="homeworks.unsubscribe.name" xml:space="preserve">
+    <value>unsubscribe</value>
+  </data>
+  <data name="homeworks.unsubscribe.description" xml:space="preserve">
+    <value>Unsubscribes from notifications of specific subjects or no subject.</value>
+  </data>
+  <data name="homeworks.unsubscribe.subjects.name" xml:space="preserve">
+    <value>subjects</value>
+  </data>
+  <data name="homeworks.unsubscribe.subjects.description" xml:space="preserve">
+    <value>Subjects you no longer will receive notification for. Separate theme using , or ;.</value>
+  </data>
+  <data name="homeworks.unsubscribe.no-subject.name" xml:space="preserve">
+    <value>no-subject</value>
+  </data>
+  <data name="homeworks.unsubscribe.no-subject.description" xml:space="preserve">
+    <value>Indicates whether notification from homeworks without a subject should be disabled.</value>
+  </data>
 </root>

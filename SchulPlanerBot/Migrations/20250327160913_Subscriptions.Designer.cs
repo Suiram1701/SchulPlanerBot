@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SchulPlanerBot.Business.Database;
@@ -12,9 +13,11 @@ using SchulPlanerBot.Business.Database;
 namespace SchulPlanerBot.Migrations
 {
     [DbContext(typeof(BotDbContext))]
-    partial class BotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250327160913_Subscriptions")]
+    partial class Subscriptions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -546,14 +549,14 @@ namespace SchulPlanerBot.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
+                    b.PrimitiveCollection<HashSet<string>>("Include")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
                     b.Property<bool>("NoSubject")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
-
-                    b.PrimitiveCollection<string[]>("Include")
-                        .IsRequired()
-                        .HasColumnType("text[]");
 
                     b.HasKey("GuildId", "UserId");
 

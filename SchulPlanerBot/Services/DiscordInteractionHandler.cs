@@ -15,6 +15,7 @@ using IResult = Discord.Interactions.IResult;
 namespace SchulPlanerBot.Services;
 
 internal sealed class DiscordInteractionHandler(
+    IHost host,
     IHostEnvironment environment,
     IServiceScopeFactory scopeFactory,
     ILogger<DiscordInteractionHandler> logger,
@@ -27,6 +28,7 @@ internal sealed class DiscordInteractionHandler(
 {
     public const string ActivitySourceName = "Discord.InteractionHandler";
 
+    private readonly IHost _host = host;
     private readonly IHostEnvironment _environment = environment;
     private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
     private readonly ILogger _logger = logger;
@@ -65,22 +67,32 @@ internal sealed class DiscordInteractionHandler(
         using Activity? activity = _activitySource.StartActivity("Register commands");
         using IServiceScope scope = _scopeFactory.CreateScope();
 
-        if (!_modulesAdded)
+        try
         {
-            IEnumerable<ModuleInfo> modules = await _interaction.AddModulesAsync(typeof(ISchulPlanerBot).Assembly, scope.ServiceProvider).ConfigureAwait(false);
-            _logger.LogInformation("{modulesCount} interaction modules added", modules.Count());
-            _modulesAdded = true;
-        }
+            if (!_modulesAdded)
+            {
+                IEnumerable<ModuleInfo> modules = await _interaction.AddModulesAsync(typeof(ISchulPlanerBot).Assembly, scope.ServiceProvider).ConfigureAwait(false);
+                _logger.LogInformation("{modulesCount} interaction modules added", modules.Count());
+                _modulesAdded = true;
+            }
 
-        if (_environment.IsDevelopment() && _options.TestGuild is not null)
-        {
-            await _interaction.RegisterCommandsToGuildAsync(_options.TestGuild.Value).ConfigureAwait(false);
-            _logger.LogInformation("Commands registered for test guild {guildId}", _options.TestGuild);
+            if (_environment.IsDevelopment() && _options.TestGuild is not null)
+            {
+                await _interaction.RegisterCommandsToGuildAsync(_options.TestGuild.Value).ConfigureAwait(false);
+                _logger.LogInformation("Commands registered for test guild {guildId}", _options.TestGuild);
+            }
+            else
+            {
+                await _interaction.RegisterCommandsGloballyAsync().ConfigureAwait(false);
+                _logger.LogInformation("Commands registered globally");
+            }
         }
-        else
+        catch (Exception ex)     // Errors here have to be logged explicitly because this part is critical
         {
-            await _interaction.RegisterCommandsGloballyAsync().ConfigureAwait(false);
-            _logger.LogInformation("Commands registered globally");
+            _logger.LogCritical(ex, "An critical error occurred while registered interaction modules!");
+            activity?.AddException(ex);
+
+            await _host.StopAsync().ConfigureAwait(false);     // An error on registration can disturb the whole app
         }
     }
 

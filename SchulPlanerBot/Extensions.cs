@@ -68,7 +68,7 @@ public static class Extensions
             .AddHostedService<DiscordClientManager>();
     }
 
-    public static IServiceCollection AddInteractionFramework(this IServiceCollection services)
+    public static IServiceCollection AddInteractionFramework(this IServiceCollection services, Action<InteractionService>? options = null)
     {
         ArgumentNullException.ThrowIfNull(services);
 
@@ -86,7 +86,10 @@ public static class Extensions
                 DiscordSocketClient client = sp.GetRequiredService<DiscordSocketClient>();
                 IOptionsMonitor<InteractionServiceConfig> monitor = sp.GetRequiredService<IOptionsMonitor<InteractionServiceConfig>>();
 
-                return new InteractionService(client, monitor.CurrentValue);
+                InteractionService service = new(client, monitor.CurrentValue);
+                options?.Invoke(service);
+
+                return service;
             })
             .AddHostedService<DiscordInteractionHandler>();
     }

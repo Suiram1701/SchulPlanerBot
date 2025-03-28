@@ -180,5 +180,78 @@ public sealed class HomeworksModule(
             await this.RespondWithErrorAsync(deleteResult.Errors, _logger).ConfigureAwait(false);
     }
 
+    [SlashCommand("subscriptions", "Shows your homework notification subscriptions.")]
+    public async Task GetSubscriptionsAsync()
+    {
+        HomeworkSubscription? subscriptions = await _manager.GetHomeworkSubscriptionAsync(Guild.Id, User.Id, CancellationToken).ConfigureAwait(false);
+        if (subscriptions is null)
+        {
+            await RespondAsync(_localizer["subscriptions.notConfigured"]).ConfigureAwait(false);
+        }
+        else if (subscriptions.AnySubject)
+        {
+            await RespondAsync(_localizer["subscriptions.anySubject"]).ConfigureAwait(false);
+        }
+        else
+        {
+            string subjectsStr = string.Join(", ", subscriptions.Include);
+            if (subscriptions.NoSubject)
+                await RespondAsync(_localizer["subscriptions.subjectsWithNoSubjects", subjectsStr]).ConfigureAwait(false);
+            else
+                await RespondAsync(_localizer["subscriptions.subjectWithSubject", subjectsStr]).ConfigureAwait(false);
+        }
+    }
+
+    [SlashCommand("subscribe-all", "Subscribes to notifications for all subjects.")]
+    public async Task SubscribeToAllSubjectsAsync()
+    {
+        UpdateResult updateResult = await _manager.SetSubscribeToAllSubjectsAsync(Guild.Id, User.Id, subscribe: true, CancellationToken).ConfigureAwait(false);
+        await HandleSubscriptionsUpdatedAsync(updateResult).ConfigureAwait(false);
+    }
+
+    [SlashCommand("unsubscribe-all", "Unsubscribes from notifications of all subjects. Manuel added subjects will remain.")]
+    public async Task UnsubscribeFromAllSubjectsAsync()
+    {
+        UpdateResult updateResult = await _manager.SetSubscribeToAllSubjectsAsync(Guild.Id, User.Id, subscribe: false, CancellationToken).ConfigureAwait(false);
+        if (updateResult.Success)
+            await RespondAsync(_localizer["subscriptions.unsubscribed-all"]).ConfigureAwait(false);
+        else
+            await this.RespondWithErrorAsync(updateResult.Errors, _logger).ConfigureAwait(false);
+    }
+
+    [SlashCommand("subscribe", "Subscribes to notifications from specific subjects or no subject.")]
+    public async Task SubscribeToSubjectsAsync(string[] subjects, [Summary(name: "no-subject")] bool noSubject = false)
+    {
+        UpdateResult updateResult = await _manager.SubscribeToSubjectsAsync(Guild.Id, User.Id, noSubject, subjects, CancellationToken).ConfigureAwait(false);
+        await HandleSubscriptionsUpdatedAsync(updateResult).ConfigureAwait(false);
+    }
+
+    [SlashCommand("unsubscribe", "Unsubscribes from notifications of specific subjects or no subject.")]
+    public async Task UnsubscribeFromSubjectsAsync(string[] subjects, [Summary(name: "no-subject")] bool noSubject = false)
+    {
+        UpdateResult updateResult = await _manager.UnsubscribeFromSubjectsAsync(Guild.Id, User.Id, noSubject, subjects, CancellationToken).ConfigureAwait(false);
+        if (updateResult.Success)
+            await RespondAsync(_localizer["subscriptions.updated"]).ConfigureAwait(false);
+        else
+            await this.RespondWithErrorAsync(updateResult.Errors, _logger).ConfigureAwait(false);
+    }
+
+    private async Task HandleSubscriptionsUpdatedAsync(UpdateResult result)
+    {
+        if (result.Success)
+        {
+            string message = _localizer["subscriptions.updated"];
+
+            Guild guild = await _manager.GetGuildAsync(Guild.Id, CancellationToken).ConfigureAwait(false);
+            if (guild.NotificationsEnabled)
+                message += $" {_localizer["subscriptions.notificationNotEnabled"]}";
+            await RespondAsync(message).ConfigureAwait(false);
+        }
+        else
+        {
+            await this.RespondWithErrorAsync(result.Errors, _logger).ConfigureAwait(false);
+        }
+    }
+
     private void LocalizeHomeworkModal(ModalBuilder builder) => HomeworkModal.LocalizeModal(builder, _modalLocalizer);
 }

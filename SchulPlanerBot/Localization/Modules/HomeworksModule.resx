@@ -115,6 +115,9 @@
   <data name="modify.parseDueFailed" xml:space="preserve">
     <value>An invalid due was provided!</value>
   </data>
+  <data name="modify.updated" xml:space="preserve">
+    <value>Homework updated:</value>
+  </data>
   <data name="delete.parseIdFailed" xml:space="preserve">
     <value>An invalid ID was provided!</value>
   </data>
@@ -123,5 +126,26 @@
   </data>
   <data name="delete.deleted" xml:space="preserve">
     <value>Homework {0} deleted.</value>
+  </data>
+  <data name="subscriptions.notConfigured" xml:space="preserve">
+    <value>No notification subscriptions were configured for you yet.</value>
+  </data>
+  <data name="subscriptions.anySubject" xml:space="preserve">
+    <value>You will receive notifications for homeworks of any subject.</value>
+  </data>
+  <data name="subscriptions.subjectsWithNoSubjects" xml:space="preserve">
+    <value>You will receive notifications for homeworks without a subject and with the subjects {0}.</value>
+  </data>
+  <data name="subscriptions.subjectWithSubject" xml:space="preserve">
+    <value>You will receive notifications only for homeworks with the subjects {0}.</value>
+  </data>
+  <data name="subscriptions.unsubscribed-all" xml:space="preserve">
+    <value>You will no longer receive notifications for any subjects. Notifications for subjects you manually added will remain.</value>
+  </data>
+  <data name="subscriptions.updated" xml:space="preserve">
+    <value>Notification settings updated. The other option get disabled. For example if you added subjects the any subject notification is now disabled.</value>
+  </data>
+  <data name="subscriptions.notificationNotEnabled" xml:space="preserve">
+    <value>You will still don't get any notifications because there not configured on this guild.</value>
   </data>
 </root>

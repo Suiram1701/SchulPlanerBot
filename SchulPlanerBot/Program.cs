@@ -1,6 +1,7 @@
 using OpenTelemetry.Trace;
 using Quartz;
 using Quartz.AspNetCore;
+using SchulPlanerBot.Discord.TypeConverters;
 using SchulPlanerBot.Quartz;
 using SchulPlanerBot.ServiceDefaults;
 using System.Globalization;
@@ -46,7 +47,7 @@ public class Program
             });
 
         builder.Services.AddDiscordSocketClient("DiscordClient")
-            .AddInteractionFramework()
+            .AddInteractionFramework(service => service.AddTypeConverter<string[]>(new StringArrayConverter()))
             .AddInteractionResXLocalization<ISchulPlanerBot>(_commandsLocalizationResource, _supportedCultures);
 
         builder.Services.AddLocalization(options => options.ResourcesPath = "Localization");
