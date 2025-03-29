@@ -45,14 +45,12 @@ internal sealed class NotificationJob(
 
             if (guild.NotificationCulture is not null)
             {
-                CultureInfo.CurrentCulture = guild.NotificationCulture;
-                CultureInfo.CurrentUICulture = guild.NotificationCulture;
+                Utils.SetCulture(guild.NotificationCulture);
             }
             else
             {
                 RestGuild restGuild = await _client.Rest.GetGuildAsync(guildId).ConfigureAwait(false);
-                CultureInfo.CurrentCulture = restGuild.PreferredCulture;
-                CultureInfo.CurrentUICulture = restGuild.PreferredCulture;
+                Utils.SetCulture(restGuild.PreferredCulture);
             }
 
             IChannel? channel = await _client.GetChannelAsync(guild.ChannelId.Value).ConfigureAwait(false);

@@ -104,7 +104,7 @@ public static class Extensions
 
                 return service;
             })
-            .AddHostedService<DiscordInteractionHandler>();
+            .AddHostedService<InteractionHandler>();
     }
 
     public static IServiceCollection AddInteractionResXLocalization<T>(this IServiceCollection services, string baseResource, params CultureInfo[] supportedLocales) =>
@@ -133,7 +133,7 @@ public static class Extensions
     public static TracerProviderBuilder AddDiscordNetInstrumentation(this TracerProviderBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        return builder.AddSource(DiscordClientManager.ActivitySourceName, DiscordClientMetrics.ActivitySourceName, DiscordInteractionHandler.ActivitySourceName);
+        return builder.AddSource(DiscordClientManager.ActivitySourceName, DiscordClientMetrics.ActivitySourceName, InteractionHandler.ActivitySourceName);
     }
 
     public static MeterProviderBuilder AddDiscordNetInstrumentation(this MeterProviderBuilder builder)

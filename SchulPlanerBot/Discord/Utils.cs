@@ -1,4 +1,5 @@
 ﻿using Discord;
+using System.Globalization;
 
 namespace SchulPlanerBot.Discord;
 
@@ -65,5 +66,13 @@ public static class Utils
         Pink = 35,
         Cyan = 36,
         White = 37
+    }
+
+    internal static void SetCulture(CultureInfo info)
+    {
+        CultureInfo.CurrentCulture = info;
+        CultureInfo.CurrentUICulture = info;
+        Thread.CurrentThread.CurrentCulture = info;
+        Thread.CurrentThread.CurrentUICulture = info;
     }
 }

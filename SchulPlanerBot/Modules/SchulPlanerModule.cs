@@ -13,7 +13,7 @@ namespace SchulPlanerBot.Modules;
 
 [RequireContext(ContextType.Guild)]
 [CommandContextType(InteractionContextType.Guild)]
-[DefaultMemberPermissions(GuildPermission.ManageGuild)]
+[DefaultMemberPermissions(GuildPermission.ModerateMembers)]
 [Group("schulplaner", "Manages settings of the bot on the guild.")]
 public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IStringLocalizer<SchulPlanerModule> localizer, SchulPlanerManager manager) : InteractionModuleBase<ExtendedSocketContext>
 {
