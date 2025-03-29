@@ -23,6 +23,7 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
             builder.Property(g => g.StartNotifications);
             builder.Property(g => g.BetweenNotifications);
             builder.Property(g => g.NotificationLocale).HasMaxLength(5);     // Has always the format 'en-US' when not null
+            builder.Property(g => g.DeleteHomeworksAfterDue).IsRequired();
 
             builder.HasKey(g => g.Id);
 

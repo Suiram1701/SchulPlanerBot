@@ -13,6 +13,9 @@ public class ErrorService(IStringLocalizer<ErrorService> localizer)
     public UpdateResult LowTimeBetween(TimeSpan minimum) =>
         UpdateResult.Failed(nameof(LowTimeBetween), _localizer["lowTimeBetween", minimum.Humanize()]);
 
+    public UpdateResult DeleteAfterDueTooHigh(TimeSpan maximum) =>
+        UpdateResult.Failed(nameof(DeleteAfterDueTooHigh), _localizer["deleteAfterDueTooHigh", maximum.Humanize()]);
+
     public UpdateResult DueMustInFuture(TimeSpan atLeastInFuture) =>
         UpdateResult.Failed(nameof(DueMustInFuture), _localizer["dueTooLow", atLeastInFuture.Humanize()]);
 

@@ -1,19 +1,26 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Quartz;
 using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Business.Models;
+using SchulPlanerBot.Options;
 using SchulPlanerBot.Quartz;
 using System.Globalization;
+using System.Linq.Expressions;
 
 namespace SchulPlanerBot.Business;
 
-public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlanerManager> logger, ISchedulerFactory schedulerFactory, BotDbContext dbContext, ErrorService errorService)
+public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlanerManager> logger, ISchedulerFactory schedulerFactory, IOptions<ManagerOptions> optionsAccessor, BotDbContext dbContext, ErrorService errorService)
 {
     private readonly IHostEnvironment _environment = environment;
     private readonly ILogger _logger = logger;
     private readonly ISchedulerFactory _schedulerFactory = schedulerFactory;
     private readonly BotDbContext _dbContext = dbContext;
     private readonly ErrorService _errorService = errorService;
+
+    public ManagerOptions Options => optionsAccessor.Value;
+
+    public StringComparer SubjectNameComparer => Options.SubjectsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
     public async Task<Guild> GetGuildAsync(ulong guildId, CancellationToken ct)
     {
@@ -23,8 +30,13 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
             .ConfigureAwait(false);
         if (guild is null)
         {
-            guild = new() { Id = guildId };
-            await _dbContext.Guilds.AddAsync(guild, ct).AsTask().ConfigureAwait(false);
+            guild = new()
+            {
+                Id = guildId,
+                DeleteHomeworksAfterDue = Options.MaxDeleteHomeworksAfterDue
+            };
+            _dbContext.Guilds.Add(guild);
+
             await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         }
 
@@ -67,8 +79,8 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
 
         if (guild.ChannelId is null)
             return _errorService.NoChannel();
-        if (between < TimeSpan.FromMinutes(10) && !_environment.IsDevelopment())     // Disable minimum time for dev purpose
-            return _errorService.LowTimeBetween(TimeSpan.FromMinutes(10));
+        if (between < Options.MinBetweenNotifications && !_environment.IsDevelopment())     // Disable minimum time for dev purpose
+            return _errorService.LowTimeBetween(Options.MinBetweenNotifications);
 
         guild.NotificationsEnabled = true;
         guild.StartNotifications = start.ToUniversalTime();
@@ -91,6 +103,18 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
         return UpdateResult.Succeeded();
     }
 
+    public async Task<UpdateResult> SetDeleteHomeworkAfterDueAsync(ulong guildId, TimeSpan deleteAfter, CancellationToken ct = default)
+    {
+        if (deleteAfter > Options.MaxDeleteHomeworksAfterDue && !_environment.IsDevelopment())     // Disable maximum time for dev purpose
+            return _errorService.DeleteAfterDueTooHigh(Options.MaxDeleteHomeworksAfterDue);
+
+        Guild guild = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);
+        guild.DeleteHomeworksAfterDue = deleteAfter;
+
+        await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+        return UpdateResult.Succeeded();
+    }
+
     public async Task<Homework?> GetHomeworkAsync(ulong guildId, Guid id, CancellationToken ct = default)
     {
         return await _dbContext.Homeworks
@@ -110,16 +134,23 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
             .Where(h => h.GuildId == guildId)
             .Where(h => h.Due >= start && h.Due <= end);
         if (string.IsNullOrEmpty(subject))
+        {
             return await query.ToListAsync(ct).ConfigureAwait(false);
+        }
         else
-            return await query.Where(h => EF.Functions.ILike(h.Subject!, subject)).ToListAsync(ct).ConfigureAwait(false);
+        {
+            Expression<Func<Homework, bool>> predicate = Options.SubjectsCaseSensitive
+                ? h => EF.Functions.Like(h.Subject, subject)
+                : h => EF.Functions.ILike(h.Subject!, subject);
+            return await query.Where(predicate).ToListAsync(ct).ConfigureAwait(false);
+        }
     }
 
     public async Task<(Homework? homework, UpdateResult result)> CreateHomeworkAsync(ulong guildId, ulong userId, DateTimeOffset due, string? subject, string title, string? details, CancellationToken ct = default)
     {
         due = due.ToUniversalTime();
-        if (due <= DateTimeOffset.UtcNow.AddMinutes(10) && !_environment.IsDevelopment())     // Disable minimum time for dev purpose
-            return (null, _errorService.DueMustInFuture(TimeSpan.FromMinutes(10)));
+        if (due <= DateTimeOffset.UtcNow.Add(Options.MinDueInFuture) && !_environment.IsDevelopment())     // Disable minimum time for dev purpose
+            return (null, _errorService.DueMustInFuture(Options.MinDueInFuture));
 
         _ = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);     // Ensure the a guild with this id exists
 
@@ -142,8 +173,8 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
     public async Task<(Homework? homework, UpdateResult result)> ModifyHomeworkAsync(Guid homeworkId, ulong userId, DateTimeOffset newDue, string? newSubject, string newTitle, string? newDetails, CancellationToken ct = default)
     {
         newDue = newDue.ToUniversalTime();
-        if (newDue <= DateTimeOffset.UtcNow.AddMinutes(10) && !_environment.IsDevelopment())     // Disable minimum time for dev purpose
-            return (null, _errorService.DueMustInFuture(TimeSpan.FromMinutes(10)));
+        if (newDue <= DateTimeOffset.UtcNow.Add(Options.MinDueInFuture) && !_environment.IsDevelopment())     // Disable minimum time for dev purpose
+            return (null, _errorService.DueMustInFuture(Options.MinDueInFuture));
 
         Homework? homework = await _dbContext.Homeworks.FindAsync([homeworkId], ct).AsTask().ConfigureAwait(false);
         if (homework is null)
@@ -206,7 +237,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
 
         subscription.AnySubject = false;
         subscription.NoSubject = noSubject || subscription.NoSubject;     // Sets NoSubject to true when noSubject true
-        subscription.Include = [.. subscription.Include, .. subjects.Except(subscription.Include, StringComparer.InvariantCultureIgnoreCase)];
+        subscription.Include = [.. subscription.Include, .. subjects.Except(subscription.Include, SubjectNameComparer)];
 
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return UpdateResult.Succeeded();
@@ -218,7 +249,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
 
         subscription.AnySubject = false;
         subscription.NoSubject = !noSubject && subscription.NoSubject;     // Sets NoSubject to false when noSubject true
-        subscription.Include = [.. subscription.Include.Except(subjects, StringComparer.InvariantCultureIgnoreCase)];
+        subscription.Include = [.. subscription.Include.Except(subjects, SubjectNameComparer)];
 
         if (IsSubscriptionNotNeeded(subscription))
             _dbContext.HomeworkSubscriptions.Remove(subscription);
@@ -232,7 +263,11 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
         Guild? guild = await _dbContext.Guilds.FindAsync([guildId], ct).AsTask().ConfigureAwait(false);
         if (guild is null)
         {
-            guild = new() { Id = guildId };
+            guild = new()
+            {
+                Id = guildId,
+                DeleteHomeworksAfterDue = Options.MaxDeleteHomeworksAfterDue
+            };
             _dbContext.Guilds.Add(guild);
         }
 

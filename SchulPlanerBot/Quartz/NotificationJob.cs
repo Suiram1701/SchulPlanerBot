@@ -119,13 +119,13 @@ internal sealed class NotificationJob(
         await scheduler.UnscheduleJob(context.RecoveringTriggerKey, context.CancellationToken).ConfigureAwait(false);
     }
 
-    private static bool ShouldNotifyUser(HomeworkSubscription subscription, IEnumerable<Homework> homeworks)
+    private bool ShouldNotifyUser(HomeworkSubscription subscription, IEnumerable<Homework> homeworks)
     {
         if (subscription.AnySubject)
             return true;
         if (subscription.NoSubject && homeworks.Any(h => string.IsNullOrWhiteSpace(h.Subject)))
             return true;
-        if (subscription.Include.Any(s => homeworks.Select(h => h.Subject).Contains(s)))
+        if (subscription.Include.Any(s => homeworks.Select(h => h.Subject).Contains(s, _manager.SubjectNameComparer)))
             return true;
         return false;
     }

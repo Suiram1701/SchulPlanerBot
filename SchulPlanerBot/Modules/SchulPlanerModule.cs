@@ -43,7 +43,9 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
             '\n',
             guild.NotificationCulture is not null
                 ? _localizer["settings.locale", guild.NotificationCulture.DisplayName]
-                : _localizer["settings.noLocale"]
+                : _localizer["settings.noLocale"],
+            "\n\n",
+            _localizer["settings.homeworksDeleteAfterDue", guild.DeleteHomeworksAfterDue.Humanize()]
             ]);
         await RespondAsync(message).ConfigureAwait(false);
     }
@@ -81,5 +83,15 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
             await RespondAsync(_localizer["disable-notifications.disabled"]).ConfigureAwait(false);
         else
             await this.RespondWithErrorAsync(disableResult.Errors, _logger).ConfigureAwait(false);
+    }
+
+    [SlashCommand("delete-homeworks", "Sets the time a homework gets deleted after its due.")]
+    public async Task SetDeleteHomeworksAfterDueAsync(TimeSpan after)
+    {
+        UpdateResult setResult = await _manager.SetDeleteHomeworkAfterDueAsync(Guild.Id, after, CancellationToken).ConfigureAwait(false);
+        if (setResult.Success)
+            await RespondAsync(_localizer["homeworksDeletedAfter.updated", after.Humanize()]).ConfigureAwait(false);
+        else
+            await this.RespondWithErrorAsync(setResult.Errors, _logger).ConfigureAwait(false);
     }
 }

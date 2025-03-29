@@ -103,6 +103,9 @@
   <data name="lowTimeBetween" xml:space="preserve">
     <value>The provided time in between the notifications must be at least {0}!</value>
   </data>
+  <data name="deleteAfterDueTooHigh" xml:space="preserve">
+    <value>Homework must be deleted after no longer than {0} after their due. The provided value is too high!</value>
+  </data>
   <data name="dueTooLow" xml:space="preserve">
     <value>The provided due have to be at least {0} in the future!</value>
   </data>

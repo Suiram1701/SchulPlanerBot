@@ -145,6 +145,18 @@
   <data name="schulplaner.disable-notifications.description" xml:space="preserve">
     <value>Disables any automated notifications.</value>
   </data>
+  <data name="schulplaner.delete-homeworks.name" xml:space="preserve">
+    <value>delete-homeworks</value>
+  </data>
+  <data name="schulplaner.delete-homeworks.description" xml:space="preserve">
+    <value>Sets the time a homework gets deleted after its due.</value>
+  </data>
+  <data name="schulplaner.delete-homeworks.after.name" xml:space="preserve">
+    <value>after-due</value>
+  </data>
+  <data name="schulplaner.delete-homeworks.after.description" xml:space="preserve">
+    <value>The time a homework will be deleted after its due.</value>
+  </data>
   <data name="homeworks.name" xml:space="preserve">
     <value>homeworks</value>
   </data>

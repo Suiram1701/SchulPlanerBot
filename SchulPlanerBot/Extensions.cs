@@ -35,6 +35,20 @@ public static class Extensions
         return builder;
     }
 
+    public static IServiceCollection AddDatabaseManagers(this IServiceCollection services, string config = "Manager")
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddOptions<ManagerOptions>()
+            .BindConfiguration("Manager")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        return services
+            .AddTransient<ErrorService>()
+            .AddScoped<SchulPlanerManager>();
+    }
+
     public static IServiceCollection AddDiscordSocketClient(this IServiceCollection services, string configurationKey)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -108,16 +122,6 @@ public static class Extensions
         services.Configure<InteractionServiceConfig>(config => config.LocalizationManager = localizationManager);
 
         return services;
-    }
-
-
-    public static IServiceCollection AddDatabaseManagers(this IServiceCollection services)
-    {
-        ArgumentNullException.ThrowIfNull(services);
-
-        return services
-            .AddTransient<ErrorService>()
-            .AddScoped<SchulPlanerManager>();
     }
 
     public static TracerProviderBuilder AddBotDatabaseInstrumentation(this TracerProviderBuilder builder)

@@ -259,4 +259,16 @@
   <data name="schulplaner.notifications.locale.description" xml:space="preserve">
     <value>Die Sprache in der die Benachrichtigungen erfolgen werden.</value>
   </data>
+  <data name="schulplaner.delete-homeworks.name" xml:space="preserve">
+    <value>hausaufgaben-löschen</value>
+  </data>
+  <data name="schulplaner.delete-homeworks.description" xml:space="preserve">
+    <value>Setzt die Zeit nach der eine Hausaufgabe nach ihrer Fälligkeit gelöscht wird.</value>
+  </data>
+  <data name="schulplaner.delete-homeworks.after.name" xml:space="preserve">
+    <value>nach-fälligkeit</value>
+  </data>
+  <data name="schulplaner.delete-homeworks.after.description" xml:space="preserve">
+    <value>Die Zeit zwischen der Fälligkeit einer Hausaufgabe und ihrer Lösung.</value>
+  </data>
 </root>

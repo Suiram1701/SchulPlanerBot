@@ -127,4 +127,10 @@
   <data name="settings.noLocale" xml:space="preserve">
     <value>Sprache: Serversprache (für nicht-Community Server ist diese Englisch)</value>
   </data>
+  <data name="settings.homeworksDeleteAfterDue" xml:space="preserve">
+    <value>Automatisch Hausaufgaben löschen: {0} nach deren Fälligkeit</value>
+  </data>
+  <data name="homeworksDeletedAfter.updated" xml:space="preserve">
+    <value>Jede Hausaufgabe dieses Server wird {0} nach ihrer Fälligkeit gelöscht.</value>
+  </data>
 </root>

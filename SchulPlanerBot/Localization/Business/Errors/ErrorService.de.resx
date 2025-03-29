@@ -109,4 +109,7 @@
   <data name="homeworkNotFound" xml:space="preserve">
     <value>Eine Hausaufgabe mit dieser ID konnte nicht gefunden werden!</value>
   </data>
+  <data name="deleteAfterDueTooHigh" xml:space="preserve">
+    <value>Hausaufgaben müssen spätestens {0} nach deren Fälligkeit gelöscht werden. Der angegeben Wert ist zu groß!</value>
+  </data>
 </root>

@@ -25,4 +25,6 @@ public class Guild
         get => !string.IsNullOrEmpty(NotificationLocale) ? new(NotificationLocale) : null;
         set => NotificationLocale = value?.ToString();
     }
+
+    public TimeSpan DeleteHomeworksAfterDue { get; set; }
 }
