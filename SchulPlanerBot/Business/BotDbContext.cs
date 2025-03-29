@@ -3,7 +3,7 @@ using AppAny.Quartz.EntityFrameworkCore.Migrations.PostgreSQL;
 using Microsoft.EntityFrameworkCore;
 using SchulPlanerBot.Business.Models;
 
-namespace SchulPlanerBot.Business.Database;
+namespace SchulPlanerBot.Business;
 
 public class BotDbContext(DbContextOptions options) : DbContext(options)
 {
@@ -22,6 +22,7 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
             builder.Property(g => g.NotificationsEnabled).HasDefaultValue(false);
             builder.Property(g => g.StartNotifications);
             builder.Property(g => g.BetweenNotifications);
+            builder.Property(g => g.NotificationLocale).HasMaxLength(5);     // Has always the format 'en-US' when not null
 
             builder.HasKey(g => g.Id);
 

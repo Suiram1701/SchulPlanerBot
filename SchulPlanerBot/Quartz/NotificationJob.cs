@@ -1,10 +1,12 @@
 ﻿using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Localization;
 using Quartz;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Discord;
+using System.Globalization;
 
 namespace SchulPlanerBot.Quartz;
 
@@ -39,6 +41,18 @@ internal sealed class NotificationJob(
                 await UnscheduleTriggerAsync(context).ConfigureAwait(false);
 
                 throw new JobExecutionException("Notifications not right configured for guild!");
+            }
+
+            if (guild.NotificationCulture is not null)
+            {
+                CultureInfo.CurrentCulture = guild.NotificationCulture;
+                CultureInfo.CurrentUICulture = guild.NotificationCulture;
+            }
+            else
+            {
+                RestGuild restGuild = await _client.Rest.GetGuildAsync(guildId).ConfigureAwait(false);
+                CultureInfo.CurrentCulture = restGuild.PreferredCulture;
+                CultureInfo.CurrentUICulture = restGuild.PreferredCulture;
             }
 
             IChannel? channel = await _client.GetChannelAsync(guild.ChannelId.Value).ConfigureAwait(false);

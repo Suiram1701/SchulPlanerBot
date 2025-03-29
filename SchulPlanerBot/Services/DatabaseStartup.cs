@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using SchulPlanerBot.Business.Database;
+using SchulPlanerBot.Business;
 using System.Diagnostics;
 
 namespace SchulPlanerBot.Services;

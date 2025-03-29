@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using SchulPlanerBot.Business;
-using SchulPlanerBot.Business.Database;
 using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Discord;
 using SchulPlanerBot.Options;

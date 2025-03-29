@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Quartz;
-using SchulPlanerBot.Business.Database;
 using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Quartz;
+using System.Globalization;
 
 namespace SchulPlanerBot.Business;
 
@@ -52,6 +52,15 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
         return UpdateResult.Succeeded();
     }
 
+    public async Task<UpdateResult> SetNotificationCultureAsync(ulong guildId, CultureInfo? cultureInfo, CancellationToken ct = default)
+    {
+        Guild guild = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);
+        guild.NotificationCulture = cultureInfo;
+        await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+
+        return UpdateResult.Succeeded();
+    }
+
     public async Task<UpdateResult> EnableNotificationsAsync(ulong guildId, DateTimeOffset start, TimeSpan between, CancellationToken ct = default)
     {
         Guild guild = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);
@@ -65,7 +74,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
         guild.StartNotifications = start.ToUniversalTime();
         guild.BetweenNotifications = between;
 
-        await UpdateSchedulerForGuildAsync(guild, ct).ConfigureAwait(false);     // Call before SaveChanges to ensure exceptions are called before the changes are persisted
+        await UpdateSchedulerForGuildAsync(guild, ct).ConfigureAwait(false);     // Call before SaveChanges to ensure exceptions are thrown before the changes are persisted
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         return UpdateResult.Succeeded();
