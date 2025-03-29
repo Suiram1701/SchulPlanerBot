@@ -5,7 +5,7 @@
 namespace SchulPlanerBot.Migrations
 {
     /// <inheritdoc />
-    public partial class Quartz : Migration
+    public partial class Infra_Quartz : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

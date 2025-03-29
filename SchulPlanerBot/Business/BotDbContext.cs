@@ -15,6 +15,8 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.AddQuartz(options => options.UsePostgreSql());
+
         modelBuilder.Entity<Guild>(builder =>
         {
             builder.Property(g => g.Id).IsRequired();
@@ -65,7 +67,5 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
 
             builder.HasKey(s => new { s.GuildId, s.UserId });
         });
-
-        modelBuilder.AddQuartz(options => options.UsePostgreSql());
     }
 }
