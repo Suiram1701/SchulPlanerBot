@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Interactions;
-using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
@@ -8,7 +7,6 @@ using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.Interactions;
 using SchulPlanerBot.Options;
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.Globalization;
 using IResult = Discord.Interactions.IResult;
 
@@ -108,6 +106,14 @@ internal sealed class DiscordInteractionHandler(
             { "GuildId", interaction.GuildId },
         });
 
+        if (_environment.IsDevelopment() && _options.TestGuild is not null && interaction.GuildId == _options.TestGuild)
+        {
+            _logger.LogWarning("Interaction cancelled! Sent from non-test channel {guildId} during development!", interaction.GuildId);
+            activity?.Dispose();
+
+            return;
+        }
+
         // Required by IStringLocalizer
         CultureInfo userCulture = new(interaction.UserLocale);
         CultureInfo.CurrentCulture = userCulture;
@@ -124,6 +130,7 @@ internal sealed class DiscordInteractionHandler(
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unexpected exception occurred while executing a interaction");
+            activity?.Dispose();
         }
     }
 

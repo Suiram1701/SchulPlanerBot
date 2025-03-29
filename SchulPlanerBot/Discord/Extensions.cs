@@ -15,7 +15,7 @@ public static class Extensions
         }
         else if (errors.Length == 1)
         {
-            UpdateError error = errors[0]; 
+            UpdateError error = errors[0];
 
             logger?.LogTrace("Update error occurred: {error}", error.Name);
             await module.Context.Interaction.RespondAsync(error.Description, ephemeral: true).ConfigureAwait(false);

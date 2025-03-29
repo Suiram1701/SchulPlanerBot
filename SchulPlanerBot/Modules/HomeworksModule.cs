@@ -63,7 +63,7 @@ public sealed class HomeworksModule(
     }
 
     [SlashCommand("create", "Opens the form to create a new homework.")]
-    public async Task CreateHomeworkAsync() => 
+    public async Task CreateHomeworkAsync() =>
         await RespondWithModalAsync<HomeworkModal>(ComponentIds.CreateHomeworkModal, modifyModal: LocalizeHomeworkModal).ConfigureAwait(false);
 
     [ModalInteraction(ComponentIds.CreateHomeworkModal, ignoreGroupNames: true)]

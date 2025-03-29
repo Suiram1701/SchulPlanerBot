@@ -7,7 +7,6 @@ using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.Interactions;
-using System.Text;
 
 namespace SchulPlanerBot.Modules;
 
