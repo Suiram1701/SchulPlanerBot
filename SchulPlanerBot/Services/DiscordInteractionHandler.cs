@@ -106,7 +106,7 @@ internal sealed class DiscordInteractionHandler(
             { "GuildId", interaction.GuildId },
         });
 
-        if (_environment.IsDevelopment() && _options.TestGuild is not null && interaction.GuildId == _options.TestGuild)
+        if (_environment.IsDevelopment() && _options.TestGuild is not null && interaction.GuildId != _options.TestGuild)
         {
             _logger.LogWarning("Interaction cancelled! Sent from non-test channel {guildId} during development!", interaction.GuildId);
             activity?.Dispose();
@@ -145,30 +145,31 @@ internal sealed class DiscordInteractionHandler(
         if (!result.IsSuccess && result.Error is not null)
         {
             string responseMessage = _localizer["errorResponse.unknown"];
+            Utils.AnsiColor responseColor = Utils.AnsiColor.Red;
             switch (result)
             {
                 case ExecuteResult executeResult and { Error: InteractionCommandError.Exception }:
                     _logger.LogError(executeResult.Exception, "Reason: {errorReason}", executeResult.ErrorReason);
-                    responseMessage = _localizer["errorResponse.exception"];
+                    responseMessage = $"{Emoji.Parse(":exclamation:")} {_localizer["errorResponse.exception"]}";
                     break;
                 case PreconditionResult preconditionResult and { Error: InteractionCommandError.UnmetPrecondition }:
-                    responseMessage = _localizer["errorResponse.precondition", preconditionResult.ErrorReason];
+                    responseMessage = $"{Emoji.Parse(":exclamation:")} {_localizer["errorResponse.precondition", preconditionResult.ErrorReason]}";
                     break;
                 case ParseResult parseResult:
-                    responseMessage = _localizer["errorResponse.typeConverter", parseResult.ErrorReason];
+                    responseMessage = $"{Emoji.Parse(":warning:")} {_localizer["errorResponse.typeConverter", parseResult.ErrorReason]}";
+                    responseColor = Utils.AnsiColor.Yellow;
                     break;
                 case TypeConverterResult typeConverterResult:
-                    responseMessage = _localizer["errorResponse.typeConverter", typeConverterResult.ErrorReason];
+                    responseMessage = $"{Emoji.Parse(":warning:")} {_localizer["errorResponse.typeConverter", typeConverterResult.ErrorReason]}";
+                    responseColor = Utils.AnsiColor.Yellow;
                     break;
             }
 
-            if (!context.Interaction.HasResponded)
-            {
-                Activity? activity = Activity.Current;
-                responseMessage += $"\n||TraceId: {activity?.TraceId}\nSpanId: {activity?.SpanId}||";
+            Activity? activity = Activity.Current;
+            responseMessage += $"\nTraceId: {activity?.TraceId}\nSpanId: {activity?.SpanId}";
 
-                await context.Interaction.RespondAsync(responseMessage, ephemeral: true).ConfigureAwait(false);
-            }
+            if (!context.Interaction.HasResponded)
+                await context.Interaction.RespondAsync(Utils.UseAnsiFormat(responseMessage, responseColor), ephemeral: true).ConfigureAwait(false);
         }
 
         if (context is ExtendedSocketContext extendedContext)

@@ -37,7 +37,7 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
             guild.NotificationsEnabled
                 ? _localizer["settings.response.notifications",
                     guild.BetweenNotifications.Value.Humanize(),
-                    Utils.Timestamp(guild.StartNotifications.Value, Utils.TimestampKind.ShortDateTime)]
+                    TimestampTag.FromDateTimeOffset(guild.StartNotifications.Value, TimestampTagStyles.ShortDateTime)]
                 : _localizer["settings.response.noNotifications"]
             ]);
         await RespondAsync(message).ConfigureAwait(false);
@@ -71,7 +71,7 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
                     "notifications.updated",
                     MentionUtils.MentionChannel(guild.ChannelId!.Value),
                     between.Humanize(),
-                    Utils.Timestamp(startOffset, Utils.TimestampKind.ShortDateTime)])
+                    TimestampTag.FromDateTimeOffset(startOffset, TimestampTagStyles.ShortDateTime)])
                 .ConfigureAwait(false);
         }
         else

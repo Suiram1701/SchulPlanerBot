@@ -32,32 +32,38 @@ public static class Utils
         };
     }
 
-    public static string Timestamp(DateTimeOffset dateTime, TimestampKind kind)
+    public static string UseAnsiFormat(string text, AnsiColor color, AnsiFormat format = AnsiFormat.Normal)
     {
-        string suffix = kind switch
-        {
-            TimestampKind.Default => string.Empty,
-            TimestampKind.ShortTime => ":t",
-            TimestampKind.LongTime => ":T",
-            TimestampKind.ShortDate => ":d",
-            TimestampKind.LongDate => ":D",
-            TimestampKind.ShortDateTime => ":f",
-            TimestampKind.LongDateTime => ":F",
-            TimestampKind.Relative => ":R",
-            _ => throw new NotImplementedException()
-        };
-        return $"<t:{dateTime.ToUnixTimeSeconds()}{suffix}>";
+        return string.Concat([
+            "```ansi\n",
+            "\u001b",
+            "[",
+            (int)format,
+            ";",
+            (int)color,
+            "m",
+            text,
+            "\u001b[0m",
+            "\n```"
+            ]);
     }
 
-    public enum TimestampKind
+    public enum AnsiFormat
     {
-        Default,
-        ShortTime,
-        LongTime,
-        ShortDate,
-        LongDate,
-        ShortDateTime,
-        LongDateTime,
-        Relative
+        Normal = 0,
+        Bold = 1,
+        Underline = 2
+    }
+
+    public enum AnsiColor
+    {
+        Gray = 30,
+        Red = 31,
+        Green = 32,
+        Yellow = 33,
+        Blue = 34,
+        Pink = 35,
+        Cyan = 36,
+        White = 37
     }
 }
