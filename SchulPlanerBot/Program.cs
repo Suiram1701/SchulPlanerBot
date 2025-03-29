@@ -47,7 +47,11 @@ public class Program
             });
 
         builder.Services.AddDiscordSocketClient("DiscordClient")
-            .AddInteractionFramework(service => service.AddTypeConverter<string[]>(new StringArrayConverter()))
+            .AddInteractionFramework(service =>
+            {
+                service.AddTypeConverter<string[]>(new StringArrayConverter());
+                service.AddTypeConverter<CultureInfo>(new CultureInfoConverter(cultures: _supportedCultures));
+            })
             .AddInteractionResXLocalization<ISchulPlanerBot>(_commandsLocalizationResource, _supportedCultures);
 
         builder.Services.AddLocalization(options => options.ResourcesPath = "Localization");

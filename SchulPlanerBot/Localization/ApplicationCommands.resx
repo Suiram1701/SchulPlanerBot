@@ -109,29 +109,29 @@
   <data name="schulplaner.settings.description" xml:space="preserve">
     <value>Retrieves the settings configured for the guild.</value>
   </data>
-  <data name="schulplaner.channel.name" xml:space="preserve">
-    <value>channel</value>
-  </data>
-  <data name="schulplaner.channel.description" xml:space="preserve">
-    <value>Configures the channel that will be used for notifications and interactions.</value>
-  </data>
-  <data name="schulplaner.channel.channel.name" xml:space="preserve">
-    <value>channel</value>
-  </data>
-  <data name="schulplaner.channel.channel.description" xml:space="preserve">
-    <value>The channel where the bot should post notifications. Leave empty to remove the channel.</value>
-  </data>
   <data name="schulplaner.notifications.name" xml:space="preserve">
     <value>notifications</value>
   </data>
   <data name="schulplaner.notifications.description" xml:space="preserve">
     <value>Configures when notifications will be made.</value>
   </data>
+  <data name="schulplaner.notifications.channel.name" xml:space="preserve">
+    <value>channel</value>
+  </data>
+  <data name="schulplaner.notifications.channel.description" xml:space="preserve">
+    <value>The channel were the notifications will be posted.</value>
+  </data>
   <data name="schulplaner.notifications.start.name" xml:space="preserve">
     <value>start</value>
   </data>
   <data name="schulplaner.notifications.between.name" xml:space="preserve">
     <value>between</value>
+  </data>
+  <data name="schulplaner.notifications.locale.name" xml:space="preserve">
+    <value>language</value>
+  </data>
+  <data name="schulplaner.notifications.locale.description" xml:space="preserve">
+    <value>The language in which the notifications will be made.</value>
   </data>
   <data name="schulplaner.notifications.start.description" xml:space="preserve">
     <value>The date time where the bot should start with notifications. E.g.: 01.01.2020 10:00 or just 10:00.</value>

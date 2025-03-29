@@ -97,16 +97,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="settings.response.channel" xml:space="preserve">
+  <data name="settings.channel" xml:space="preserve">
     <value>Textkanal: {0}</value>
   </data>
-  <data name="settings.response.noChannel" xml:space="preserve">
+  <data name="settings.noChannel" xml:space="preserve">
     <value>Textkanal: Noch nicht konfiguriert</value>
   </data>
-  <data name="settings.response.notifications" xml:space="preserve">
+  <data name="settings.notifications" xml:space="preserve">
     <value>Benachrichtigungen: Alle {0} ab dem {1}</value>
   </data>
-  <data name="settings.response.noNotifications" xml:space="preserve">
+  <data name="settings.noNotifications" xml:space="preserve">
     <value>Benachrichtigungen: Noch nicht aktiviert</value>
   </data>
   <data name="channel.updated" xml:space="preserve">
@@ -120,5 +120,11 @@
   </data>
   <data name="notifications.updated" xml:space="preserve">
     <value>Benachrichtige alle {1} ab dem {2} in {0}.</value>
+  </data>
+  <data name="settings.locale" xml:space="preserve">
+    <value>Sprache: {0}</value>
+  </data>
+  <data name="settings.noLocale" xml:space="preserve">
+    <value>Sprache: Serversprache (für nicht-Community Server ist diese Englisch)</value>
   </data>
 </root>

@@ -109,18 +109,6 @@
   <data name="schulplaner.settings.description" xml:space="preserve">
     <value>Ruft die Einstellungen für den Bot auf diesem Server ab.</value>
   </data>
-  <data name="schulplaner.channel.name" xml:space="preserve">
-    <value>kanal</value>
-  </data>
-  <data name="schulplaner.channel.description" xml:space="preserve">
-    <value>Legt den Textkanal fest der für Benachrichtigungen und Interaktionen verwendet werden soll.</value>
-  </data>
-  <data name="schulplaner.channel.channel.name" xml:space="preserve">
-    <value>kanal</value>
-  </data>
-  <data name="schulplaner.channel.channel.description" xml:space="preserve">
-    <value>Der Kanal, wo Benachrichtigungen vom Bot gemacht werden sollen. Freilassen um diesen zu entfernen.</value>
-  </data>
   <data name="schulplaner.notifications.name" xml:space="preserve">
     <value>benachrichtigungen</value>
   </data>
@@ -258,5 +246,17 @@
   </data>
   <data name="homeworks.subscriptions.description" xml:space="preserve">
     <value>Zeigt Ihre Benachrichtigungs Abonnements.</value>
+  </data>
+  <data name="schulplaner.notifications.locale.name" xml:space="preserve">
+    <value>sprache</value>
+  </data>
+  <data name="schulplaner.notifications.channel.name" xml:space="preserve">
+    <value>kanal</value>
+  </data>
+  <data name="schulplaner.notifications.channel.description" xml:space="preserve">
+    <value>Der Kanal indem Benachrichtigungen geposted werden.</value>
+  </data>
+  <data name="schulplaner.notifications.locale.description" xml:space="preserve">
+    <value>Die Sprache in der die Benachrichtigungen erfolgen werden.</value>
   </data>
 </root>

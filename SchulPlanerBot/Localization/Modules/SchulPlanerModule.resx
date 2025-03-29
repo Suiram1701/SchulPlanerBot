@@ -97,17 +97,23 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="settings.response.channel" xml:space="preserve">
+  <data name="settings.channel" xml:space="preserve">
     <value>Text channel: {0}</value>
   </data>
-  <data name="settings.response.noChannel" xml:space="preserve">
+  <data name="settings.noChannel" xml:space="preserve">
     <value>Text channel: Not yet configured</value>
   </data>
-  <data name="settings.response.notifications" xml:space="preserve">
+  <data name="settings.notifications" xml:space="preserve">
     <value>Notifications: Every {0} starting at {1}</value>
   </data>
-  <data name="settings.response.noNotifications" xml:space="preserve">
+  <data name="settings.noNotifications" xml:space="preserve">
     <value>Notifications: Not yet enabled</value>
+  </data>
+  <data name="settings.locale" xml:space="preserve">
+    <value>Language: {0}</value>
+  </data>
+  <data name="settings.noLocale" xml:space="preserve">
+    <value>Language: Guild culture (for non community guilds this will be english)</value>
   </data>
   <data name="channel.updated" xml:space="preserve">
     <value>Notification channel updated to {0}.</value>
