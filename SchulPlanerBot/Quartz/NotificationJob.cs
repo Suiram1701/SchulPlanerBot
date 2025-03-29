@@ -29,9 +29,9 @@ internal sealed class NotificationJob(
     {
         try
         {
-            if (!(context.MergedJobDataMap.TryGetString(DataKeys.GuildId, out string? guildIdStr) && ulong.TryParse(guildIdStr, out ulong guildId)))
+            if (!(context.MergedJobDataMap.TryGetString(Keys.GuildIdData, out string? guildIdStr) && ulong.TryParse(guildIdStr, out ulong guildId)))
             {
-                throw new JobExecutionException($"Unable to retrieve the required job data '{DataKeys.GuildId}'!");
+                throw new JobExecutionException($"Unable to retrieve the required job data '{Keys.GuildIdData}'!");
             }
 
             Guild guild = await _manager.GetGuildAsync(guildId, context.CancellationToken).ConfigureAwait(false);
@@ -64,7 +64,7 @@ internal sealed class NotificationJob(
                 throw new JobExecutionException("Unable to retrieve notification channel for guild!");
             }
 
-            // Real notification starts
+            // Real notification part starts
             DateTimeOffset endDateTime = DateTimeOffset.UtcNow + guild.BetweenNotifications.Value;
             IEnumerable<Homework> homeworks = await _manager.GetHomeworksAsync(guildId, start: DateTime.UtcNow, end: endDateTime, ct: context.CancellationToken).ConfigureAwait(false);
 

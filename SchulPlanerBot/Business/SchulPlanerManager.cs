@@ -22,7 +22,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
 
     public StringComparer SubjectNameComparer => Options.SubjectsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
-    public async Task<Guild> GetGuildAsync(ulong guildId, CancellationToken ct)
+    public async Task<Guild> GetGuildAsync(ulong guildId, CancellationToken ct = default)
     {
         Guild? guild = await _dbContext.Guilds
             .AsNoTracking()
@@ -41,6 +41,14 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
         }
 
         return guild;
+    }
+
+    public async Task<IEnumerable<Guild>> GetGuildsAsync(CancellationToken ct = default)
+    {
+        return await _dbContext.Guilds
+            .AsNoTracking()
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
     }
 
     public async Task<UpdateResult> SetChannelAsync(ulong guildId, ulong channelId, CancellationToken ct = default)
@@ -202,6 +210,15 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
             : _errorService.HomeworkNotFound();
     }
 
+    public async Task<(int? deleted, UpdateResult)> DeleteHomeworksWithDueOlderAsync(ulong guildId, DateTimeOffset dateTime, CancellationToken ct = default)
+    {
+        int count = await _dbContext.Homeworks
+            .Where(h => h.GuildId == guildId && h.Due <= dateTime)
+            .ExecuteDeleteAsync(ct)
+            .ConfigureAwait(false);
+        return (count,  UpdateResult.Succeeded());
+    }
+
     public async Task<HomeworkSubscription?> GetHomeworkSubscriptionAsync(ulong guildId, ulong userId, CancellationToken ct = default)
     {
         return await _dbContext.HomeworkSubscriptions
@@ -311,7 +328,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
             .WithIdentity(triggerKey)
             .WithDescription("Notifies users of a certain server at a configured time")
             .ForJob(Keys.NotificationJob)
-            .UsingJobData(DataKeys.GuildId, guild.Id.ToString())
+            .UsingJobData(Keys.GuildIdData, guild.Id.ToString())
             .StartAt(guild.StartNotifications.Value)
             .WithSimpleSchedule(schedule => schedule
                 .WithInterval(guild.BetweenNotifications.Value)

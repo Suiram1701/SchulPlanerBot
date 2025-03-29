@@ -23,23 +23,7 @@ public class Program
         builder.Services.AddDatabaseManagers();
 
         builder.Services
-            .AddQuartz(options =>
-            {
-                options.AddJob<NotificationJob>(job => job
-                    .WithIdentity(Keys.NotificationJob)
-                    .WithDescription("Notifies users in a text channel at specific times")
-                    .StoreDurably());
-
-                options.UsePersistentStore(ado =>
-                {
-                    ado.UseNewtonsoftJsonSerializer();
-                    ado.UsePostgres(pg =>
-                    {
-                        pg.ConnectionStringName = ResourceNames.BotDatabase;
-                        pg.TablePrefix = "quartz.qrtz_";     // Configure the used database schema
-                    });
-                });
-            })
+            .AddQuartz(ConfigureQuartz)
             .AddQuartzServer(options =>
             {
                 options.AwaitApplicationStarted = true;
@@ -68,5 +52,37 @@ public class Program
         app.MapDefaultEndpoints();
 
         app.Run();
+    }
+
+    private static void ConfigureQuartz(IServiceCollectionQuartzConfigurator options)
+    {
+        options.AddJob<NotificationJob>(job => job
+            .WithIdentity(Keys.NotificationJob)
+            .WithDescription("Notifies users in a text channel at specific times")
+            .StoreDurably());
+        options.AddJob<DeleteHomeworksJob>(job => job
+            .WithIdentity(Keys.DeleteHomeworksJob)
+            .WithDescription("Deletes homeworks of guilds a specific amount of time after their due.")
+            .DisallowConcurrentExecution());
+
+        options.AddTrigger(trigger => trigger
+            .WithIdentity(Keys.DeleteHomeworksKey)
+            .WithDescription("Triggers this job every 30m.")
+            .ForJob(Keys.DeleteHomeworksJob)
+            .StartNow()
+            .WithSimpleSchedule(scheduler => scheduler
+                .WithIntervalInMinutes(30)
+                .RepeatForever()
+                .WithMisfireHandlingInstructionFireNow()));
+
+        options.UsePersistentStore(ado =>
+        {
+            ado.UseNewtonsoftJsonSerializer();
+            ado.UsePostgres(pg =>
+            {
+                pg.ConnectionStringName = ResourceNames.BotDatabase;
+                pg.TablePrefix = "quartz.qrtz_";     // Configure the used database schema
+            });
+        });
     }
 }
