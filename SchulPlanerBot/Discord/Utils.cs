@@ -2,7 +2,7 @@
 
 namespace SchulPlanerBot.Discord;
 
-public static class Utilities
+public static class Utils
 {
     public static LogLevel ConvertLogLevel(LogSeverity severity)
     {
@@ -32,17 +32,6 @@ public static class Utilities
         };
     }
 
-    public static string Mention(ulong id, MentionType type)
-    {
-        char prefix = type switch
-        {
-            MentionType.User => '@',
-            MentionType.Channel => '#',
-            _ => throw new NotImplementedException()
-        };
-        return $"<{prefix}{id}>";
-    }
-
     public static string Timestamp(DateTimeOffset dateTime, TimestampKind kind)
     {
         string suffix = kind switch
@@ -58,5 +47,17 @@ public static class Utilities
             _ => throw new NotImplementedException()
         };
         return $"<t:{dateTime.ToUnixTimeSeconds()}{suffix}>";
+    }
+
+    public enum TimestampKind
+    {
+        Default,
+        ShortTime,
+        LongTime,
+        ShortDate,
+        LongDate,
+        ShortDateTime,
+        LongDateTime,
+        Relative
     }
 }

@@ -6,10 +6,6 @@ namespace SchulPlanerBot.Discord;
 
 public static class Extensions
 {
-    public static string Mention(this IUser user) => $"<@{user.Id}>";
-
-    public static string Mention(this IChannel channel) => $"<#{channel.Id}>";
-
     public static async Task RespondWithErrorAsync<TContext>(this InteractionModuleBase<TContext> module, UpdateError[] errors, ILogger? logger = null)
         where TContext : class, IInteractionContext
     {

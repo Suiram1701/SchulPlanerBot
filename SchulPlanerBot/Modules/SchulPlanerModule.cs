@@ -32,13 +32,13 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
 
         string message = string.Concat([
             guild.ChannelId is not null
-                ? _localizer["settings.response.channel", Utilities.Mention(guild.ChannelId.Value, MentionType.Channel)]
+                ? _localizer["settings.response.channel", MentionUtils.MentionChannel(guild.ChannelId!.Value)]
                 : _localizer["settings.response.noChannel"],
             '\n',
             guild.NotificationsEnabled
                 ? _localizer["settings.response.notifications",
                     guild.BetweenNotifications.Value.Humanize(),
-                    Utilities.Timestamp(guild.StartNotifications.Value, TimestampKind.ShortDateTime)]
+                    Utils.Timestamp(guild.StartNotifications.Value, Utils.TimestampKind.ShortDateTime)]
                 : _localizer["settings.response.noNotifications"]
             ]);
         await RespondAsync(message).ConfigureAwait(false);
@@ -50,7 +50,7 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
         if (channel is not null)
         {
             await _manager.SetChannelAsync(Guild.Id, channel.Id, CancellationToken).ConfigureAwait(false);
-            await RespondAsync(_localizer["channel.updated", channel.Mention()]).ConfigureAwait(false);
+            await RespondAsync(_localizer["channel.updated", MentionUtils.MentionChannel(channel.Id)]).ConfigureAwait(false);
         }
         else
         {
@@ -70,9 +70,9 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
 
             await RespondAsync(_localizer[
                     "notifications.updated",
-                    Utilities.Mention(guild.ChannelId!.Value, MentionType.Channel),
+                    MentionUtils.MentionChannel(guild.ChannelId!.Value),
                     between.Humanize(),
-                    Utilities.Timestamp(startOffset, TimestampKind.ShortDateTime)])
+                    Utils.Timestamp(startOffset, Utils.TimestampKind.ShortDateTime)])
                 .ConfigureAwait(false);
         }
         else

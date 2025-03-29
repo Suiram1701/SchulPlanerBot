@@ -129,7 +129,7 @@ internal sealed class DiscordInteractionHandler(
 
     private Task Interaction_Log(LogMessage arg)
     {
-        _interactionLogger.Log(Utilities.ConvertLogLevel(arg.Severity), arg.Exception, "{LogSource}: {LogMessage}", arg.Source, arg.Message);
+        _interactionLogger.Log(Utils.ConvertLogLevel(arg.Severity), arg.Exception, "{LogSource}: {LogMessage}", arg.Source, arg.Message);
         return Task.CompletedTask;
     }
 

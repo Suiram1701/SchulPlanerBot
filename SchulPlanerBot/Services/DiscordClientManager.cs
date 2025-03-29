@@ -60,7 +60,7 @@ internal sealed class DiscordClientManager(
 
     private Task Client_Log(LogMessage arg)
     {
-        _clientLogger.Log(Utilities.ConvertLogLevel(arg.Severity), arg.Exception, "{LogSource}: {LogMessage}", arg.Source, arg.Message);
+        _clientLogger.Log(Utils.ConvertLogLevel(arg.Severity), arg.Exception, "{LogSource}: {LogMessage}", arg.Source, arg.Message);
         return Task.CompletedTask;
     }
 

@@ -57,7 +57,20 @@ internal sealed class NotificationJob(
             Embed[] embeds = [.. homeworks.Select(_embedsService.Homework)];
             if (embeds.Length > 0)
             {
-                await textChannel.SendMessageAsync(_localizer["homeworks", Utilities.Timestamp(endDateTime, TimestampKind.Relative)]).ConfigureAwait(false);
+                IEnumerable<HomeworkSubscription> userSubscriptions = await _manager.GetSubscriptionsAsync(guildId, context.CancellationToken).ConfigureAwait(false);
+                ulong[] usersToMention = [.. userSubscriptions
+                    .Where(s => ShouldNotifyUser(s, homeworks))
+                    .Select(s => s.UserId)];
+
+                string startMessage = string.Empty;
+                if (usersToMention.Length > 0)
+                {
+                    string mentionStr = string.Join(", ", usersToMention.Select(MentionUtils.MentionUser));
+                    startMessage += $"{_localizer["homeworksNotify", mentionStr]} ";
+                }
+
+                startMessage += _localizer["homeworks", Utils.Timestamp(endDateTime, Utils.TimestampKind.Relative)];
+                await textChannel.SendMessageAsync(startMessage).ConfigureAwait(false);
 
                 int sentEmbeds = 0;
                 do
@@ -71,7 +84,7 @@ internal sealed class NotificationJob(
             }
             else
             {
-                await textChannel.SendMessageAsync(_localizer["noHomeworks", Utilities.Timestamp(endDateTime, TimestampKind.Relative)]).ConfigureAwait(false);
+                await textChannel.SendMessageAsync(_localizer["noHomeworks", Utils.Timestamp(endDateTime, Utils.TimestampKind.Relative)]).ConfigureAwait(false);
             }
 
         }
@@ -86,5 +99,16 @@ internal sealed class NotificationJob(
     {
         IScheduler scheduler = await _schedulerFactory.GetScheduler(context.CancellationToken).ConfigureAwait(false);
         await scheduler.UnscheduleJob(context.RecoveringTriggerKey, context.CancellationToken).ConfigureAwait(false);
+    }
+
+    private static bool ShouldNotifyUser(HomeworkSubscription subscription, IEnumerable<Homework> homeworks)
+    {
+        if (subscription.AnySubject)
+            return true;
+        if (subscription.NoSubject && homeworks.Any(h => string.IsNullOrWhiteSpace(h.Subject)))
+            return true;
+        if (subscription.Include.Any(s => homeworks.Select(h => h.Subject).Contains(s)))
+            return true;
+        return false;
     }
 }

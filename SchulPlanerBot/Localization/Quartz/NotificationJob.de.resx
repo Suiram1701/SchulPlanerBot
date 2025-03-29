@@ -103,4 +103,7 @@
   <data name="homeworks" xml:space="preserve">
     <value>Dies sind die Hausaufgaben bis zur nächsten Benachrichtigung {0}:</value>
   </data>
+  <data name="homeworksNotify" xml:space="preserve">
+    <value>{0} Sie haben für eines oder mehrerer Fächer der Hausaufgaben dieser Benachrichtigung abonniert!</value>
+  </data>
 </root>

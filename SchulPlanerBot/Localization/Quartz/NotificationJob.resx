@@ -103,4 +103,7 @@
   <data name="homeworks" xml:space="preserve">
     <value>These are the homeworks until the next notification {0}:</value>
   </data>
+  <data name="homeworksNotify" xml:space="preserve">
+    <value>{0} you've subscribed to one or more subjects from the homeworks of this notification!</value>
+  </data>
 </root>

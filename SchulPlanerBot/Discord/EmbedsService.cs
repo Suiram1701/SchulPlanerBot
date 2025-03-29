@@ -17,16 +17,16 @@ public class EmbedsService(IStringLocalizer<EmbedsService> localizer)
             .WithAuthor(new EmbedAuthorBuilder().WithName(homework.Subject))
             .WithTitle(homework.Title)
             .WithDescription(homework.Details)
-            .AddField(_localizer["homeworkEmbed.due"], Utilities.Timestamp(homework.Due, TimestampKind.Relative))
-            .AddField(_localizer["homeworkEmbed.creator"], Utilities.Mention(homework.CreatedBy, MentionType.User), inline: true)
-            .AddField(_localizer["homeworkEmbed.created"], Utilities.Timestamp(homework.CreatedAt, TimestampKind.ShortDate), inline: true);
+            .AddField(_localizer["homeworkEmbed.due"], Utils.Timestamp(homework.Due, Utils.TimestampKind.Relative))
+            .AddField(_localizer["homeworkEmbed.creator"], MentionUtils.MentionUser(homework.CreatedBy), inline: true)
+            .AddField(_localizer["homeworkEmbed.created"], Utils.Timestamp(homework.CreatedAt, Utils.TimestampKind.ShortDate), inline: true);
 
         if (homework.LastModifiedBy is not null && homework.LastModifiedAt is not null)
         {
             builder = builder
                 .AddField(_invisibleChar, _invisibleChar, inline: false)     // Improved layout
-                .AddField(_localizer["homeworkEmbed.lastEditor"], Utilities.Mention(homework.LastModifiedBy.Value, MentionType.User), inline: true)
-                .AddField(_localizer["homeworkEmbed.lastEdited"], Utilities.Timestamp(homework.LastModifiedAt.Value, TimestampKind.ShortDate), inline: true);
+                .AddField(_localizer["homeworkEmbed.lastEditor"], MentionUtils.MentionUser(homework.LastModifiedBy.Value), inline: true)
+                .AddField(_localizer["homeworkEmbed.lastEdited"], Utils.Timestamp(homework.LastModifiedAt.Value, Utils.TimestampKind.ShortDate), inline: true);
         }
 
         return builder

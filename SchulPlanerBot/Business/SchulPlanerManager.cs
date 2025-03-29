@@ -3,9 +3,7 @@ using Quartz;
 using SchulPlanerBot.Business.Database;
 using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Business.Models;
-using SchulPlanerBot.Migrations;
 using SchulPlanerBot.Quartz;
-using System.Linq;
 
 namespace SchulPlanerBot.Business;
 
@@ -169,6 +167,15 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
         return await _dbContext.HomeworkSubscriptions
             .AsNoTracking()
             .SingleOrDefaultAsync(s => s.GuildId == guildId && s.UserId == userId, ct)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<IEnumerable<HomeworkSubscription>> GetSubscriptionsAsync(ulong guildId, CancellationToken ct = default)
+    {
+        return await _dbContext.HomeworkSubscriptions
+            .AsNoTracking()
+            .Where(s => s.GuildId == guildId)
+            .ToListAsync(ct)
             .ConfigureAwait(false);
     }
 
