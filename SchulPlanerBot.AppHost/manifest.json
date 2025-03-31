@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json.schemastore.org/aspire-8.0.json",
+  "resources": {
+    "postgres-server": {
+      "type": "container.v0",
+      "connectionString": "Host={postgres-server.bindings.tcp.host};Port={postgres-server.bindings.tcp.port};Username=postgres;Password={postgres-server-password.value}",
+      "image": "docker.io/library/postgres:17.2",
+      "volumes": [
+        {
+          "name": "schulplanerbot.apphost-f57299d648-postgres-server-data",
+          "target": "/var/lib/postgresql/data",
+          "readOnly": false
+        }
+      ],
+      "env": {
+        "POSTGRES_HOST_AUTH_METHOD": "scram-sha-256",
+        "POSTGRES_INITDB_ARGS": "--auth-host=scram-sha-256 --auth-local=scram-sha-256",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "{postgres-server-password.value}"
+      },
+      "bindings": {
+        "tcp": {
+          "scheme": "tcp",
+          "protocol": "tcp",
+          "transport": "tcp",
+          "targetPort": 5432
+        }
+      }
+    },
+    "bot-db": {
+      "type": "value.v0",
+      "connectionString": "{postgres-server.connectionString};Database=bot-db"
+    },
+    "discord-bot": {
+      "type": "project.v0",
+      "path": "../SchulPlanerBot/SchulPlanerBot.csproj",
+      "env": {
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY": "in_memory",
+        "ASPNETCORE_FORWARDEDHEADERS_ENABLED": "true",
+        "HTTP_PORTS": "{discord-bot.bindings.http.targetPort}",
+        "DiscordClient__TokenType": "{DiscordClient-TokenType.value}",
+        "DiscordClient__Token": "{DiscordClient-Token.value}",
+        "ConnectionStrings__bot-db": "{bot-db.connectionString}"
+      },
+      "bindings": {
+        "http": {
+          "scheme": "http",
+          "protocol": "tcp",
+          "transport": "http"
+        },
+        "https": {
+          "scheme": "https",
+          "protocol": "tcp",
+          "transport": "http"
+        }
+      }
+    },
+    "DiscordClient-TokenType": {
+      "type": "parameter.v0",
+      "value": "{DiscordClient-TokenType.inputs.value}",
+      "inputs": {
+        "value": {
+          "type": "string",
+          "secret": true
+        }
+      }
+    },
+    "DiscordClient-Token": {
+      "type": "parameter.v0",
+      "value": "{DiscordClient-Token.inputs.value}",
+      "inputs": {
+        "value": {
+          "type": "string",
+          "secret": true
+        }
+      }
+    },
+    "postgres-server-password": {
+      "type": "parameter.v0",
+      "value": "{postgres-server-password.inputs.value}",
+      "inputs": {
+        "value": {
+          "type": "string",
+          "secret": true,
+          "default": {
+            "generate": {
+              "minLength": 22
+            }
+          }
+        }
+      }
+    }
+  }
+}

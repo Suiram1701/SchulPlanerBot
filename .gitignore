@@ -10,6 +10,9 @@
 *.userosscache
 *.sln.docstates
 
+# Contains sensitive data
+aspirate-output/
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

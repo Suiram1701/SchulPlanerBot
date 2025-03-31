@@ -1,0 +1,42 @@
+{
+  "projectPath": ".",
+  "inputPath": "aspirate-output",
+  "outputPath": "aspirate-output",
+  "namespace": "schulplanerbot",
+  "containerRegistry": "docker.io",
+  "containerImageTags": [
+    "latest"
+  ],
+  "runtimeIdentifier": "linux-arm64",
+  "containerBuilder": "docker",
+  "containerRepositoryPrefix": "suiram2265",
+  "kubeContext": "default",
+  "outputFormat": "kustomize",
+  "skipFinalKustomizeGeneration": false,
+  "privateRegistryEmail": "aspir8@aka.ms",
+  "includeDashboard": true,
+  "useCustomNamespace": false,
+  "secrets": {
+    "salt": "shRejXUpnZU1jeXI",
+    "hash": "Tk\u002BpVcyVQ2QXME9BRQMOCEVaVD42NZoDe3I4kQhuLKw=",
+    "secrets": {
+      "postgres-server-password": {
+        "value": "shRejXUpnZU1jeXIIdml80LWXctvntWEOfb7ffYWduogD9FA2Y1IHTrzIVDEpLpGAW8="
+      },
+      "DiscordClient-TokenType": {
+        "value": "shRejXUpnZU1jeXIvSt2YaId8Qz13vktTVdaYcBOdQ=="
+      },
+      "DiscordClient-Token": {
+        "value": "shRejXUpnZU1jeXINaTcIMpmTw2BV\u002BrkowpKZc91TIwtbcRSxK1zMULcLFW/vYA4Ky1/0y/7VWlYuxgNiCGAu8hpkvSfOX0jX4ZixHas8Hq5RwVyGyWAo1y5NlIRjxHkzi9hJg=="
+      },
+      "postgres-server": {
+        "POSTGRES_PASSWORD": "shRejXUpnZU1jeXIIdml80LWXctvntWEOfb7ffYWduogD9FA2Y1IHTrzIVDEpLpGAW8="
+      },
+      "bot-db": {},
+      "discord-bot": {
+        "ConnectionStrings__bot-db": "shRejXUpnZU1jeXIXAxpEV9y7PXcK/pZ2\u002BZTT8pOcshfSfpW/p5MLH\u002BLHgWCn7x\u002BXQd7kRaXThpd2ndvw2qt5s9UuL/CIEwvfow31TWY30SoV1w2SkGE5hK\u002BARAZ2hDV0yliS0OCCh6Rzv6uI9EeQDLLFFbK3qDqok8PDw=="
+      }
+    }
+  },
+  "processAllComponents": true
+}

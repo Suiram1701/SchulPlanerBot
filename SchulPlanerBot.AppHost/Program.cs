@@ -10,7 +10,7 @@ public class Program
 
         IResourceBuilder<PostgresDatabaseResource> botDb = builder.AddPostgres("postgres-server")
             .WithDataVolume()
-            .WithPgAdmin()
+            .WithPgAdmin(subBuilder => subBuilder.WithExternalHttpEndpoints())      // Makes the db accessable from outside
             .AddDatabase(ResourceNames.BotDatabase);
 
         builder.AddProject<Projects.SchulPlanerBot>("discord-bot")

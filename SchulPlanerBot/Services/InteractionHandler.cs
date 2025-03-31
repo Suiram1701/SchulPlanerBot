@@ -109,7 +109,9 @@ internal sealed class InteractionHandler(
         if (_environment.IsDevelopment() && _options.TestGuild is not null && interaction.GuildId != _options.TestGuild)
         {
             _logger.LogWarning("Interaction cancelled! Sent from non-test channel {guildId} during development!", interaction.GuildId);
-            await interaction.RespondAsync(Utils.UseAnsiFormat(MessageWithEmote("warning", "Cannot execute interactions outside of the development guild during dev environment!"), Utils.AnsiColor.Red)).ConfigureAwait(false);
+            await interaction.RespondAsync(Utils.UseAnsiFormat(
+                MessageWithEmote("warning", "Cannot execute interactions outside of the development guild during dev environment!"),
+                Utils.AnsiColor.Yellow)).ConfigureAwait(false);
 
             activity?.Dispose();
             return;

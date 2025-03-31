@@ -63,7 +63,7 @@ public static class Extensions
             {
                 config.LogLevel = LogSeverity.Debug;     // Managed by ILogger<DiscordSocketClient>
                 config.DefaultRetryMode = RetryMode.AlwaysRetry;
-                config.GatewayIntents = GatewayIntents.AllUnprivileged;
+                config.GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages;
                 config.LogGatewayIntentWarnings = true;
 
                 /*
