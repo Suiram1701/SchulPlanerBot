@@ -38,7 +38,7 @@ public sealed class HomeworksModule(
     [SlashCommand("list", "Gets all homeworks within the specified range or homeworks of a specific subject.")]
     public async Task GetHomeworksAsync(DateTime? start = null, DateTime? end = null, string? subject = null)
     {
-        IEnumerable<Homework> homeworks = await _manager.GetHomeworksAsync(Guild.Id, start, end, subject, CancellationToken).ConfigureAwait(false);
+        IEnumerable<Homework> homeworks = await _manager.GetHomeworksAsync(Guild.Id, start?.ToUniversalTime(), end?.ToUniversalTime(), subject, CancellationToken).ConfigureAwait(false);
 
         Embed[] embeds = [.. homeworks.Select(_embedsService.Homework)];
         if (embeds.Length > 0)
@@ -78,7 +78,7 @@ public sealed class HomeworksModule(
         (Homework? homework, UpdateResult creationResult) = await _manager.CreateHomeworkAsync(
             Guild.Id,
             User.Id,
-            due,
+            due.ToUniversalTime(),
             homeworkModal.Subject,
             homeworkModal.Title,
             homeworkModal.Details,
@@ -116,7 +116,7 @@ public sealed class HomeworksModule(
 
         HomeworkModal modal = new()
         {
-            Due = homework.Due.ToString("g"),     // g Serializes in similar format than the user input
+            Due = homework.Due.ToLocalTime().ToString("g"),     // g Serializes in similar format than the user input
             Subject = homework.Subject,
             Title = homework.Title,
             Details = homework.Details
@@ -137,7 +137,7 @@ public sealed class HomeworksModule(
         (Homework? homework, UpdateResult modifyResult) = await _manager.ModifyHomeworkAsync(
             homeworkId,
             User.Id,
-            due,
+            due.ToLocalTime(),
             homeworkModal.Subject,
             homeworkModal.Title,
             homeworkModal.Details,

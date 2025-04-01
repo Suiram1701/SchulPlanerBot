@@ -38,7 +38,7 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
             guild.NotificationsEnabled
                 ? _localizer["settings.notifications",
                     guild.BetweenNotifications.Value.Humanize(),
-                    TimestampTag.FromDateTimeOffset(guild.StartNotifications.Value, TimestampTagStyles.ShortDateTime)]
+                    TimestampTag.FromDateTimeOffset(guild.StartNotifications.Value.ToLocalTime(), TimestampTagStyles.ShortDateTime)]
                 : _localizer["settings.noNotifications"],
             '\n',
             guild.NotificationCulture is not null
@@ -55,7 +55,7 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
     {
         await _manager.SetChannelAsync(Guild.Id, channel.Id, CancellationToken).ConfigureAwait(false);
         await _manager.SetNotificationCultureAsync(Guild.Id, locale).ConfigureAwait(false);
-        UpdateResult enableResult = await _manager.EnableNotificationsAsync(Guild.Id, start, between, CancellationToken).ConfigureAwait(false);
+        UpdateResult enableResult = await _manager.EnableNotificationsAsync(Guild.Id, start.ToUniversalTime(), between, CancellationToken).ConfigureAwait(false);
 
         if (enableResult.Success)
         {

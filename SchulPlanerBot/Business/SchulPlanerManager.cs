@@ -91,7 +91,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
             return _errorService.LowTimeBetween(Options.MinBetweenNotifications);
 
         guild.NotificationsEnabled = true;
-        guild.StartNotifications = start.ToUniversalTime();
+        guild.StartNotifications = start;
         guild.BetweenNotifications = between;
 
         await UpdateSchedulerForGuildAsync(guild, ct).ConfigureAwait(false);     // Call before SaveChanges to ensure exceptions are thrown before the changes are persisted
@@ -134,8 +134,8 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
 
     public async Task<IEnumerable<Homework>> GetHomeworksAsync(ulong guildId, DateTimeOffset? start = null, DateTimeOffset? end = null, string? subject = null, CancellationToken ct = default)
     {
-        start = start?.ToUniversalTime() ?? DateTimeOffset.UtcNow;
-        end = end?.ToUniversalTime() ?? DateTimeOffset.UtcNow.AddDays(7);
+        start ??= DateTimeOffset.UtcNow;
+        end ??= DateTimeOffset.UtcNow.AddDays(7);
 
         IQueryable<Homework> query = _dbContext.Homeworks
             .AsNoTracking()
@@ -156,7 +156,6 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
 
     public async Task<(Homework? homework, UpdateResult result)> CreateHomeworkAsync(ulong guildId, ulong userId, DateTimeOffset due, string? subject, string title, string? details, CancellationToken ct = default)
     {
-        due = due.ToUniversalTime();
         if (due <= DateTimeOffset.UtcNow.Add(Options.MinDueInFuture) && !_environment.IsDevelopment())     // Disable minimum time for dev purpose
             return (null, _errorService.DueMustInFuture(Options.MinDueInFuture));
 
@@ -180,7 +179,6 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
 
     public async Task<(Homework? homework, UpdateResult result)> ModifyHomeworkAsync(Guid homeworkId, ulong userId, DateTimeOffset newDue, string? newSubject, string newTitle, string? newDetails, CancellationToken ct = default)
     {
-        newDue = newDue.ToUniversalTime();
         if (newDue <= DateTimeOffset.UtcNow.Add(Options.MinDueInFuture) && !_environment.IsDevelopment())     // Disable minimum time for dev purpose
             return (null, _errorService.DueMustInFuture(Options.MinDueInFuture));
 
@@ -192,7 +190,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
         homework.Subject = newSubject;
         homework.Title = newTitle;
         homework.Details = newDetails;
-        homework.LastModifiedAt = newDue;
+        homework.LastModifiedAt = DateTimeOffset.UtcNow;
         homework.LastModifiedBy = userId;
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 

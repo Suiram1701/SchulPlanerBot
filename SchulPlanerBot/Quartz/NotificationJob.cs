@@ -81,12 +81,8 @@ internal sealed class NotificationJob(
                     startMessage += $"{_localizer["homeworksNotify", mentionStr]} ";
                 }
 
-                startMessage += _localizer["homeworks", TimestampTag.FromDateTimeOffset(endDateTime, TimestampTagStyles.Relative)];
-                await textChannel.SendMessageAsync(startMessage, allowedMentions: new()
-                {
-                    AllowedTypes = AllowedMentionTypes.Users,
-                    UserIds = [.. usersToMention]
-                }).ConfigureAwait(false);
+                startMessage += _localizer["homeworks", TimestampTag.FromDateTimeOffset(endDateTime.ToLocalTime(), TimestampTagStyles.Relative)];
+                await textChannel.SendMessageAsync(startMessage, allowedMentions: AllowedMentions.All).ConfigureAwait(false);
 
                 int sentEmbeds = 0;
                 do
@@ -100,7 +96,7 @@ internal sealed class NotificationJob(
             }
             else
             {
-                await textChannel.SendMessageAsync(_localizer["noHomeworks", TimestampTag.FromDateTimeOffset(endDateTime, TimestampTagStyles.Relative)]).ConfigureAwait(false);
+                await textChannel.SendMessageAsync(_localizer["noHomeworks", TimestampTag.FromDateTimeOffset(endDateTime.ToLocalTime(), TimestampTagStyles.Relative)]).ConfigureAwait(false);
             }
 
         }

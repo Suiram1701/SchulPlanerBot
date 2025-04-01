@@ -117,10 +117,9 @@ internal sealed class InteractionHandler(
             return;
         }
 
-        // Required by IStringLocalizer
+        // Required by IStringLocalizer and Humanizer
         CultureInfo userCulture = new(interaction.UserLocale);
-        CultureInfo.CurrentCulture = userCulture;
-        CultureInfo.CurrentUICulture = userCulture;
+        Utils.SetCulture(userCulture);
 
         try
         {
