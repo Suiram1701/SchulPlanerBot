@@ -8,6 +8,7 @@
     "latest"
   ],
   "runtimeIdentifier": "linux-arm64",
+  "imagePullPolicy": "Always",
   "containerBuilder": "docker",
   "containerRepositoryPrefix": "suiram2265",
   "kubeContext": "default",

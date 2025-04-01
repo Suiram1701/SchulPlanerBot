@@ -23,7 +23,8 @@
           "scheme": "tcp",
           "protocol": "tcp",
           "transport": "tcp",
-          "targetPort": 5432
+          "targetPort": 5432,
+          "external": true
         }
       }
     },

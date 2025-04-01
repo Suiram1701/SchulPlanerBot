@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using System.Net.Sockets;
 
 namespace SchulPlanerBot.AppHost;
 
@@ -42,6 +43,22 @@ internal static class Extensions
 
             string variableName = $"{prefix}:{fullPath}".TrimStart(':').Replace(":", "__");
             builder = builder.WithEnvironment(variableName, keyParamBuilder);
+        }
+
+        return builder;
+    }
+
+    public static IResourceBuilder<TResource> WithExternalTcpEndpoints<TResource>(this IResourceBuilder<TResource> builder)
+        where TResource : IResourceWithEndpoints
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        if (builder.Resource.TryGetAnnotationsOfType(out IEnumerable<EndpointAnnotation>? endpoints) && endpoints is not null)
+        {
+            foreach (EndpointAnnotation endpoint in endpoints.Where(p => p.Protocol == ProtocolType.Tcp))
+            {
+                endpoint.IsExternal = true;
+            }
         }
 
         return builder;
