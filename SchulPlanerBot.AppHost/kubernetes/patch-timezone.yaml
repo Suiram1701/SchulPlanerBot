@@ -1,0 +1,13 @@
+- op: add
+  path: "/spec/template/spec/volumes"
+  value:
+    - name: tz-config
+      hostPath:
+        path: /etc/localtime
+        type: File  
+- op: add
+  path: "/spec/template/spec/containers/0/volumeMounts"
+  value:
+    - name: tz-config
+      mountPath: /etc/localtime
+      readOnly: true

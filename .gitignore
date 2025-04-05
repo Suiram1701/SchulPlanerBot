@@ -10,7 +10,8 @@
 *.userosscache
 *.sln.docstates
 
-# Contains sensitive data
+# Contains sensitive data from aspire
+aspirate-state.json
 aspirate-output/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
