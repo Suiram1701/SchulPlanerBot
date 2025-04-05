@@ -70,6 +70,13 @@ public static class Utils
 
     internal static void SetCulture(CultureInfo info)
     {
+        if (!Program.SupportedCultures
+            .Select(c => c.IsNeutralCulture ? c : c.Parent)
+            .Contains(info.IsNeutralCulture ? info : info.Parent))
+        {
+            info = Program.SupportedCultures[0];     // 0 is English
+        }
+
         CultureInfo.CurrentCulture = info;
         CultureInfo.CurrentUICulture = info;
         Thread.CurrentThread.CurrentCulture = info;

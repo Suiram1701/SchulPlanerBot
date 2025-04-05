@@ -12,7 +12,7 @@ public class Program
 {
     private const string _commandsLocalizationResource = "SchulplanerBot.Localization.ApplicationCommands";
 
-    private static readonly CultureInfo[] _supportedCultures = [new("en-US"), new("de")];
+    public static readonly CultureInfo[] SupportedCultures = [new("en-US"), new("de")];
 
     public static void Main(string[] args)
     {
@@ -34,9 +34,11 @@ public class Program
             .AddInteractionFramework(service =>
             {
                 service.AddTypeConverter<string[]>(new StringArrayConverter());
-                service.AddTypeConverter<CultureInfo>(new CultureInfoConverter(cultures: _supportedCultures));
+                service.AddTypeConverter<CultureInfo>(new CultureInfoConverter(cultures: SupportedCultures));
+                service.AddTypeConverter<DateTimeOffset>(new DateTimeOffsetConverter());
+                service.AddComponentTypeConverter<DateTimeOffset>(new DateTimeOffsetComponentConverter());
             })
-            .AddInteractionResXLocalization<ISchulPlanerBot>(_commandsLocalizationResource, _supportedCultures);
+            .AddInteractionResXLocalization<ISchulPlanerBot>(_commandsLocalizationResource, SupportedCultures);
 
         builder.Services.AddLocalization(options => options.ResourcesPath = "Localization");
 

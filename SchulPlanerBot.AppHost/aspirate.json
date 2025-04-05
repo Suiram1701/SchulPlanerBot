@@ -4,7 +4,8 @@
     "Registry": "docker.io",
     "RepositoryPrefix": "suiram2265",
     "Tags": [
-      "latest"
+      "latest",
+      "v0.1.1"
     ],
     "Builder": "docker",
     "BuildArgs": null,

@@ -13,7 +13,7 @@ namespace SchulPlanerBot.Modules;
 
 [RequireContext(ContextType.Guild)]
 [CommandContextType(InteractionContextType.Guild)]
-[DefaultMemberPermissions(GuildPermission.ModerateMembers)]
+[DefaultMemberPermissions(GuildPermission.Administrator)]
 [Group("schulplaner", "Manages settings of the bot on the guild.")]
 public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IStringLocalizer<SchulPlanerModule> localizer, SchulPlanerManager manager) : InteractionModuleBase<ExtendedSocketContext>
 {
@@ -51,7 +51,7 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
     }
 
     [SlashCommand("notifications", "Configures when notifications will be made.")]
-    public async Task SetNotificationsAsync([ChannelTypes(ChannelType.Text)] IChannel channel, DateTime start, TimeSpan between, CultureInfo? locale = null)
+    public async Task SetNotificationsAsync([ChannelTypes(ChannelType.Text)] IChannel channel, DateTimeOffset start, TimeSpan between, CultureInfo? locale = null)
     {
         await _manager.SetChannelAsync(Guild.Id, channel.Id, CancellationToken).ConfigureAwait(false);
         await _manager.SetNotificationCultureAsync(Guild.Id, locale).ConfigureAwait(false);
@@ -60,13 +60,12 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
         if (enableResult.Success)
         {
             Guild guild = await _manager.GetGuildAsync(Guild.Id, CancellationToken).ConfigureAwait(false);
-            DateTimeOffset startOffset = new(start);
 
             await RespondAsync(_localizer[
                     "notifications.updated",
                     MentionUtils.MentionChannel(guild.ChannelId!.Value),
                     between.Humanize(),
-                    TimestampTag.FromDateTimeOffset(startOffset, TimestampTagStyles.ShortDateTime)])
+                    TimestampTag.FromDateTimeOffset(start, TimestampTagStyles.ShortDateTime)])
                 .ConfigureAwait(false);
         }
         else

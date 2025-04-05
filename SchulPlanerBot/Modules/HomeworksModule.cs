@@ -36,7 +36,7 @@ public sealed class HomeworksModule(
     private CancellationToken CancellationToken => Context.CancellationToken;
 
     [SlashCommand("list", "Gets all homeworks within the specified range or homeworks of a specific subject.")]
-    public async Task GetHomeworksAsync(DateTime? start = null, DateTime? end = null, string? subject = null)
+    public async Task GetHomeworksAsync(DateTimeOffset? start = null, DateTimeOffset? end = null, string? subject = null)
     {
         IEnumerable<Homework> homeworks = await _manager.GetHomeworksAsync(Guild.Id, start?.ToUniversalTime(), end?.ToUniversalTime(), subject, CancellationToken).ConfigureAwait(false);
 
@@ -64,21 +64,26 @@ public sealed class HomeworksModule(
 
     [SlashCommand("create", "Opens the form to create a new homework.")]
     public async Task CreateHomeworkAsync() =>
-        await RespondWithModalAsync<HomeworkModal>(ComponentIds.CreateHomeworkModal, modifyModal: LocalizeHomeworkModal).ConfigureAwait(false);
+        await RespondWithModalAsync<HomeworkModal>(ComponentIds.CreateHomeworkModal, modifyModal: builder => HomeworkModal.LocalizeModal(builder, _modalLocalizer)).ConfigureAwait(false);
 
     [ModalInteraction(ComponentIds.CreateHomeworkModal, ignoreGroupNames: true)]
     public async Task CreateHomework_SubmitAsync(HomeworkModal homeworkModal)
     {
-        if (!DateTimeOffset.TryParse(homeworkModal.Due, out DateTimeOffset due))
+        if (!DateTime.TryParse(homeworkModal.Due, out DateTime due))
         {
             await RespondAsync(_localizer["create.parseDueFailed"], ephemeral: true).ConfigureAwait(false);
             return;
         }
 
+        // ComponentConverters with modals are buggy.
+        DateTimeOffset dueWithOffset = due.Kind == DateTimeKind.Unspecified
+            ? new(due, TimeSpan.FromHours(2))
+            : new(due);
+
         (Homework? homework, UpdateResult creationResult) = await _manager.CreateHomeworkAsync(
             Guild.Id,
             User.Id,
-            due.ToUniversalTime(),
+            dueWithOffset.ToUniversalTime(),
             homeworkModal.Subject,
             homeworkModal.Title,
             homeworkModal.Details,
@@ -121,23 +126,31 @@ public sealed class HomeworksModule(
             Title = homework.Title,
             Details = homework.Details
         };
-        await RespondWithModalAsync(ComponentIds.ModifyHomeworkModalId(homework.Id.ToString()), modal, modifyModal: LocalizeHomeworkModal).ConfigureAwait(false);
+        await RespondWithModalAsync(ComponentIds.ModifyHomeworkModalId(homework.Id.ToString()), modal, modifyModal: builder =>
+        {
+            HomeworkModal.LocalizeModal(builder, _modalLocalizer, create: false);
+        }).ConfigureAwait(false);
     }
 
     [ModalInteraction(ComponentIds.ModifyHomeworkModal, ignoreGroupNames: true)]
     public async Task ModifyHomework_SubmitAsync(string id, HomeworkModal homeworkModal)
     {
         Guid homeworkId = Guid.Parse(id);
-        if (!DateTimeOffset.TryParse(homeworkModal.Due, out DateTimeOffset due))
+        if (!DateTime.TryParse(homeworkModal.Due, out DateTime due))
         {
             await RespondAsync(_localizer["modify.parseDueFailed"], ephemeral: true).ConfigureAwait(false);
             return;
         }
 
+        // ComponentConverters with modals are buggy.
+        DateTimeOffset dueWithOffset = due.Kind == DateTimeKind.Unspecified
+            ? new(due, TimeSpan.FromHours(2))
+            : new(due);
+
         (Homework? homework, UpdateResult modifyResult) = await _manager.ModifyHomeworkAsync(
             homeworkId,
             User.Id,
-            due.ToLocalTime(),
+            dueWithOffset.ToUniversalTime(),
             homeworkModal.Subject,
             homeworkModal.Title,
             homeworkModal.Details,
@@ -252,6 +265,4 @@ public sealed class HomeworksModule(
             await this.RespondWithErrorAsync(result.Errors, _logger).ConfigureAwait(false);
         }
     }
-
-    private void LocalizeHomeworkModal(ModalBuilder builder) => HomeworkModal.LocalizeModal(builder, _modalLocalizer);
 }

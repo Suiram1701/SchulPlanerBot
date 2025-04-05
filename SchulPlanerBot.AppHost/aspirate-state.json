@@ -5,7 +5,8 @@
   "namespace": "schulplanerbot",
   "containerRegistry": "docker.io",
   "containerImageTags": [
-    "latest"
+    "latest",
+    "v0.1.1"
   ],
   "runtimeIdentifier": "linux-arm64",
   "imagePullPolicy": "Always",
