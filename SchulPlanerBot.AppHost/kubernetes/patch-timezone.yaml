@@ -1,13 +1,5 @@
 - op: add
-  path: "/spec/template/spec/volumes"
+  path: "/spec/template/spec/containers/0/env"
   value:
-    - name: tz-config
-      hostPath:
-        path: /etc/localtime
-        type: File  
-- op: add
-  path: "/spec/template/spec/containers/0/volumeMounts"
-  value:
-    - name: tz-config
-      mountPath: /etc/localtime
-      readOnly: true
+  - name: TZ
+    value: Europe/Berlin  
