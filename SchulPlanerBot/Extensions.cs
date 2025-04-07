@@ -65,13 +65,14 @@ public static class Extensions
                 config.DefaultRetryMode = RetryMode.AlwaysRetry;
                 config.GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages;
                 config.LogGatewayIntentWarnings = true;
-
-                /*
-                 * The snowflake of an object is always specified in UTC while the server could use a local time.
-                 * To prevent the response cancellation because of the three second timeout (a different time zone causes a difference of one hour) the time
-                 * where the message were received have to be used.
-                */
-                config.UseInteractionSnowflakeDate = false;
+                config.UseInteractionSnowflakeDate = false;     // The DateTime.UtcNow on my device is always about half a minute off the real UTC
+                config.ResponseInternalTimeCheck =
+#if DEBUG
+                false
+#else
+                true
+#endif
+                ;
             })
             .AddSingleton<DiscordSocketClient>(sp =>
             {

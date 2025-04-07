@@ -45,6 +45,7 @@ public class Program
         builder.Services.AddOpenTelemetry()
             .WithTracing(provider => provider
                 .AddBotDatabaseInstrumentation()
+                .AddEntityFrameworkCoreInstrumentation()
                 .AddQuartzInstrumentation(options => options.RecordException = true)
                 .AddDiscordNetInstrumentation())
             .WithMetrics(provider => provider
