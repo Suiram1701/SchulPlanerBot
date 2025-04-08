@@ -21,11 +21,18 @@ public sealed class InteractionFrameworkMetrics : IDisposable
         _interaction.InteractionExecuted += Interaction_InteractionExecuted;
 
         _meter = factory.Create(MeterName);
-        _totalInteractions = _meter.CreateCounter<long>("Interactions.Total", description: "The total amount of executed interactions.", unit: "Interactions");
-        _interactionDuration = _meter.CreateHistogram<double>("Interactions.Duration", description: "The time interactions took to execute.", unit: "seconds", advice: new()
-        {
-            HistogramBucketBoundaries = [0.1, 3]
-        });
+        _totalInteractions = _meter.CreateCounter<long>(
+            name: "Interactions.Total",
+            description: "The total amount of executed interactions.",
+            unit: "Interactions");
+        _interactionDuration = _meter.CreateHistogram<double>(
+            name: "Interactions.Duration",
+            description: "The time interactions took to execute.",
+            unit: "Seconds",
+            advice: new()
+            {
+                HistogramBucketBoundaries = [0.1, 0.25, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.75, 2, 2.25, 2.5]
+            });
     }
 
     private Task Interaction_InteractionExecuted(ICommandInfo command, IInteractionContext context, IResult result)

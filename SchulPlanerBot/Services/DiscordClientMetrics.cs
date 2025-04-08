@@ -26,11 +26,23 @@ internal sealed class DiscordClientMetrics : IHostedService, IDisposable
         _client.LeftGuild += Client_LeftGuildAsync;
 
         _meter = factory.Create(MeterName);
-        _guilds = _meter.CreateGauge<int>("Bot.Guilds", description: "The count of guild the bot is a member of.", unit: "Guilds");
-        _latency = _meter.CreateHistogram<double>("Gateway.Latency", description: "The latency to the event gateway.", unit: "Seconds", advice: new()
-        {
-            HistogramBucketBoundaries = [0.1, 3]
-        });
+        _guilds = _meter.CreateGauge<int>(
+            name: "Bot.Guilds",
+            description: "The count of guild the bot is a member of.",
+            unit: "Guilds");
+        _latency = _meter.CreateHistogram<double>(
+            name: "Gateway.Latency",
+            description: "The latency to the event gateway.",
+            unit: "Seconds",
+            advice: new()
+            {
+                /* 
+                 * OTel bucket boundary recommendation for 'http.request.duration':
+                 * https://github.com/open-telemetry/semantic-conventions/blob/release/v1.23.x/docs/http/http-metrics.md#metric-httpclientrequestduration
+                 * [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]
+                */
+                HistogramBucketBoundaries = [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.125, 0.15, 0.175, 0.2, 0.225, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]     // Higher resolution in the area from 0.1 to 0.25 in 0.025 steps
+            });
     }
 
     public async Task StartAsync(CancellationToken cancellationToken) => await UpdateGuildsAmountAsync().ConfigureAwait(false);
