@@ -1,10 +1,9 @@
 ﻿using Discord;
 using Discord.Interactions;
-using System;
 
 namespace SchulPlanerBot.Discord.TypeConverters;
 
-public class DateTimeOffsetComponentConverter(TimeZoneInfo timeZone): ComponentTypeConverter<DateTimeOffset>
+public class DateTimeOffsetComponentConverter(TimeZoneInfo timeZone) : ComponentTypeConverter<DateTimeOffset>
 {
     private readonly Func<TimeSpan> _defaultTimeOffsetProvider = () => timeZone.GetUtcOffset(DateTime.Now);
 

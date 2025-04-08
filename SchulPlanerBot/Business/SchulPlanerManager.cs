@@ -214,7 +214,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
             .Where(h => h.GuildId == guildId && h.Due <= dateTime)
             .ExecuteDeleteAsync(ct)
             .ConfigureAwait(false);
-        return (count,  UpdateResult.Succeeded());
+        return (count, UpdateResult.Succeeded());
     }
 
     public async Task<HomeworkSubscription?> GetHomeworkSubscriptionAsync(ulong guildId, ulong userId, CancellationToken ct = default)

@@ -2,8 +2,6 @@
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Options;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Discord;
@@ -123,27 +121,5 @@ public static class Extensions
         services.Configure<InteractionServiceConfig>(config => config.LocalizationManager = localizationManager);
 
         return services;
-    }
-
-    public static TracerProviderBuilder AddBotDatabaseInstrumentation(this TracerProviderBuilder builder)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        return builder.AddSource(DatabaseStartup.ActivitySourceName);
-    }
-
-    public static TracerProviderBuilder AddDiscordNetInstrumentation(this TracerProviderBuilder builder)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        return builder.AddSource(DiscordClientManager.ActivitySourceName, DiscordClientMetrics.ActivitySourceName, InteractionHandler.ActivitySourceName);
-    }
-
-    public static MeterProviderBuilder AddDiscordNetInstrumentation(this MeterProviderBuilder builder)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        builder.ConfigureServices(services => services
-            .AddHostedService<DiscordClientMetrics>()
-            .AddActivatedSingleton<InteractionFrameworkMetrics>());
-        return builder.AddMeter(DiscordClientMetrics.MeterName, InteractionFrameworkMetrics.MeterName);
     }
 }

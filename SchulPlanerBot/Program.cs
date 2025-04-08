@@ -2,6 +2,7 @@ using OpenTelemetry.Trace;
 using Quartz;
 using Quartz.AspNetCore;
 using SchulPlanerBot.Discord.TypeConverters;
+using SchulPlanerBot.OpenTelemetry;
 using SchulPlanerBot.Quartz;
 using SchulPlanerBot.ServiceDefaults;
 using System.Globalization;

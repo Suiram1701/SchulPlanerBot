@@ -6,7 +6,6 @@ using Quartz;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Discord;
-using System.Globalization;
 
 namespace SchulPlanerBot.Quartz;
 

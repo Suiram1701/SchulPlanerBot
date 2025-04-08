@@ -3,9 +3,9 @@ using Discord.WebSocket;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
-namespace SchulPlanerBot.Services;
+namespace SchulPlanerBot.OpenTelemetry;
 
-internal sealed class DiscordClientMetrics : IHostedService, IDisposable
+internal sealed class DiscordClientMetrics : IDisposable
 {
     public const string ActivitySourceName = "Discord.ClientMetrics";
     public const string MeterName = "Discord.Client";
@@ -21,6 +21,7 @@ internal sealed class DiscordClientMetrics : IHostedService, IDisposable
     public DiscordClientMetrics(IMeterFactory factory, DiscordSocketClient client)
     {
         _client = client;
+        _client.Ready += Client_ReadyAsync;
         _client.LatencyUpdated += Client_LatencyUpdated;
         _client.JoinedGuild += Client_JoinedGuildAsync;
         _client.LeftGuild += Client_LeftGuildAsync;
@@ -45,9 +46,7 @@ internal sealed class DiscordClientMetrics : IHostedService, IDisposable
             });
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken) => await UpdateGuildsAmountAsync().ConfigureAwait(false);
-
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    private async Task Client_ReadyAsync() => await UpdateGuildsAmountAsync().ConfigureAwait(false);
 
     private Task Client_LatencyUpdated(int old, int value)
     {
@@ -70,6 +69,7 @@ internal sealed class DiscordClientMetrics : IHostedService, IDisposable
     public void Dispose()
     {
         _meter.Dispose();
+        _client.Ready -= Client_ReadyAsync;
         _client.LatencyUpdated -= Client_LatencyUpdated;
         _client.JoinedGuild -= Client_JoinedGuildAsync;
         _client.LeftGuild -= Client_LeftGuildAsync;

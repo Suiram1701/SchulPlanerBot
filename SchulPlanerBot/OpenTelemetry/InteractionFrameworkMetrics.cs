@@ -3,9 +3,9 @@ using Discord.Interactions;
 using System.Diagnostics.Metrics;
 using IResult = Discord.Interactions.IResult;
 
-namespace SchulPlanerBot.Services;
+namespace SchulPlanerBot.OpenTelemetry;
 
-public sealed class InteractionFrameworkMetrics : IDisposable
+internal sealed class InteractionFrameworkMetrics : IDisposable
 {
     public const string MeterName = "Discord.InteractionFramework";
 
