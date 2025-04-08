@@ -5,7 +5,7 @@
     "RepositoryPrefix": "suiram2265",
     "Tags": [
       "latest",
-      "v0.1.1"
+      "v0.1.2"
     ],
     "Builder": "docker",
     "BuildArgs": null,

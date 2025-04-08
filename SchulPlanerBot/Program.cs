@@ -1,3 +1,4 @@
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Quartz;
 using Quartz.AspNetCore;
@@ -45,11 +46,12 @@ public class Program
 
         builder.Services.AddOpenTelemetry()
             .WithTracing(provider => provider
+                .SetSampler(new NoRootNameSampler(new AlwaysOnSampler(), ResourceNames.BotDatabase))
                 .AddBotDatabaseInstrumentation()
-                .AddEntityFrameworkCoreInstrumentation()
                 .AddQuartzInstrumentation(options => options.RecordException = true)
                 .AddDiscordNetInstrumentation())
             .WithMetrics(provider => provider
+                .SetExemplarFilter(ExemplarFilterType.TraceBased)
                 .AddDiscordNetInstrumentation());
 
         WebApplication app = builder.Build();

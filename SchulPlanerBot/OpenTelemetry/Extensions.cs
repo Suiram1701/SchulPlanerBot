@@ -28,7 +28,6 @@ public static class Extensions
                 .AddSingleton<InteractionFrameworkMetrics>())
             .AddInstrumentation(sp => sp.GetRequiredService<DiscordClientMetrics>())
             .AddInstrumentation(sp => sp.GetRequiredService<InteractionFrameworkMetrics>())
-            .AddMeter(DiscordClientMetrics.MeterName, InteractionFrameworkMetrics.MeterName)
-            .SetExemplarFilter(ExemplarFilterType.AlwaysOff);
+            .AddMeter(DiscordClientMetrics.MeterName, InteractionFrameworkMetrics.MeterName);
     }
 }
