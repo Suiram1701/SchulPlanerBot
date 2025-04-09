@@ -36,9 +36,9 @@ public sealed class HomeworksModule(
     private CancellationToken CancellationToken => Context.CancellationToken;
 
     [SlashCommand("list", "Gets all homeworks within the specified range or homeworks of a specific subject.")]
-    public async Task GetHomeworksAsync(DateTimeOffset? start = null, DateTimeOffset? end = null, string? subject = null)
+    public async Task GetHomeworksAsync(string? search = null, string? subject = null, DateTimeOffset ? start = null, DateTimeOffset? end = null)
     {
-        IEnumerable<Homework> homeworks = await _manager.GetHomeworksAsync(Guild.Id, start?.ToUniversalTime(), end?.ToUniversalTime(), subject, CancellationToken).ConfigureAwait(false);
+        IEnumerable<Homework> homeworks = await _manager.GetHomeworksAsync(Guild.Id, search, subject, start?.ToUniversalTime(), end?.ToUniversalTime(), CancellationToken).ConfigureAwait(false);
 
         Embed[] embeds = [.. homeworks.Select(_embedsService.Homework)];
         if (embeds.Length > 0)

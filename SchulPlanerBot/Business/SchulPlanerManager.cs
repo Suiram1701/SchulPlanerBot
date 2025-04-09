@@ -132,7 +132,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
             .ConfigureAwait(false);
     }
 
-    public async Task<IEnumerable<Homework>> GetHomeworksAsync(ulong guildId, DateTimeOffset? start = null, DateTimeOffset? end = null, string? subject = null, CancellationToken ct = default)
+    public async Task<IEnumerable<Homework>> GetHomeworksAsync(ulong guildId, string? search = null, string? subject = null, DateTimeOffset? start = null, DateTimeOffset? end = null, CancellationToken ct = default)
     {
         start ??= DateTimeOffset.UtcNow;
         end ??= DateTimeOffset.UtcNow.AddDays(7);
@@ -141,17 +141,24 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
             .AsNoTracking()
             .Where(h => h.GuildId == guildId)
             .Where(h => h.Due >= start && h.Due <= end);
-        if (string.IsNullOrEmpty(subject))
-        {
-            return await query.ToListAsync(ct).ConfigureAwait(false);
-        }
-        else
+
+        if (!string.IsNullOrWhiteSpace(subject))
         {
             Expression<Func<Homework, bool>> predicate = Options.SubjectsCaseSensitive
                 ? h => EF.Functions.Like(h.Subject, subject)
                 : h => EF.Functions.ILike(h.Subject!, subject);
-            return await query.Where(predicate).ToListAsync(ct).ConfigureAwait(false);
+            query = query.Where(predicate);
         }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            string searchPattern = $"%{search.Replace(' ', '%')}%";
+            query = query.Where(h =>
+                EF.Functions.ILike(h.Title, searchPattern) ||
+                EF.Functions.ILike(h.Details!, searchPattern));
+        }
+        
+        return await query.ToListAsync(ct).ConfigureAwait(false);
     }
 
     public async Task<(Homework? homework, UpdateResult result)> CreateHomeworkAsync(ulong guildId, ulong userId, DateTimeOffset due, string? subject, string title, string? details, CancellationToken ct = default)

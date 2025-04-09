@@ -163,11 +163,23 @@
   <data name="homeworks.description" xml:space="preserve">
     <value>Manages homeworks on the guild.</value>
   </data>
+  <data name="homeworks.list.name" xml:space="preserve">
+    <value>list</value>
+  </data>
   <data name="homeworks.list.description" xml:space="preserve">
     <value>Gets all homeworks within the specified range or homeworks of a specific subject.</value>
   </data>
-  <data name="homeworks.list.name" xml:space="preserve">
-    <value>list</value>
+  <data name="homeworks.list.search.name" xml:space="preserve">
+    <value>search</value>
+  </data>
+  <data name="homeworks.list.search.description" xml:space="preserve">
+    <value>A term to search for in the title or description.</value>
+  </data>
+  <data name="homeworks.list.subject.name" xml:space="preserve">
+    <value>subject</value>
+  </data>
+  <data name="homeworks.list.subject.description" xml:space="preserve">
+    <value>The subject to retrieve the homeworks of. Leave empty to not filter.</value>
   </data>
   <data name="homeworks.list.start.name" xml:space="preserve">
     <value>start</value>
@@ -180,12 +192,6 @@
   </data>
   <data name="homeworks.list.end.description" xml:space="preserve">
     <value>The end date time of the range. By default one week into the future. E.g.: 01.01.2020 or just 10:00.</value>
-  </data>
-  <data name="homeworks.list.subject.description" xml:space="preserve">
-    <value>The subject to retrieve the homeworks of. Leave empty to not filter.</value>
-  </data>
-  <data name="homeworks.list.subject.name" xml:space="preserve">
-    <value>subject</value>
   </data>
   <data name="homeworks.create.name" xml:space="preserve">
     <value>create</value>

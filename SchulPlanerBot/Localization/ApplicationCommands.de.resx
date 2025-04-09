@@ -271,4 +271,10 @@
   <data name="schulplaner.delete-homeworks.after.description" xml:space="preserve">
     <value>Die Zeit zwischen der Fälligkeit einer Hausaufgabe und ihrer Lösung.</value>
   </data>
+  <data name="homeworks.list.search.name" xml:space="preserve">
+    <value>suche</value>
+  </data>
+  <data name="homeworks.list.search.description" xml:space="preserve">
+    <value>Ein Begriff, nach dem im Titel oder in der Beschreibung gesucht werden soll.</value>
+  </data>
 </root>
