@@ -36,29 +36,50 @@ public sealed class HomeworksModule(
     private CancellationToken CancellationToken => Context.CancellationToken;
 
     [SlashCommand("list", "Gets all homeworks within the specified range or homeworks of a specific subject.")]
-    public async Task GetHomeworksAsync(string? search = null, string? subject = null, DateTimeOffset ? start = null, DateTimeOffset? end = null)
+    public async Task GetHomeworksAsync(string? search = null, string? subject = null, DateTimeOffset? start = null, DateTimeOffset? end = null)
     {
+        start ??= DateTimeOffset.UtcNow;
+        end ??= DateTimeOffset.UtcNow.AddDays(7);
+
         IEnumerable<Homework> homeworks = await _manager.GetHomeworksAsync(Guild.Id, search, subject, start?.ToUniversalTime(), end?.ToUniversalTime(), CancellationToken).ConfigureAwait(false);
+        homeworks = [.. homeworks.OrderBy(h => h.Due)];
 
-        Embed[] embeds = [.. homeworks.Select(_embedsService.Homework)];
-        if (embeds.Length > 0)
+        if (homeworks.Any())
         {
-            int sentEmbeds = 0;
-            do
+            SelectMenuBuilder menuBuilder = new SelectMenuBuilder()
+                .WithCustomId(ComponentIds.ChangeSelectedHomeworkSelection)
+                .WithPlaceholder(_localizer["list.selectPlaceholder"]);
+            foreach (Homework homework in homeworks)
             {
-                Embed[] embedPart = [.. embeds.Skip(sentEmbeds).Take(DiscordConfig.MaxEmbedsPerMessage)];
-                if (!Context.Interaction.HasResponded)
-                    await RespondAsync(embeds: embedPart, allowedMentions: AllowedMentions.None).ConfigureAwait(false);     // Only one time can be responded directly
-                else
-                    await FollowupAsync(embeds: embedPart, allowedMentions: AllowedMentions.None).ConfigureAwait(false);
-
-                sentEmbeds += embedPart.Length;
+                menuBuilder.AddOption(
+                    label: homework.Title,
+                    description: homework.Details?.Split('\n')[0],
+                    value: homework.Id.ToString());
             }
-            while (sentEmbeds < embeds.Length);
+            ComponentBuilder builder = new ComponentBuilder().WithSelectMenu(menuBuilder);
+
+            Embed overview = _embedsService.HomeworksOverview(homeworks, start!.Value, end!.Value);
+            await RespondAsync(_localizer["list.listed"], embeds: [overview], components: builder.Build()).ConfigureAwait(false);
         }
         else
         {
             await RespondAsync(_localizer["list.noHomeworks"]).ConfigureAwait(false);
+        }
+    }
+
+    [ComponentInteraction(ComponentIds.ChangeSelectedHomeworkSelection, ignoreGroupNames: true)]
+    public async Task GetHomeworks_InteractAsync(string[] data)
+    {
+        Guid homeworkId = Guid.Parse(data[0]);
+        Homework? homework = await _manager.GetHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
+        if (homework is not null)
+        {
+            Embed embed = _embedsService.Homework(homework);
+            await RespondAsync(embeds: [embed], ephemeral: true).ConfigureAwait(false);
+        }
+        else
+        {
+            await RespondAsync(_localizer["list.notFound"], ephemeral: true).ConfigureAwait(false);
         }
     }
 

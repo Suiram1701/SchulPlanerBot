@@ -134,8 +134,8 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
 
     public async Task<IEnumerable<Homework>> GetHomeworksAsync(ulong guildId, string? search = null, string? subject = null, DateTimeOffset? start = null, DateTimeOffset? end = null, CancellationToken ct = default)
     {
-        start ??= DateTimeOffset.UtcNow;
-        end ??= DateTimeOffset.UtcNow.AddDays(7);
+        start ??= DateTimeOffset.MinValue;
+        end ??= DateTimeOffset.MaxValue;
 
         IQueryable<Homework> query = _dbContext.Homeworks
             .AsNoTracking()

@@ -42,8 +42,8 @@ internal sealed class InteractionFrameworkMetrics : IDisposable
         TimeSpan duration = DateTimeOffset.UtcNow - context.Interaction.CreatedAt;
         _interactionDuration.Record(duration.TotalSeconds, [
             new("Type", context.Interaction.Type),
-            new("Module", command.Module.Name),
-            new("Command", command.Name),
+            new("Module", command?.Module.Name),
+            new("Command", command?.Name),
             new("Succeeded", result.IsSuccess),
             new("ErrorType", result.Error)
             ]);

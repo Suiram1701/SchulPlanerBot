@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Microsoft.Extensions.Localization;
 using SchulPlanerBot.Business.Models;
+using System.Text;
 
 namespace SchulPlanerBot.Discord;
 
@@ -14,7 +15,7 @@ public class EmbedsService(IStringLocalizer<EmbedsService> localizer)
     {
         EmbedBuilder builder = new EmbedBuilder()
             .WithColor(Color.LightGrey)
-            .WithAuthor(new EmbedAuthorBuilder().WithName(homework.Subject))
+            .WithAuthor(a => a.WithName(homework.Subject))
             .WithTitle(homework.Title)
             .WithDescription(homework.Details)
             .AddField(_localizer["homeworkEmbed.due"], TimestampTag.FromDateTimeOffset(homework.Due.ToLocalTime(), TimestampTagStyles.Relative))
@@ -31,6 +32,25 @@ public class EmbedsService(IStringLocalizer<EmbedsService> localizer)
 
         return builder
             .WithFooter(homework.Id.ToString())
+            .Build();
+    }
+
+    public Embed HomeworksOverview(IEnumerable<Homework> homeworks, DateTimeOffset start, DateTimeOffset end)
+    {
+        StringBuilder descBuilder = new();
+        foreach (Homework homework in homeworks)
+        {
+            TimestampTag dueTag = TimestampTag.FromDateTimeOffset(homework.Due.ToLocalTime(), TimestampTagStyles.ShortDate);
+            descBuilder.AppendLine($"**{dueTag}**: {homework.Title}");
+        }
+
+        TimestampTag startTag = TimestampTag.FromDateTimeOffset(start, TimestampTagStyles.ShortDate);
+        TimestampTag endTag = TimestampTag.FromDateTimeOffset(end, TimestampTagStyles.ShortDate);
+
+        return new EmbedBuilder()
+            .WithColor(Color.LightGrey)
+            .WithAuthor(a => a.WithName(_localizer["homeworkOverviewEmbed.title", start, end]))
+            .WithDescription(descBuilder.ToString())
             .Build();
     }
 }

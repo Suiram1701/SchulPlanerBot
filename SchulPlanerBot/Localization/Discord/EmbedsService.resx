@@ -115,4 +115,7 @@
   <data name="homeworkEmbed.lastEdited" xml:space="preserve">
     <value>Last edited at</value>
   </data>
+  <data name="homeworkOverviewEmbed.title" xml:space="preserve">
+    <value>Homework form {0} to {1}:</value>
+  </data>
 </root>
