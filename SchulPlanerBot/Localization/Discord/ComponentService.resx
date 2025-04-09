@@ -97,25 +97,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="homeworkEmbed.id" xml:space="preserve">
-    <value>ID</value>
-  </data>
-  <data name="homeworkEmbed.created" xml:space="preserve">
-    <value>Created at</value>
-  </data>
-  <data name="homeworkEmbed.creator" xml:space="preserve">
-    <value>Creator</value>
-  </data>
-  <data name="homeworkEmbed.due" xml:space="preserve">
-    <value>Due</value>
-  </data>
-  <data name="homeworkEmbed.lastEditor" xml:space="preserve">
-    <value>Last editor</value>
-  </data>
-  <data name="homeworkEmbed.lastEdited" xml:space="preserve">
-    <value>Last edited at</value>
-  </data>
-  <data name="homeworkOverviewEmbed.title" xml:space="preserve">
-    <value>Homework from {0} to {1}:</value>
+  <data name="selectHomework.placeholder" xml:space="preserve">
+    <value>Homework to display</value>
   </data>
 </root>

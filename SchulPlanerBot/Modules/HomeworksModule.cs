@@ -20,7 +20,8 @@ public sealed class HomeworksModule(
     IStringLocalizer<HomeworkModal> modalLocalizer,
     SchulPlanerManager manager,
     ErrorService errorService,
-    EmbedsService embedsService) : InteractionModuleBase<ExtendedSocketContext>
+    EmbedsService embedsService,
+    ComponentService componentService) : InteractionModuleBase<ExtendedSocketContext>
 {
     private readonly ILogger _logger = logger;
     private readonly IStringLocalizer _localizer = localizer;
@@ -28,6 +29,7 @@ public sealed class HomeworksModule(
     private readonly SchulPlanerManager _manager = manager;
     private readonly ErrorService _errorService = errorService;
     private readonly EmbedsService _embedsService = embedsService;
+    private readonly ComponentService _componentService = componentService;
 
     public SocketUser User => Context.User;
 
@@ -46,20 +48,9 @@ public sealed class HomeworksModule(
 
         if (homeworks.Any())
         {
-            SelectMenuBuilder menuBuilder = new SelectMenuBuilder()
-                .WithCustomId(ComponentIds.ChangeSelectedHomeworkSelection)
-                .WithPlaceholder(_localizer["list.selectPlaceholder"]);
-            foreach (Homework homework in homeworks)
-            {
-                menuBuilder.AddOption(
-                    label: homework.Title,
-                    description: homework.Details?.Split('\n')[0],
-                    value: homework.Id.ToString());
-            }
-            ComponentBuilder builder = new ComponentBuilder().WithSelectMenu(menuBuilder);
-
             Embed overview = _embedsService.HomeworksOverview(homeworks, start!.Value, end!.Value);
-            await RespondAsync(_localizer["list.listed"], embeds: [overview], components: builder.Build()).ConfigureAwait(false);
+            MessageComponent select = _componentService.SelectHomework(homeworks);
+            await RespondAsync(_localizer["list.listed"], embeds: [overview], components: select).ConfigureAwait(false);
         }
         else
         {
@@ -67,6 +58,7 @@ public sealed class HomeworksModule(
         }
     }
 
+    // Component created by global::SchulPlanerBot.Discord.ComponentService
     [ComponentInteraction(ComponentIds.ChangeSelectedHomeworkSelection, ignoreGroupNames: true)]
     public async Task GetHomeworks_InteractAsync(string[] data)
     {
@@ -75,7 +67,7 @@ public sealed class HomeworksModule(
         if (homework is not null)
         {
             Embed embed = _embedsService.Homework(homework);
-            await RespondAsync(embeds: [embed], ephemeral: true).ConfigureAwait(false);
+            await RespondAsync(embeds: [embed], allowedMentions: AllowedMentions.None, ephemeral: true).ConfigureAwait(false);
         }
         else
         {

@@ -15,7 +15,8 @@ internal sealed class NotificationJob(
     IStringLocalizer<NotificationJob> localizer,
     SchulPlanerManager manager,
     DiscordSocketClient client,
-    EmbedsService embedsService) : IJob
+    EmbedsService embedsService,
+    ComponentService componentService) : IJob
 {
     private readonly ILogger _logger = logger;
     private readonly ISchedulerFactory _schedulerFactory = schedulerFactory;
@@ -23,11 +24,13 @@ internal sealed class NotificationJob(
     private readonly SchulPlanerManager _manager = manager;
     private readonly DiscordSocketClient _client = client;
     private readonly EmbedsService _embedsService = embedsService;
+    private readonly ComponentService _componentService = componentService;
 
     public async Task Execute(IJobExecutionContext context)
     {
         try
         {
+            // Preparing
             if (!(context.MergedJobDataMap.TryGetString(Keys.GuildIdData, out string? guildIdStr) && ulong.TryParse(guildIdStr, out ulong guildId)))
             {
                 throw new JobExecutionException($"Unable to retrieve the required job data '{Keys.GuildIdData}'!");
@@ -61,37 +64,29 @@ internal sealed class NotificationJob(
                 throw new JobExecutionException("Unable to retrieve notification channel for guild!");
             }
 
-            // Real notification part starts
+            // Real notification part
             DateTimeOffset endDateTime = DateTimeOffset.UtcNow + guild.BetweenNotifications.Value;
             IEnumerable<Homework> homeworks = await _manager.GetHomeworksAsync(guildId, start: DateTime.UtcNow, end: endDateTime, ct: context.CancellationToken).ConfigureAwait(false);
+            homeworks = [.. homeworks.OrderBy(h => h.Due)];
 
-            Embed[] embeds = [.. homeworks.Select(_embedsService.Homework)];
-            if (embeds.Length > 0)
+            if (homeworks.Any())
             {
                 IEnumerable<HomeworkSubscription> userSubscriptions = await _manager.GetSubscriptionsAsync(guildId, context.CancellationToken).ConfigureAwait(false);
                 ulong[] usersToMention = [.. userSubscriptions
                     .Where(s => ShouldNotifyUser(s, homeworks))
                     .Select(s => s.UserId)];
 
-                string startMessage = string.Empty;
+                string message = string.Empty;
                 if (usersToMention.Length > 0)
                 {
                     string mentionStr = string.Join(", ", usersToMention.Select(MentionUtils.MentionUser));
-                    startMessage += $"{_localizer["homeworksNotify", mentionStr]} ";
+                    message += $"{_localizer["homeworksNotify", mentionStr]} ";
                 }
+                message += _localizer["homeworks", TimestampTag.FromDateTimeOffset(endDateTime.ToLocalTime(), TimestampTagStyles.Relative)];
 
-                startMessage += _localizer["homeworks", TimestampTag.FromDateTimeOffset(endDateTime.ToLocalTime(), TimestampTagStyles.Relative)];
-                await textChannel.SendMessageAsync(startMessage, allowedMentions: AllowedMentions.All).ConfigureAwait(false);
-
-                int sentEmbeds = 0;
-                do
-                {
-                    Embed[] embedPart = [.. embeds.Skip(sentEmbeds).Take(DiscordConfig.MaxEmbedsPerMessage)];
-                    await textChannel.SendMessageAsync(embeds: embedPart, allowedMentions: AllowedMentions.None).ConfigureAwait(false);
-
-                    sentEmbeds += embedPart.Length;
-                }
-                while (sentEmbeds < embeds.Length);
+                Embed overviewEmbed = _embedsService.HomeworksOverview(homeworks, DateTimeOffset.UtcNow, endDateTime);
+                MessageComponent selectComp = _componentService.SelectHomework(homeworks);
+                await textChannel.SendMessageAsync(message, embeds: [overviewEmbed], components: selectComp, allowedMentions: AllowedMentions.All).ConfigureAwait(false);
             }
             else
             {

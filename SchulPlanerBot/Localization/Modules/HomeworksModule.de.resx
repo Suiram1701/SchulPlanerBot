@@ -148,9 +148,6 @@
   <data name="subscriptions.notificationNotEnabled" xml:space="preserve">
     <value>Sie werden weiterhin keine Benachrichtigungen erhalten, da diese auf diesem Server nicht konfiguriert wurden.</value>
   </data>
-  <data name="list.selectPlaceholder" xml:space="preserve">
-    <value>Hausaufgabe zum anzeigen</value>
-  </data>
   <data name="list.listed" xml:space="preserve">
     <value>Wählen Sie Hausaufgaben dieser Übersicht aus von dehnen Details angezeigt werden sollen.</value>
   </data>

@@ -2,6 +2,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Quartz;
 using Quartz.AspNetCore;
+using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.TypeConverters;
 using SchulPlanerBot.OpenTelemetry;
 using SchulPlanerBot.Quartz;
@@ -40,7 +41,9 @@ public class Program
                 service.AddTypeConverter<DateTimeOffset>(new DateTimeOffsetConverter());
                 service.AddComponentTypeConverter<DateTimeOffset>(new DateTimeOffsetComponentConverter());
             })
-            .AddInteractionResXLocalization<ISchulPlanerBot>(_commandsLocalizationResource, SupportedCultures);
+            .AddInteractionResXLocalization<ISchulPlanerBot>(_commandsLocalizationResource, SupportedCultures)
+            .AddTransient<EmbedsService>()
+            .AddTransient<ComponentService>();
 
         builder.Services.AddLocalization(options => options.ResourcesPath = "Localization");
 

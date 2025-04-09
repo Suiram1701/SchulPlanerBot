@@ -85,7 +85,6 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(services);
 
         return services
-            .AddTransient<EmbedsService>()
             .Configure<InteractionServiceConfig>(config =>
             {
                 config.LogLevel = LogSeverity.Debug;     // Managed by ILogger<InteractionService>

@@ -44,12 +44,9 @@ public class EmbedsService(IStringLocalizer<EmbedsService> localizer)
             descBuilder.AppendLine($"**{dueTag}**: {homework.Title}");
         }
 
-        TimestampTag startTag = TimestampTag.FromDateTimeOffset(start, TimestampTagStyles.ShortDate);
-        TimestampTag endTag = TimestampTag.FromDateTimeOffset(end, TimestampTagStyles.ShortDate);
-
         return new EmbedBuilder()
             .WithColor(Color.LightGrey)
-            .WithAuthor(a => a.WithName(_localizer["homeworkOverviewEmbed.title", start, end]))
+            .WithAuthor(a => a.WithName(_localizer["homeworkOverviewEmbed.title", start.ToString("d"), end.ToString("d")]))
             .WithDescription(descBuilder.ToString())
             .Build();
     }

@@ -116,6 +116,6 @@
     <value>Zuletzt bearbeitet am</value>
   </data>
   <data name="homeworkOverviewEmbed.title" xml:space="preserve">
-    <value>Hausaufgaben von {0} bis {1}:</value>
+    <value>Hausaufgaben vom {0} bis {1}:</value>
   </data>
 </root>
