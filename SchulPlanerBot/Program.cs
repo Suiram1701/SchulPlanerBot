@@ -5,6 +5,7 @@ using Quartz.AspNetCore;
 using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.TypeConverters;
 using SchulPlanerBot.OpenTelemetry;
+using SchulPlanerBot.Options;
 using SchulPlanerBot.Quartz;
 using SchulPlanerBot.ServiceDefaults;
 using System.Globalization;
@@ -44,6 +45,11 @@ public class Program
             .AddInteractionResXLocalization<ISchulPlanerBot>(_commandsLocalizationResource, SupportedCultures)
             .AddTransient<EmbedsService>()
             .AddTransient<ComponentService>();
+
+        builder.Services.AddOptions<HelpOptions>()
+            .BindConfiguration("Help")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         builder.Services.AddLocalization(options => options.ResourcesPath = "Localization");
 

@@ -277,4 +277,10 @@
   <data name="homeworks.list.search.description" xml:space="preserve">
     <value>Ein Begriff, nach dem im Titel oder in der Beschreibung gesucht werden soll.</value>
   </data>
+  <data name="help.name" xml:space="preserve">
+    <value>hilfe</value>
+  </data>
+  <data name="help.description" xml:space="preserve">
+    <value>Ruft Informationen zur Hilfe mit diesem Bot ab.</value>
+  </data>
 </root>

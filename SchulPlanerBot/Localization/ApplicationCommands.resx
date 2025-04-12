@@ -277,4 +277,10 @@
   <data name="homeworks.unsubscribe.no-subject.description" xml:space="preserve">
     <value>Indicates whether notification from homeworks without a subject should be disabled.</value>
   </data>
+  <data name="help.name" xml:space="preserve">
+    <value>help</value>
+  </data>
+  <data name="help.description" xml:space="preserve">
+    <value>Retrieves information for help with this bot.</value>
+  </data>
 </root>
