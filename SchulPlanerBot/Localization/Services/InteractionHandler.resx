@@ -109,4 +109,7 @@
   <data name="errorResponse.unknown" xml:space="preserve">
     <value>An unexpected error occurred!</value>
   </data>
+  <data name="dmResponse" xml:space="preserve">
+    <value>This bot **have** to be used on guilds! Sending messages in DMs will do nothing.</value>
+  </data>
 </root>

@@ -50,7 +50,9 @@ internal sealed class DiscordClientMetrics : IDisposable
 
     private Task Client_LatencyUpdated(int old, int value)
     {
+        Activity.Current = null;
         _latency.Record((double)value / 1000);     // Milliseconds to seconds
+
         return Task.CompletedTask;
     }
 
@@ -60,6 +62,7 @@ internal sealed class DiscordClientMetrics : IDisposable
 
     private async Task UpdateGuildsAmountAsync()
     {
+        Activity.Current = null;
         using Activity? activity = _activitySource.StartActivity("Update guilds", kind: ActivityKind.Client);
 
         IReadOnlyCollection<RestGuild> guilds = await _client.Rest.GetGuildsAsync().ConfigureAwait(false);

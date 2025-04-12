@@ -61,7 +61,9 @@ public static class Extensions
             {
                 config.LogLevel = LogSeverity.Debug;     // Managed by ILogger<DiscordSocketClient>
                 config.DefaultRetryMode = RetryMode.AlwaysRetry;
-                config.GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages;
+                config.GatewayIntents =
+                    GatewayIntents.Guilds | GatewayIntents.GuildMessages
+                    | GatewayIntents.DirectMessages;     // Be able to respond to DMs
                 config.LogGatewayIntentWarnings = true;
                 config.UseInteractionSnowflakeDate = false;     // The DateTime.UtcNow on my device is always about half a minute off the real UTC
                 config.ResponseInternalTimeCheck =

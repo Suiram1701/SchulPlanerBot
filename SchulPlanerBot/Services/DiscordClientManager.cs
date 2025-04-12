@@ -8,6 +8,7 @@ using System.Diagnostics;
 namespace SchulPlanerBot.Services;
 
 internal sealed class DiscordClientManager(
+    IHostEnvironment environment,
     ILogger<DiscordClientManager> logger,
     ILogger<DiscordSocketClient> clientLogger,
     IOptions<DiscordClientOptions> clientOptionsAccessor,
@@ -16,6 +17,7 @@ internal sealed class DiscordClientManager(
 {
     public const string ActivitySourceName = "Discord.ClientManager";
 
+    private readonly IHostEnvironment _environment = environment;
     private readonly ILogger _logger = logger;
     private readonly ILogger _clientLogger = clientLogger;
     private readonly DiscordClientOptions _clientOptions = clientOptionsAccessor.Value;
@@ -25,9 +27,9 @@ internal sealed class DiscordClientManager(
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        using Activity? activity = _activitySource.StartActivity("Discord bot startup");
-
         _client.Log += Client_Log;
+
+        using Activity? activity = _activitySource.StartActivity("Discord bot startup");
 
         await _client.LoginAsync(_clientOptions.TokenType, _clientOptions.Token).ConfigureAwait(false);
         if (_client.LoginState == LoginState.LoggedIn)
@@ -42,6 +44,18 @@ internal sealed class DiscordClientManager(
 
         await _client.StartAsync().ConfigureAwait(false);
         _logger.LogInformation("Bot successfully started");
+
+        // Set activity
+        if (!_environment.IsDevelopment())
+        {
+            await _client.SetStatusAsync(UserStatus.Online).ConfigureAwait(false);
+            await _client.SetCustomStatusAsync("Managing homeworks").ConfigureAwait(false);
+        }
+        else
+        {
+            await _client.SetStatusAsync(UserStatus.AFK).ConfigureAwait(false);
+            await _client.SetCustomStatusAsync("Being in development").ConfigureAwait(false);
+        }
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

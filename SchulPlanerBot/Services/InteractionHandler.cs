@@ -43,6 +43,7 @@ internal sealed class InteractionHandler(
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _client.Ready += Client_ReadyAsync;
+        _client.MessageReceived += Client_MessageReceivedAsync;
         _client.InteractionCreated += Client_InteractionCreatedAsync;
         _interaction.Log += Interaction_Log;
         _interaction.InteractionExecuted += Interaction_InteractionExecutedAsync;
@@ -53,6 +54,7 @@ internal sealed class InteractionHandler(
     public Task StopAsync(CancellationToken cancellationToken)
     {
         _client.Ready -= Client_ReadyAsync;
+        _client.MessageReceived -= Client_MessageReceivedAsync;
         _client.InteractionCreated -= Client_InteractionCreatedAsync;
         _interaction.Log -= Interaction_Log;
         _interaction.InteractionExecuted -= Interaction_InteractionExecutedAsync;
@@ -91,6 +93,15 @@ internal sealed class InteractionHandler(
             activity?.AddException(ex);
 
             await _host.StopAsync().ConfigureAwait(false);     // An error on registration can disturb the whole app
+        }
+    }
+
+    private async Task Client_MessageReceivedAsync(SocketMessage message)
+    {
+        // Message is sent by a user (except for the bot its self) in a private way (not from a guild)
+        if (message is IUserMessage && !message.Author.IsBot && message.Channel is IPrivateChannel)
+        {
+            await message.Channel.SendMessageAsync(_localizer["dmResponse"]).ConfigureAwait(false);
         }
     }
 
