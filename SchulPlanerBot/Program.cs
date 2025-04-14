@@ -65,7 +65,7 @@ public class Program
                 .AddDiscordNetInstrumentation());
 
         WebApplication app = builder.Build();
-        app.MapDefaultEndpoints();
+        app.MapDefaultEndpoints(always: true);     // Ok to register every endpoint because this container isn't exposed
 
         app.Run();
     }
