@@ -16,7 +16,7 @@ internal static class Extensions
     /// <param name="configuration">The configuration section that will be passed.</param>
     /// <param name="prefix">A prefix that will added to the configuration name of the receiving resource,</param>
     /// <param name="secretKeys">Specifies which keys should be added as a secret parameter.</param>
-    /// <returns></returns>
+    /// <returns>The builder to chain.</returns>
     public static IResourceBuilder<TResource> WithConfiguration<TResource>(
         this IResourceBuilder<TResource> builder,
         IConfiguration configuration,
@@ -34,7 +34,7 @@ internal static class Extensions
 
             string fullPath = configuration is IConfigurationSection section ? $"{section.Path}:{path}" : path;
             string paramName = fullPath.Replace(":", "-");
-            bool isSecret = secretKeys.Any(path.Contains);
+            bool isSecret = secretKeys.Any(path.Equals);
 
             IResourceBuilder<ParameterResource>? keyParamBuilder = builder.ApplicationBuilder.Resources
                 .OfType<IResourceBuilder<ParameterResource>>()

@@ -1,0 +1,34 @@
+# Adds a init container which wait for the database and dashboard to start
+- op: add
+  path: "/spec/template/spec/initContainers"
+  value:
+    - name: wait-for-postgres
+      image: busybox
+      imagePullPolicy: IfNotPresent
+      args:
+        - sh
+        - -c
+        - until nc -z postgres-server 5432; do
+            echo Waiting for postgres-server...;
+            sleep 2;
+          done;
+        - until nc -z aspire-dashboard 18889; do
+            echo Waiting for aspire-dashboard...;
+            sleep 2;
+          done;
+- op: add
+  path: "/spec/template/spec/containers/0/livenessProbe"
+  value:
+    httpGet:
+      path: "/alive"
+      port: http
+    failureThreshold: 30
+    periodSeconds: 10
+- op: add
+  path: "/spec/template/spec/containers/0/readinessProbe"
+  value:
+    httpGet:
+      path: "/health"
+      port: http
+    failureThreshold: 30
+    periodSeconds: 10

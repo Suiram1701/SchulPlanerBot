@@ -2,16 +2,17 @@ namespace: schulplanerbot
 
 resources:
 - aspirate-output
+
 patches:
 - target:
     kind: Deployment
     name: discord-bot
-  path: patch-timezone.yaml
+  path: ./patches/bot.yaml
 - target:
     kind: Service
     name: aspire-dashboard
-  path: patch-dashboard.yaml
+  path: ./patches/dashboard-service.yaml
 - target:
     kind: Service
     name: postgres-server
-  path: patch-postgres.yaml
+  path: ./patches/postgres-service.yaml

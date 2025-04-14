@@ -1,3 +1,4 @@
+# Network config
 - op: replace
   path: "/spec/type"
   value: NodePort
@@ -7,4 +8,4 @@
   - 192.168.178.61
 - op: add
   path: "/spec/ports/0/nodePort"
-  value: 30102
+  value: 30100

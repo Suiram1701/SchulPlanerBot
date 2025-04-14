@@ -15,7 +15,7 @@ This describes how to deploy this service properly when changes on the infrastru
 - Adjust the version of SchulPlanerBot (discord-bot) in `SchulPlanerBot/SchulPlanerBot.csproj`.
 - Open a shell
 - Navigate to the App host project (`cd SchulPlanerBot.AppHost`) if you're not already there.
-- Run `aspirate generate --runtime-identifier linux-arm64 -ct "latest;vX.X.X.X" -o ./kubernetes/aspirate-output` (replace the X's with the real version) to generate the latest kubernetes configuration and publish the newest docker image.
+- Run `aspirate generate --skip-build -o ./kubernetes/aspirate-output` to generate the latest kubernetes configuration and publish the newest docker image.
 - Run `aspirate apply -i ./kubernetes` to apply the changes to your cluster.
 
 ## Debugging:
