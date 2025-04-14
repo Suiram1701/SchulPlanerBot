@@ -100,4 +100,34 @@
   <data name="selectHomework.placeholder" xml:space="preserve">
     <value>Hausaufgabe zum anzeigen</value>
   </data>
+  <data name="selectHomework.reloadBtn" xml:space="preserve">
+    <value>Hausaufgabe neuladen</value>
+  </data>
+  <data name="homeworkModal.details.placeholder" xml:space="preserve">
+    <value>quadratische Gleichung lösen.</value>
+  </data>
+  <data name="homeworkModal.details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="homeworkModal.title.placeholder" xml:space="preserve">
+    <value>Aufgabe 4a auf Seite 95 machen</value>
+  </data>
+  <data name="homeworkModal.title" xml:space="preserve">
+    <value>Titel</value>
+  </data>
+  <data name="homeworkModal.subject.placeholder" xml:space="preserve">
+    <value>Mathematik</value>
+  </data>
+  <data name="homeworkModal.subject" xml:space="preserve">
+    <value>Fach</value>
+  </data>
+  <data name="homeworkModal.dueDate" xml:space="preserve">
+    <value>Fällig bis</value>
+  </data>
+  <data name="homeworkModal.titleModify" xml:space="preserve">
+    <value>Hausaufgabe bearbeiten</value>
+  </data>
+  <data name="homeworkModal.titleCreate" xml:space="preserve">
+    <value>Hausaufgabe erstellen</value>
+  </data>
 </root>

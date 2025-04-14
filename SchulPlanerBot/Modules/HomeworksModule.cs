@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Localization;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Errors;
@@ -16,16 +17,16 @@ namespace SchulPlanerBot.Modules;
 [Group("homeworks", "Manages homeworks on the guild.")]
 public sealed class HomeworksModule(
     ILogger<HomeworksModule> logger,
+    IMemoryCache cache,
     IStringLocalizer<HomeworksModule> localizer,
-    IStringLocalizer<HomeworkModal> modalLocalizer,
     SchulPlanerManager manager,
     ErrorService errorService,
     EmbedsService embedsService,
     ComponentService componentService) : InteractionModuleBase<ExtendedSocketContext>
 {
     private readonly ILogger _logger = logger;
+    private readonly IMemoryCache _cache = cache;
     private readonly IStringLocalizer _localizer = localizer;
-    private readonly IStringLocalizer _modalLocalizer = modalLocalizer;
     private readonly SchulPlanerManager _manager = manager;
     private readonly ErrorService _errorService = errorService;
     private readonly EmbedsService _embedsService = embedsService;
@@ -49,7 +50,7 @@ public sealed class HomeworksModule(
         if (homeworks.Any())
         {
             Embed overview = _embedsService.HomeworksOverview(homeworks, start!.Value, end!.Value);
-            MessageComponent select = _componentService.SelectHomework(homeworks);
+            MessageComponent select = _componentService.SelectHomework(homeworks, cacheId: Guid.NewGuid().ToString());
             await RespondAsync(_localizer["list.listed"], embeds: [overview], components: select).ConfigureAwait(false);
         }
         else
@@ -58,12 +59,30 @@ public sealed class HomeworksModule(
         }
     }
 
-    // Component created by global::SchulPlanerBot.Discord.ComponentService
-    [ComponentInteraction(ComponentIds.ChangeSelectedHomeworkSelection, ignoreGroupNames: true)]
-    public async Task GetHomeworks_InteractAsync(string[] data)
+    // Components created by global::SchulPlanerBot.Discord.ComponentService
+    [ComponentInteraction(ComponentIds.GetHomeworksSelectComponent, ignoreGroupNames: true)]
+    public async Task GetHomeworks_InteractAsync(string cacheId, string? value = null)
     {
-        Guid homeworkId = Guid.Parse(data[0]);
-        Homework? homework = await _manager.GetHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
+        Guid? homeworkId;
+        if (value is not null)
+        {
+            homeworkId = Guid.Parse(value);
+            _cache.Set(cacheId, homeworkId, new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = TimeSpan.FromDays(7)     // Should be enough for the user to interact with
+            });
+        }
+        else
+        {
+            homeworkId = (Guid?)_cache.Get(cacheId);
+            if (homeworkId is null)
+            {
+                await RespondAsync(_localizer["list.selectBeforeReload"], ephemeral: true).ConfigureAwait(false);
+                return;
+            }
+        }
+
+        Homework? homework = await _manager.GetHomeworkAsync(Guild.Id, homeworkId.Value, CancellationToken).ConfigureAwait(false);
         if (homework is not null)
         {
             Embed embed = _embedsService.Homework(homework);
@@ -75,9 +94,18 @@ public sealed class HomeworksModule(
         }
     }
 
+    // Components created by global::SchulPlanerBot.Discord.ComponentService
+    [ComponentInteraction(ComponentIds.GetHomeworksReloadComponent, ignoreGroupNames: true)]
+    public async Task GetHomeworks_ReloadInteractAsync(string cacheId) => await GetHomeworks_InteractAsync(cacheId, value: null).ConfigureAwait(false);
+
     [SlashCommand("create", "Opens the form to create a new homework.")]
-    public async Task CreateHomeworkAsync() =>
-        await RespondWithModalAsync<HomeworkModal>(ComponentIds.CreateHomeworkModal, modifyModal: builder => HomeworkModal.LocalizeModal(builder, _modalLocalizer)).ConfigureAwait(false);
+    public async Task CreateHomeworkAsync()
+    {
+        await RespondWithModalAsync<HomeworkModal>(
+            customId: ComponentIds.CreateHomeworkModal,
+            modifyModal: builder => _componentService.LocalizeHomeworkModal(builder, createHomework: true))
+            .ConfigureAwait(false);
+    }
 
     [ModalInteraction(ComponentIds.CreateHomeworkModal, ignoreGroupNames: true)]
     public async Task CreateHomework_SubmitAsync(HomeworkModal homeworkModal)
@@ -139,10 +167,11 @@ public sealed class HomeworksModule(
             Title = homework.Title,
             Details = homework.Details
         };
-        await RespondWithModalAsync(ComponentIds.ModifyHomeworkModalId(homework.Id.ToString()), modal, modifyModal: builder =>
-        {
-            HomeworkModal.LocalizeModal(builder, _modalLocalizer, create: false);
-        }).ConfigureAwait(false);
+        await RespondWithModalAsync(
+            customId: ComponentIds.CreateModifyHomeworkModal(homework.Id.ToString()),
+            modal: modal,
+            modifyModal: builder => _componentService.LocalizeHomeworkModal(builder, createHomework: false))
+            .ConfigureAwait(false);
     }
 
     [ModalInteraction(ComponentIds.ModifyHomeworkModal, ignoreGroupNames: true)]

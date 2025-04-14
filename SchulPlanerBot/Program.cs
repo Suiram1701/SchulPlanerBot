@@ -26,6 +26,8 @@ public class Program
 
         builder.Services.AddDatabaseManagers();
 
+        builder.Services.AddMemoryCache();
+
         builder.Services
             .AddQuartz(ConfigureQuartz)
             .AddQuartzServer(options =>
@@ -34,6 +36,7 @@ public class Program
                 options.WaitForJobsToComplete = true;
             });
 
+        builder.Services.AddLocalization(options => options.ResourcesPath = "Localization");
         builder.Services.AddDiscordSocketClient("DiscordClient")
             .AddInteractionFramework(service =>
             {
@@ -50,8 +53,6 @@ public class Program
             .BindConfiguration("Help")
             .ValidateDataAnnotations()
             .ValidateOnStart();
-
-        builder.Services.AddLocalization(options => options.ResourcesPath = "Localization");
 
         builder.Services.AddOpenTelemetry()
             .WithTracing(provider => provider

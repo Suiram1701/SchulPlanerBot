@@ -154,4 +154,7 @@
   <data name="list.notFound" xml:space="preserve">
     <value>Die angefragte Hausaufgabe konnte nicht gefunden werden!</value>
   </data>
+  <data name="list.selectBeforeReload" xml:space="preserve">
+    <value>Es kann keine Hausaufgabe neu geladen werden bevor eine ausgewählt ist!</value>
+  </data>
 </root>

@@ -106,6 +106,9 @@
   <data name="list.notFound" xml:space="preserve">
     <value>The requested homework was not found!</value>
   </data>
+  <data name="list.selectBeforeReload" xml:space="preserve">
+    <value>No homework can be reloaded before one is selected!</value>
+  </data>
   <data name="create.parseDueFailed" xml:space="preserve">
     <value>An invalid due was provided!</value>
   </data>

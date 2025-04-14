@@ -85,7 +85,7 @@ internal sealed class NotificationJob(
                 message += _localizer["homeworks", TimestampTag.FromDateTimeOffset(endDateTime.ToLocalTime(), TimestampTagStyles.Relative)];
 
                 Embed overviewEmbed = _embedsService.HomeworksOverview(homeworks, DateTimeOffset.UtcNow, endDateTime);
-                MessageComponent selectComp = _componentService.SelectHomework(homeworks);
+                MessageComponent selectComp = _componentService.SelectHomework(homeworks, cacheId: Guid.NewGuid().ToString());
                 await textChannel.SendMessageAsync(message, embeds: [overviewEmbed], components: selectComp, allowedMentions: AllowedMentions.All).ConfigureAwait(false);
             }
             else
