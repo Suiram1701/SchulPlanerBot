@@ -14,6 +14,7 @@ internal sealed class NotificationJob(
     ISchedulerFactory schedulerFactory,
     IStringLocalizer<NotificationJob> localizer,
     SchulPlanerManager manager,
+    HomeworkManager homeworkManager,
     DiscordSocketClient client,
     EmbedsService embedsService,
     ComponentService componentService) : IJob
@@ -22,6 +23,7 @@ internal sealed class NotificationJob(
     private readonly ISchedulerFactory _schedulerFactory = schedulerFactory;
     private readonly IStringLocalizer _localizer = localizer;
     private readonly SchulPlanerManager _manager = manager;
+    private readonly HomeworkManager _homeworkManager = homeworkManager;
     private readonly DiscordSocketClient _client = client;
     private readonly EmbedsService _embedsService = embedsService;
     private readonly ComponentService _componentService = componentService;
@@ -66,12 +68,12 @@ internal sealed class NotificationJob(
 
             // Real notification part
             DateTimeOffset endDateTime = DateTimeOffset.UtcNow + guild.BetweenNotifications.Value;
-            IEnumerable<Homework> homeworks = await _manager.GetHomeworksAsync(guildId, start: DateTime.UtcNow, end: endDateTime, ct: context.CancellationToken).ConfigureAwait(false);
+            IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(guildId, start: DateTime.UtcNow, end: endDateTime, ct: context.CancellationToken).ConfigureAwait(false);
             homeworks = [.. homeworks.OrderBy(h => h.Due)];
 
             if (homeworks.Any())
             {
-                IEnumerable<HomeworkSubscription> userSubscriptions = await _manager.GetSubscriptionsAsync(guildId, context.CancellationToken).ConfigureAwait(false);
+                IEnumerable<HomeworkSubscription> userSubscriptions = await _homeworkManager.GetSubscriptionsAsync(guildId, context.CancellationToken).ConfigureAwait(false);
                 ulong[] usersToMention = [.. userSubscriptions
                     .Where(s => ShouldNotifyUser(s, homeworks))
                     .Select(s => s.UserId)];

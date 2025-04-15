@@ -4,10 +4,11 @@ using SchulPlanerBot.Business.Models;
 
 namespace SchulPlanerBot.Quartz;
 
-internal sealed class DeleteHomeworksJob(ILogger<DeleteHomeworksJob> logger, SchulPlanerManager manager) : IJob
+internal sealed class DeleteHomeworksJob(ILogger<DeleteHomeworksJob> logger, SchulPlanerManager manager, HomeworkManager homeworkManager) : IJob
 {
     private readonly ILogger _logger = logger;
     private readonly SchulPlanerManager _manager = manager;
+    private readonly HomeworkManager _homeworkManager = homeworkManager;
 
     public async Task Execute(IJobExecutionContext context)
     {
@@ -19,7 +20,7 @@ internal sealed class DeleteHomeworksJob(ILogger<DeleteHomeworksJob> logger, Sch
 
                 try
                 {
-                    (int? count, UpdateResult deleteResult) = await _manager.DeleteHomeworksWithDueOlderAsync(guild.Id, olderThan, context.CancellationToken).ConfigureAwait(false);
+                    (int? count, UpdateResult deleteResult) = await _homeworkManager.DeleteHomeworksWithDueOlderAsync(guild.Id, olderThan, context.CancellationToken).ConfigureAwait(false);
                     if (deleteResult.Success && count is not null)
                         _logger.LogTrace("Deleted {deleted} obsolet homeworks for guild {guildId}.", count, guild.Id);
                     else

@@ -110,19 +110,20 @@ internal sealed class InteractionHandler(
         Activity.Current = null;     // This activity doesn't have a parent
         Activity? activity = _activitySource.StartActivity("Discord Interaction", ActivityKind.Server, parentId: null, tags: new Dictionary<string, object?>     // Activity disposed by event via context.
         {
-            { "Id", interaction.Id },
-            { "Type", interaction.Type },
-            { "User", interaction.User.Username },
-            { "UserId", interaction.User.Id },
-            { "GuildId", interaction.GuildId },
+            { "interaction.id", interaction.Id },
+            { "interaction.type", interaction.Type },
+            { "interaction.guild", interaction.GuildId },
+            { "interaction.user", interaction.User.ToString() },
         });
 
         if (_environment.IsDevelopment() && _options.TestGuild is not null && interaction.GuildId != _options.TestGuild)
         {
             _logger.LogWarning("Interaction cancelled! Sent from non-test channel {guildId} during development!", interaction.GuildId);
-            await interaction.RespondAsync(Utils.UseAnsiFormat(
+
+            string message = Utils.UseAnsiFormat(
                 MessageWithEmote("warning", "Cannot execute interactions outside of the development guild during dev environment!"),
-                Utils.AnsiColor.Yellow)).ConfigureAwait(false);
+                Utils.AnsiColor.Yellow);
+            await interaction.RespondAsync(message).ConfigureAwait(false);
 
             activity?.Dispose();
             return;

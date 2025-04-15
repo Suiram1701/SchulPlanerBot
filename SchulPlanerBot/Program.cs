@@ -22,11 +22,9 @@ public class Program
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         builder.AddServiceDefaults();
+
         builder.AddBotDatabase(ResourceNames.BotDatabase);
-
         builder.Services.AddDatabaseManagers();
-
-        builder.Services.AddMemoryCache();
 
         builder.Services
             .AddQuartz(ConfigureQuartz)
@@ -48,6 +46,7 @@ public class Program
             .AddInteractionResXLocalization<ISchulPlanerBot>(_commandsLocalizationResource, SupportedCultures)
             .AddTransient<EmbedsService>()
             .AddTransient<ComponentService>();
+        builder.Services.AddMemoryCache();
 
         builder.Services.AddOptions<HelpOptions>()
             .BindConfiguration("Help")
@@ -74,7 +73,7 @@ public class Program
     {
         options.AddJob<NotificationJob>(job => job
             .WithIdentity(Keys.NotificationJob)
-            .WithDescription("Notifies users in a text channel at specific times")
+            .WithDescription("Notifies users in a text channel at specific times.")
             .StoreDurably());
         options.AddJob<DeleteHomeworksJob>(job => job
             .WithIdentity(Keys.DeleteHomeworksJob)

@@ -20,6 +20,7 @@ public sealed class HomeworksModule(
     IMemoryCache cache,
     IStringLocalizer<HomeworksModule> localizer,
     SchulPlanerManager manager,
+    HomeworkManager homeworkManager,
     ErrorService errorService,
     EmbedsService embedsService,
     ComponentService componentService) : InteractionModuleBase<ExtendedSocketContext>
@@ -28,6 +29,7 @@ public sealed class HomeworksModule(
     private readonly IMemoryCache _cache = cache;
     private readonly IStringLocalizer _localizer = localizer;
     private readonly SchulPlanerManager _manager = manager;
+    private readonly HomeworkManager _homeworkManager = homeworkManager;
     private readonly ErrorService _errorService = errorService;
     private readonly EmbedsService _embedsService = embedsService;
     private readonly ComponentService _componentService = componentService;
@@ -44,7 +46,7 @@ public sealed class HomeworksModule(
         start ??= DateTimeOffset.UtcNow;
         end ??= DateTimeOffset.UtcNow.AddDays(7);
 
-        IEnumerable<Homework> homeworks = await _manager.GetHomeworksAsync(Guild.Id, search, subject, start?.ToUniversalTime(), end?.ToUniversalTime(), CancellationToken).ConfigureAwait(false);
+        IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, search, subject, start?.ToUniversalTime(), end?.ToUniversalTime(), CancellationToken).ConfigureAwait(false);
         homeworks = [.. homeworks.OrderBy(h => h.Due)];
 
         if (homeworks.Any())
@@ -82,7 +84,7 @@ public sealed class HomeworksModule(
             }
         }
 
-        Homework? homework = await _manager.GetHomeworkAsync(Guild.Id, homeworkId.Value, CancellationToken).ConfigureAwait(false);
+        Homework? homework = await _homeworkManager.GetHomeworkAsync(Guild.Id, homeworkId.Value, CancellationToken).ConfigureAwait(false);
         if (homework is not null)
         {
             Embed embed = _embedsService.Homework(homework);
@@ -121,7 +123,7 @@ public sealed class HomeworksModule(
             ? new(due, TimeSpan.FromHours(2))
             : new(due);
 
-        (Homework? homework, UpdateResult creationResult) = await _manager.CreateHomeworkAsync(
+        (Homework? homework, UpdateResult creationResult) = await _homeworkManager.CreateHomeworkAsync(
             Guild.Id,
             User.Id,
             dueWithOffset.ToUniversalTime(),
@@ -145,7 +147,7 @@ public sealed class HomeworksModule(
             return;
         }
 
-        Homework? homework = await _manager.GetHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
+        Homework? homework = await _homeworkManager.GetHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
         if (homework is null)
         {
             await this.RespondWithErrorAsync(_errorService.HomeworkNotFound().Errors, _logger).ConfigureAwait(false);
@@ -189,7 +191,7 @@ public sealed class HomeworksModule(
             ? new(due, TimeSpan.FromHours(2))
             : new(due);
 
-        (Homework? homework, UpdateResult modifyResult) = await _manager.ModifyHomeworkAsync(
+        (Homework? homework, UpdateResult modifyResult) = await _homeworkManager.ModifyHomeworkAsync(
             homeworkId,
             User.Id,
             dueWithOffset.ToUniversalTime(),
@@ -213,7 +215,7 @@ public sealed class HomeworksModule(
             return;
         }
 
-        Homework? homework = await _manager.GetHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
+        Homework? homework = await _homeworkManager.GetHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
         if (homework is null)
         {
             await this.RespondWithErrorAsync(_errorService.HomeworkNotFound().Errors, _logger).ConfigureAwait(false);
@@ -228,7 +230,7 @@ public sealed class HomeworksModule(
             return;
         }
 
-        UpdateResult deleteResult = await _manager.DeleteHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
+        UpdateResult deleteResult = await _homeworkManager.DeleteHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
         if (deleteResult.Success)
             await RespondAsync(_localizer["delete.deleted", homework.Title]).ConfigureAwait(false);
         else
@@ -238,7 +240,7 @@ public sealed class HomeworksModule(
     [SlashCommand("subscriptions", "Shows your homework notification subscriptions.")]
     public async Task GetSubscriptionsAsync()
     {
-        HomeworkSubscription? subscriptions = await _manager.GetHomeworkSubscriptionAsync(Guild.Id, User.Id, CancellationToken).ConfigureAwait(false);
+        HomeworkSubscription? subscriptions = await _homeworkManager.GetHomeworkSubscriptionAsync(Guild.Id, User.Id, CancellationToken).ConfigureAwait(false);
         if (subscriptions is null)
         {
             await RespondAsync(_localizer["subscriptions.notConfigured"]).ConfigureAwait(false);
@@ -260,14 +262,14 @@ public sealed class HomeworksModule(
     [SlashCommand("subscribe-all", "Subscribes to notifications for all subjects.")]
     public async Task SubscribeToAllSubjectsAsync()
     {
-        UpdateResult updateResult = await _manager.SetSubscribeToAllSubjectsAsync(Guild.Id, User.Id, subscribe: true, CancellationToken).ConfigureAwait(false);
+        UpdateResult updateResult = await _homeworkManager.SetSubscribeToAllSubjectsAsync(Guild.Id, User.Id, subscribe: true, CancellationToken).ConfigureAwait(false);
         await HandleSubscriptionsUpdatedAsync(updateResult).ConfigureAwait(false);
     }
 
     [SlashCommand("unsubscribe-all", "Unsubscribes from notifications of all subjects. Manuel added subjects will remain.")]
     public async Task UnsubscribeFromAllSubjectsAsync()
     {
-        UpdateResult updateResult = await _manager.SetSubscribeToAllSubjectsAsync(Guild.Id, User.Id, subscribe: false, CancellationToken).ConfigureAwait(false);
+        UpdateResult updateResult = await _homeworkManager.SetSubscribeToAllSubjectsAsync(Guild.Id, User.Id, subscribe: false, CancellationToken).ConfigureAwait(false);
         if (updateResult.Success)
             await RespondAsync(_localizer["subscriptions.unsubscribed-all"]).ConfigureAwait(false);
         else
@@ -277,14 +279,14 @@ public sealed class HomeworksModule(
     [SlashCommand("subscribe", "Subscribes to notifications from specific subjects or no subject.")]
     public async Task SubscribeToSubjectsAsync(string[] subjects, [Summary(name: "no-subject")] bool noSubject = false)
     {
-        UpdateResult updateResult = await _manager.SubscribeToSubjectsAsync(Guild.Id, User.Id, noSubject, subjects, CancellationToken).ConfigureAwait(false);
+        UpdateResult updateResult = await _homeworkManager.SubscribeToSubjectsAsync(Guild.Id, User.Id, noSubject, subjects, CancellationToken).ConfigureAwait(false);
         await HandleSubscriptionsUpdatedAsync(updateResult).ConfigureAwait(false);
     }
 
     [SlashCommand("unsubscribe", "Unsubscribes from notifications of specific subjects or no subject.")]
     public async Task UnsubscribeFromSubjectsAsync(string[] subjects, [Summary(name: "no-subject")] bool noSubject = false)
     {
-        UpdateResult updateResult = await _manager.UnsubscribeFromSubjectsAsync(Guild.Id, User.Id, noSubject, subjects, CancellationToken).ConfigureAwait(false);
+        UpdateResult updateResult = await _homeworkManager.UnsubscribeFromSubjectsAsync(Guild.Id, User.Id, noSubject, subjects, CancellationToken).ConfigureAwait(false);
         if (updateResult.Success)
             await RespondAsync(_localizer["subscriptions.updated"]).ConfigureAwait(false);
         else

@@ -4,7 +4,6 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Options;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Errors;
-using SchulPlanerBot.Discord;
 using SchulPlanerBot.Options;
 using SchulPlanerBot.ServiceDefaults;
 using SchulPlanerBot.Services;
@@ -44,7 +43,8 @@ public static class Extensions
 
         return services
             .AddTransient<ErrorService>()
-            .AddScoped<SchulPlanerManager>();
+            .AddScoped<SchulPlanerManager>()
+            .AddScoped<HomeworkManager>();
     }
 
     public static IServiceCollection AddDiscordSocketClient(this IServiceCollection services, string configurationKey)
@@ -68,11 +68,10 @@ public static class Extensions
                 config.UseInteractionSnowflakeDate = false;     // The DateTime.UtcNow on my device is always about half a minute off the real UTC
                 config.ResponseInternalTimeCheck =
 #if DEBUG
-                false
+                false;
 #else
-                true
+                true;
 #endif
-                ;
             })
             .AddSingleton<DiscordSocketClient>(sp =>
             {
@@ -89,8 +88,8 @@ public static class Extensions
         return services
             .Configure<InteractionServiceConfig>(config =>
             {
-                config.LogLevel = LogSeverity.Debug;     // Managed by ILogger<InteractionService>
-                config.DefaultRunMode = RunMode.Sync;     // Idk exactly why but async always fails
+                config.LogLevel = LogSeverity.Debug;     // Level managed by ILogger<InteractionService>
+                config.DefaultRunMode = RunMode.Sync;     // Idk exactly why but RunMode.Async always fails
                 config.AutoServiceScopes = false;     // Scopes managed by DiscordInteractionHandler
                 config.UseCompiledLambda = true;
             })
