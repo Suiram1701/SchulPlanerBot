@@ -32,3 +32,10 @@
       port: http
     failureThreshold: 30
     periodSeconds: 10
+
+# Adds the Otlp api key
+- op: add
+  path: "/spec/template/spec/containers/0/env"
+  value: 
+  - name: OTEL_EXPORTER_OTLP_HEADERS
+    value: "x-otlp-api-key=Kh)[1te1#.ervPFKBv@6?$NTVZt/U*3qb>j6>+/d"     # Just a random generated value (replace it on your be have)  

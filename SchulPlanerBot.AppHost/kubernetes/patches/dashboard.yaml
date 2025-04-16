@@ -1,0 +1,12 @@
+# Configures the dashboard
+- op: replace
+  path: "/spec/template/spec/containers/0/env"
+  value:
+  - name: DASHBOARD__APPLICATIONNAME
+    value: SchulPlanerBot
+  - name: DASHBOARD__FRONTEND__AUTHMODE
+    value: BrowserToken
+  - name: DASHBOARD__OTLP__AUTHMODE
+    value: ApiKey
+  - name: DASHBOARD__OTLP__PRIMARYAPIKEY
+    value: "Kh)[1te1#.ervPFKBv@6?$NTVZt/U*3qb>j6>+/d"     # Just a random generated value (replace it on your be have)

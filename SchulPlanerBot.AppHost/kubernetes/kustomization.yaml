@@ -9,6 +9,10 @@ patches:
     name: discord-bot
   path: ./patches/bot.yaml
 - target:
+    kind: Deployment
+    name: aspire-dashboard
+  path: ./patches/dashboard.yaml
+- target:
     kind: Service
     name: aspire-dashboard
   path: ./patches/dashboard-service.yaml
