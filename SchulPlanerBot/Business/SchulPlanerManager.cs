@@ -9,10 +9,9 @@ using System.Globalization;
 
 namespace SchulPlanerBot.Business;
 
-public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlanerManager> logger, ISchedulerFactory schedulerFactory, IOptions<ManagerOptions> optionsAccessor, BotDbContext dbContext, ErrorService errorService)
+public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, ISchedulerFactory schedulerFactory, IOptions<ManagerOptions> optionsAccessor, BotDbContext dbContext, ErrorService errorService)
     : ManagerBase(logger, optionsAccessor, dbContext, errorService)
 {
-    private readonly IHostEnvironment _environment = environment;
     private readonly ISchedulerFactory _schedulerFactory = schedulerFactory;
 
     public StringComparer SubjectNameComparer => Options.SubjectsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
@@ -78,7 +77,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
 
     public async Task<UpdateResult> EnableNotificationsAsync(ulong guildId, DateTimeOffset start, TimeSpan between, CancellationToken ct = default)
     {
-        Guild guild = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);
+        if (between < Options.MinBetweenNotifications)
 
         if (guild.ChannelId is null)
             return _errorService.NoChannel();
@@ -108,7 +107,7 @@ public class SchulPlanerManager(IHostEnvironment environment, ILogger<SchulPlane
 
     public async Task<UpdateResult> SetDeleteHomeworkAfterDueAsync(ulong guildId, TimeSpan deleteAfter, CancellationToken ct = default)
     {
-        if (deleteAfter > Options.MaxDeleteHomeworksAfterDue && !_environment.IsDevelopment())     // Disable maximum time for dev purpose
+        if (deleteAfter > Options.MaxDeleteHomeworksAfterDue)
             return _errorService.DeleteAfterDueTooHigh(Options.MaxDeleteHomeworksAfterDue);
 
         Guild guild = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);

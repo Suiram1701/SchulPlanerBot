@@ -7,11 +7,9 @@ using System.Linq.Expressions;
 
 namespace SchulPlanerBot.Business;
 
-public class HomeworkManager(IHostEnvironment environment, ILogger<SchulPlanerManager> logger, IOptions<ManagerOptions> optionsAccessor, BotDbContext dbContext, ErrorService errorService)
+public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<ManagerOptions> optionsAccessor, BotDbContext dbContext, ErrorService errorService)
     : ManagerBase(logger, optionsAccessor, dbContext, errorService)
 {
-    private readonly IHostEnvironment _environment = environment;
-
     public StringComparer SubjectNameComparer => Options.SubjectsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
     public async Task<Homework?> GetHomeworkAsync(ulong guildId, Guid id, CancellationToken ct = default)
@@ -54,7 +52,7 @@ public class HomeworkManager(IHostEnvironment environment, ILogger<SchulPlanerMa
 
     public async Task<(Homework? homework, UpdateResult result)> CreateHomeworkAsync(ulong guildId, ulong userId, DateTimeOffset due, string? subject, string title, string? details, CancellationToken ct = default)
     {
-        if (due <= DateTimeOffset.UtcNow.Add(Options.MinDueInFuture) && !_environment.IsDevelopment())     // Disable minimum time for dev purpose
+        if (due <= DateTimeOffset.UtcNow.Add(Options.MinDueInFuture))
             return (null, _errorService.DueMustInFuture(Options.MinDueInFuture));
 
         _ = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);     // Ensure the a guild with this id exists
@@ -77,7 +75,7 @@ public class HomeworkManager(IHostEnvironment environment, ILogger<SchulPlanerMa
 
     public async Task<(Homework? homework, UpdateResult result)> ModifyHomeworkAsync(Guid homeworkId, ulong userId, DateTimeOffset newDue, string? newSubject, string newTitle, string? newDetails, CancellationToken ct = default)
     {
-        if (newDue <= DateTimeOffset.UtcNow.Add(Options.MinDueInFuture) && !_environment.IsDevelopment())     // Disable minimum time for dev purpose
+        if (newDue <= DateTimeOffset.UtcNow.Add(Options.MinDueInFuture))
             return (null, _errorService.DueMustInFuture(Options.MinDueInFuture));
 
         Homework? homework = await _dbContext.Homeworks.FindAsync([homeworkId], ct).AsTask().ConfigureAwait(false);
