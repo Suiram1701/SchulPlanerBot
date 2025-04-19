@@ -97,38 +97,32 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="settings.channel" xml:space="preserve">
-    <value>Text channel: {0}</value>
-  </data>
-  <data name="settings.noChannel" xml:space="preserve">
-    <value>Text channel: Not yet configured</value>
-  </data>
-  <data name="settings.notifications" xml:space="preserve">
-    <value>Notifications: Every {0} starting at {1}</value>
-  </data>
-  <data name="settings.noNotifications" xml:space="preserve">
-    <value>Notifications: Not yet enabled</value>
-  </data>
   <data name="settings.locale" xml:space="preserve">
     <value>Language: {0}</value>
   </data>
-  <data name="settings.noLocale" xml:space="preserve">
-    <value>Language: Guild culture (for non community guilds this will be english)</value>
+  <data name="settings.guildLocale" xml:space="preserve">
+    <value>Language: {0} (guild locale, for non community guilds this will be **always* english)</value>
+  </data>
+  <data name="settings.notification" xml:space="preserve">
+    <value>Notifications:</value>
+  </data>
+  <data name="settings.notification.item" xml:space="preserve">
+    <value>Every {1} starting at {0} in channel {2}</value>
+  </data>
+  <data name="settings.notification.none" xml:space="preserve">
+    <value>Notifications: None</value>
   </data>
   <data name="settings.homeworksDeleteAfterDue" xml:space="preserve">
     <value>Delete homeworks automatically: {0} after due</value>
   </data>
-  <data name="channel.updated" xml:space="preserve">
-    <value>Notification channel updated to {0}.</value>
+  <data name="locale.updated" xml:space="preserve">
+    <value>Notification locale updated! Notifications will be made in {0}.</value>
   </data>
-  <data name="channel.removed" xml:space="preserve">
-    <value>Notification channel removed. If automated notifications were enabled they are also disabled because there is not channel to notify in.</value>
-  </data>
-  <data name="notifications.updated" xml:space="preserve">
+  <data name="notification.added" xml:space="preserve">
     <value>Notifying in channel {0} every {1} starting at {2}.</value>
   </data>
-  <data name="disable-notifications.disabled" xml:space="preserve">
-    <value>Automated notifications disabled.</value>
+  <data name="notification.removed" xml:space="preserve">
+    <value>Notifications starting from {0} removed.</value>
   </data>
   <data name="homeworksDeletedAfter.updated" xml:space="preserve">
     <value>Every homework of this guild will be deleted {0} after its due.</value>

@@ -34,19 +34,12 @@ internal sealed class NotificationJob(
         {
             // Preparing
             if (!(context.MergedJobDataMap.TryGetString(Keys.GuildIdData, out string? guildIdStr) && ulong.TryParse(guildIdStr, out ulong guildId)))
-            {
                 throw new JobExecutionException($"Unable to retrieve the required job data '{Keys.GuildIdData}'!");
-            }
+
+            if (!(context.MergedJobDataMap.TryGetValue(Keys.NotificationData, out object value) && value is Notification notification))
+                throw new JobExecutionException($"Unable to retrieve the required job data '{Keys.NotificationData}'!");
 
             Guild guild = await _manager.GetGuildAsync(guildId, context.CancellationToken).ConfigureAwait(false);
-            if (!guild.NotificationsEnabled || guild.ChannelId is null)
-            {
-                _logger.LogWarning("Notifications not right configured for guild! Removing notification trigger...");
-                await UnscheduleTriggerAsync(context).ConfigureAwait(false);
-
-                throw new JobExecutionException("Notifications not right configured for guild!");
-            }
-
             if (guild.NotificationCulture is not null)
             {
                 Utils.SetCulture(guild.NotificationCulture);
@@ -57,17 +50,17 @@ internal sealed class NotificationJob(
                 Utils.SetCulture(restGuild.PreferredCulture);
             }
 
-            IChannel? channel = await _client.GetChannelAsync(guild.ChannelId.Value).ConfigureAwait(false);
+            IChannel? channel = await _client.GetChannelAsync(notification.ChannelId).ConfigureAwait(false);
             if (channel is not ITextChannel textChannel)
             {
                 _logger.LogWarning("Unable to retrieve the notification text channel for guild! Removing notification trigger...");
-                await UnscheduleTriggerAsync(context).ConfigureAwait(false);
+                await UnScheduleTriggerAsync(context).ConfigureAwait(false);
 
                 throw new JobExecutionException("Unable to retrieve notification channel for guild!");
             }
 
             // Real notification part
-            DateTimeOffset endDateTime = DateTimeOffset.UtcNow + guild.BetweenNotifications.Value;
+            DateTimeOffset endDateTime = DateTimeOffset.UtcNow + notification.Between;
             IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(guildId, start: DateTime.UtcNow, end: endDateTime, ct: context.CancellationToken).ConfigureAwait(false);
             homeworks = [.. homeworks.OrderBy(h => h.Due)];
 
@@ -103,7 +96,7 @@ internal sealed class NotificationJob(
         }
     }
 
-    private async Task UnscheduleTriggerAsync(IJobExecutionContext context)
+    private async Task UnScheduleTriggerAsync(IJobExecutionContext context)
     {
         IScheduler scheduler = await _schedulerFactory.GetScheduler(context.CancellationToken).ConfigureAwait(false);
         await scheduler.UnscheduleJob(context.RecoveringTriggerKey, context.CancellationToken).ConfigureAwait(false);

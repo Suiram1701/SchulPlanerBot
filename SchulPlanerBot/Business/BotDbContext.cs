@@ -15,19 +15,22 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.AddQuartz(options => options.UsePostgreSql());
+        Action<QuartzModelBuilder> quartzBuilder = Database.ProviderName switch
+        {
+            "Npgsql.EntityFrameworkCore.PostgreSQL" => b => b.UsePostgreSql(),
+            _ => throw new NotSupportedException($"The database provider '{Database.ProviderName}' is not supported by the quartz job store!")
+        };
+        modelBuilder.AddQuartz(quartzBuilder);
 
         modelBuilder.Entity<Guild>(builder =>
         {
+            builder.HasKey(g => g.Id);
+
             builder.Property(g => g.Id).IsRequired();
-            builder.Property(g => g.ChannelId);
-            builder.Property(g => g.NotificationsEnabled).HasDefaultValue(false);
-            builder.Property(g => g.StartNotifications);
-            builder.Property(g => g.BetweenNotifications);
-            builder.Property(g => g.NotificationLocale).HasMaxLength(5);     // Has always the format 'en-US' when not null
+            builder.Property(g => g.NotificationLocale).HasMaxLength(5);     // Max length in format 'en-US'
             builder.Property(g => g.DeleteHomeworksAfterDue).IsRequired();
 
-            builder.HasKey(g => g.Id);
+            builder.OwnsMany(g => g.Notifications).ToJson();
 
             builder.HasMany<Homework>()
                 .WithOne()
@@ -43,6 +46,8 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
 
         modelBuilder.Entity<Homework>(builder =>
         {
+            builder.HasKey(h => h.Id);
+
             builder.Property(h => h.Id).ValueGeneratedOnAdd().IsRequired();
             builder.Property(h => h.GuildId).IsRequired();
             builder.Property(h => h.Due).IsRequired();
@@ -53,19 +58,17 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
             builder.Property(h => h.CreatedBy).IsRequired();
             builder.Property(h => h.LastModifiedAt);
             builder.Property(h => h.LastModifiedBy);
-
-            builder.HasKey(h => h.Id);
         });
 
         modelBuilder.Entity<HomeworkSubscription>(builder =>
         {
+            builder.HasKey(s => new { s.GuildId, s.UserId });
+
             builder.Property(s => s.GuildId).IsRequired();
             builder.Property(s => s.UserId).IsRequired();
             builder.Property(s => s.AnySubject).HasDefaultValue(true);
             builder.Property(s => s.NoSubject).HasDefaultValue(false);
             builder.Property(s => s.Include);
-
-            builder.HasKey(s => new { s.GuildId, s.UserId });
         });
     }
 }

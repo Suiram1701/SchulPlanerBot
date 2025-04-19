@@ -109,41 +109,53 @@
   <data name="schulplaner.settings.description" xml:space="preserve">
     <value>Retrieves the settings configured for the guild.</value>
   </data>
-  <data name="schulplaner.notifications.name" xml:space="preserve">
-    <value>notifications</value>
+  <data name="schulplaner.locale.name" xml:space="preserve">
+    <value>locale</value>
   </data>
-  <data name="schulplaner.notifications.description" xml:space="preserve">
-    <value>Configures when notifications will be made.</value>
+  <data name="schulplaner.locale.description" xml:space="preserve">
+    <value>Configures the locale that will be used in notifications. Execute without locale to reset it.</value>
   </data>
-  <data name="schulplaner.notifications.channel.name" xml:space="preserve">
-    <value>channel</value>
+  <data name="schulplaner.locale.culture.name" xml:space="preserve">
+    <value>locale</value>
   </data>
-  <data name="schulplaner.notifications.channel.description" xml:space="preserve">
-    <value>The channel were the notifications will be posted.</value>
+  <data name="schulplaner.locale.culture.description" xml:space="preserve">
+    <value>The locale to set. Empty to clear it.</value>
   </data>
-  <data name="schulplaner.notifications.start.name" xml:space="preserve">
+  <data name="schulplaner.add-notification.name" xml:space="preserve">
+    <value>add-notification</value>
+  </data>
+  <data name="schulplaner.add-notification.description" xml:space="preserve">
+    <value>Adds a notification with certain parameters to this guild.</value>
+  </data>
+  <data name="schulplaner.add-notification.start.name" xml:space="preserve">
     <value>start</value>
   </data>
-  <data name="schulplaner.notifications.between.name" xml:space="preserve">
+  <data name="schulplaner.add-notification.start.description" xml:space="preserve">
+    <value>The date time when the notification will begin. E.g.: 01.01.2020 10:00 or just 10:00.</value>
+  </data>
+  <data name="schulplaner.add-notification.between.name" xml:space="preserve">
     <value>between</value>
   </data>
-  <data name="schulplaner.notifications.locale.name" xml:space="preserve">
-    <value>language</value>
+  <data name="schulplaner.add-notification.between.description" xml:space="preserve">
+    <value>The time between each of this notifications. E.g.: 1d.</value>
   </data>
-  <data name="schulplaner.notifications.locale.description" xml:space="preserve">
-    <value>The language in which the notifications will be made.</value>
+  <data name="schulplaner.add-notification.channel.name" xml:space="preserve">
+    <value>channel</value>
   </data>
-  <data name="schulplaner.notifications.start.description" xml:space="preserve">
-    <value>The date time where the bot should start with notifications. E.g.: 01.01.2020 10:00 or just 10:00.</value>
+  <data name="schulplaner.add-notification.channel.description" xml:space="preserve">
+    <value>The channel to post notifications in. Must be a text channel.</value>
   </data>
-  <data name="schulplaner.notifications.between.description" xml:space="preserve">
-    <value>The time to wait between notifications. E.g.: 1d, 2h etc.</value>
+  <data name="schulplaner.remove-notification.name" xml:space="preserve">
+    <value>remove-notification</value>
   </data>
-  <data name="schulplaner.disable-notifications.name" xml:space="preserve">
-    <value>disable-notifications</value>
+  <data name="schulplaner.remove-notification.description" xml:space="preserve">
+    <value>Removes a single notification from this guild.</value>
   </data>
-  <data name="schulplaner.disable-notifications.description" xml:space="preserve">
-    <value>Disables any automated notifications.</value>
+  <data name="schulplaner.remove-notification.start.name" xml:space="preserve">
+    <value>start</value>
+  </data>
+  <data name="schulplaner.remove-notification.start.description" xml:space="preserve">
+    <value>The date time where the notification to remove starts.</value>
   </data>
   <data name="schulplaner.delete-homeworks.name" xml:space="preserve">
     <value>delete-homeworks</value>

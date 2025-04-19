@@ -97,40 +97,34 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="settings.channel" xml:space="preserve">
-    <value>Textkanal: {0}</value>
+  <data name="notification.removed" xml:space="preserve">
+    <value>Benachrichtigungen ab dem {0} entfernt.</value>
   </data>
-  <data name="settings.noChannel" xml:space="preserve">
-    <value>Textkanal: Noch nicht konfiguriert</value>
-  </data>
-  <data name="settings.notifications" xml:space="preserve">
-    <value>Benachrichtigungen: Alle {0} ab dem {1}</value>
-  </data>
-  <data name="settings.noNotifications" xml:space="preserve">
-    <value>Benachrichtigungen: Noch nicht aktiviert</value>
-  </data>
-  <data name="channel.updated" xml:space="preserve">
-    <value>Benachrichtigungskanal zu {0} aktualisiert.</value>
-  </data>
-  <data name="channel.removed" xml:space="preserve">
-    <value>Benachrichtigungskanal entfernt. Falls automatisierte Benachrichtigungen aktiviert waren wurde diese deaktiviert, da es kein Kanal zum Benachrichtigen gibt.</value>
-  </data>
-  <data name="disable-notifications.disabled" xml:space="preserve">
-    <value>Benachrichtigungen deaktiviert.</value>
-  </data>
-  <data name="notifications.updated" xml:space="preserve">
+  <data name="notification.added" xml:space="preserve">
     <value>Benachrichtige alle {1} ab dem {2} in {0}.</value>
   </data>
   <data name="settings.locale" xml:space="preserve">
     <value>Sprache: {0}</value>
   </data>
-  <data name="settings.noLocale" xml:space="preserve">
-    <value>Sprache: Serversprache (für nicht-Community Server ist diese Englisch)</value>
+  <data name="settings.guildLocale" xml:space="preserve">
+    <value>Sprache: {0} (Serversprache, für nicht-Community Server ist diese  **immer** Englisch)</value>
   </data>
   <data name="settings.homeworksDeleteAfterDue" xml:space="preserve">
     <value>Automatisch Hausaufgaben löschen: {0} nach deren Fälligkeit</value>
   </data>
   <data name="homeworksDeletedAfter.updated" xml:space="preserve">
     <value>Jede Hausaufgabe dieses Server wird {0} nach ihrer Fälligkeit gelöscht.</value>
+  </data>
+  <data name="locale.updated" xml:space="preserve">
+    <value>Benachrichtigungssprache aktualisiert! Benachrichtigungen werden in {0} gemacht.</value>
+  </data>
+  <data name="settings.notification" xml:space="preserve">
+    <value>Benachrichtigungen:</value>
+  </data>
+  <data name="settings.notification.none" xml:space="preserve">
+    <value>Benachrichtigungen: Keine</value>
+  </data>
+  <data name="settings.notification.item" xml:space="preserve">
+    <value>Ab dem {0} alle {1} im Kanal {2}</value>
   </data>
 </root>

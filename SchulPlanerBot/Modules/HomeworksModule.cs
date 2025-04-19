@@ -300,7 +300,7 @@ public sealed class HomeworksModule(
             Guild guild = await _manager.GetGuildAsync(Guild.Id, CancellationToken).ConfigureAwait(false);
 
             string message = _localizer["subscriptions.updated"];
-            if (guild.NotificationsEnabled)
+            if (guild.Notifications.Count == 0)
                 message += $" {_localizer["subscriptions.notificationNotEnabled"]}";
             await RespondAsync(message).ConfigureAwait(false);
         }

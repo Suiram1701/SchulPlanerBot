@@ -7,8 +7,11 @@ public class ErrorService(IStringLocalizer<ErrorService> localizer)
 {
     private readonly IStringLocalizer _localizer = localizer;
 
-    public UpdateResult NoChannel() =>
-        UpdateResult.Failed(nameof(NoChannel), _localizer["noChannel"]);
+    public UpdateResult NotificationAlreadyExists() =>
+        UpdateResult.Failed(nameof(NotificationAlreadyExists), _localizer["notificationAlreadyExists"]);
+
+    public UpdateResult NotificationNotFound() =>
+        UpdateResult.Failed(nameof(NotificationNotFound), _localizer["notificationNotFound"]);
 
     public UpdateResult LowTimeBetween(TimeSpan minimum) =>
         UpdateResult.Failed(nameof(LowTimeBetween), _localizer["lowTimeBetween", minimum.Humanize()]);

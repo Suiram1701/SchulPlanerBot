@@ -37,7 +37,7 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddOptions<ManagerOptions>()
-            .BindConfiguration("Manager")
+            .BindConfiguration(config)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 

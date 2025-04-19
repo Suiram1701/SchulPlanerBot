@@ -8,6 +8,7 @@ using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.Interactions;
 using System.Globalization;
+using System.Text;
 
 namespace SchulPlanerBot.Modules;
 
@@ -30,58 +31,88 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
     {
         Guild guild = await _manager.GetGuildAsync(Guild.Id, CancellationToken).ConfigureAwait(false);
 
-        string message = string.Concat([
-            guild.ChannelId is not null
-                ? _localizer["settings.channel", MentionUtils.MentionChannel(guild.ChannelId!.Value)]
-                : _localizer["settings.noChannel"],
-            '\n',
-            guild.NotificationsEnabled
-                ? _localizer["settings.notifications",
-                    guild.BetweenNotifications.Value.Humanize(),
-                    TimestampTag.FromDateTimeOffset(guild.StartNotifications.Value.ToLocalTime(), TimestampTagStyles.ShortDateTime)]
-                : _localizer["settings.noNotifications"],
-            '\n',
-            guild.NotificationCulture is not null
-                ? _localizer["settings.locale", guild.NotificationCulture.DisplayName]
-                : _localizer["settings.noLocale"],
-            "\n\n",
-            _localizer["settings.homeworksDeleteAfterDue", guild.DeleteHomeworksAfterDue.Humanize()]
-            ]);
-        await RespondAsync(message).ConfigureAwait(false);
+        StringBuilder build = new();
+        if (guild.NotificationCulture is not null)
+        {
+            build.AppendLine(_localizer["settings.locale", guild.NotificationCulture.DisplayName]);
+        }
+        else
+        {
+            CultureInfo guildCulture = new(Context.Interaction.GuildLocale);
+            build.AppendLine(_localizer["settings.guildLocale", guildCulture.DisplayName]);
+        }
+
+        if (guild.Notifications.Count > 0)
+        {
+            build.AppendLine(_localizer["settings.notification"]);
+            foreach (Notification notification in guild.Notifications)
+            {
+                TimestampTag startTag = new(notification.StartAt, style: TimestampTagStyles.ShortDateTime);
+                string betweenStr = notification.Between.Humanize();
+                string channelStr = MentionUtils.MentionChannel(notification.ChannelId);
+
+                build.AppendLine($"- {_localizer["settings.notification.item", startTag, betweenStr, channelStr]}");
+            }
+        }
+        else
+        {
+            build.AppendLine(_localizer["settings.notification.none"]);
+        }
+
+        build.AppendLine(_localizer["settings.homeworksDeleteAfterDue", guild.DeleteHomeworksAfterDue.Humanize()]);
+
+        await RespondAsync(build.ToString()).ConfigureAwait(false);
     }
 
-    [SlashCommand("notifications", "Configures when notifications will be made.")]
-    public async Task SetNotificationsAsync([ChannelTypes(ChannelType.Text)] IChannel channel, DateTimeOffset start, TimeSpan between, CultureInfo? locale = null)
+    [SlashCommand("locale", "Sets the locale to use on notifications. By default the guilds locale is used.")]
+    public async Task SetGuildLocaleAsync(CultureInfo? culture)
     {
-        await _manager.SetChannelAsync(Guild.Id, channel.Id, CancellationToken).ConfigureAwait(false);
-        await _manager.SetNotificationCultureAsync(Guild.Id, locale).ConfigureAwait(false);
-        UpdateResult enableResult = await _manager.EnableNotificationsAsync(Guild.Id, start.ToUniversalTime(), between, CancellationToken).ConfigureAwait(false);
-
-        if (enableResult.Success)
+        UpdateResult updateResult = culture is not null
+            ? await _manager.SetNotificationCultureAsync(Guild.Id, culture, CancellationToken).ConfigureAwait(false)
+            : await _manager.RemoveNotificationCultureAsync(Guild.Id, CancellationToken).ConfigureAwait(false);
+        if (updateResult.Success)
         {
-            Guild guild = await _manager.GetGuildAsync(Guild.Id, CancellationToken).ConfigureAwait(false);
+            CultureInfo notificationLocale = culture ?? new(Context.Interaction.GuildLocale);
+            await RespondAsync(_localizer["locale.updated", notificationLocale.DisplayName]).ConfigureAwait(false);
+        }
+        else
+        {
+            await this.RespondWithErrorAsync(updateResult.Errors, _logger).ConfigureAwait(false);
+        }
+    }
 
+    [SlashCommand("add-notification", "Adds a notifications to make on this guild.")]
+    public async Task SetNotificationsAsync(DateTimeOffset start, TimeSpan between, [ChannelTypes(ChannelType.Text)] IChannel channel)
+    {
+        UpdateResult addResult = await _manager.AddNotificationAsync(Guild.Id, start, between, channel.Id, CancellationToken).ConfigureAwait(false);
+        if (addResult.Success)
+        {
             await RespondAsync(_localizer[
-                    "notifications.updated",
-                    MentionUtils.MentionChannel(guild.ChannelId!.Value),
+                    "notification.added",
+                    MentionUtils.MentionChannel(channel.Id),
                     between.Humanize(),
                     TimestampTag.FromDateTimeOffset(start, TimestampTagStyles.ShortDateTime)])
                 .ConfigureAwait(false);
         }
         else
         {
-            await this.RespondWithErrorAsync(enableResult.Errors, _logger).ConfigureAwait(false);
+            await this.RespondWithErrorAsync(addResult.Errors, _logger).ConfigureAwait(false);
         }
     }
 
-    [SlashCommand("disable-notifications", "Disables any automated notifications.")]
-    public async Task DisableNotificationsAsync()
+    [SlashCommand("remove-notification", "Removes a specific notification for this guild")]
+    public async Task DisableNotificationsAsync(DateTimeOffset start)
     {
-        UpdateResult disableResult = await _manager.DisableNotificationsAsync(Guild.Id, CancellationToken).ConfigureAwait(false);
+        UpdateResult disableResult = await _manager.RemoveNotificationAsync(Guild.Id, start, CancellationToken).ConfigureAwait(false);
         if (disableResult.Success)
-            await RespondAsync(_localizer["disable-notifications.disabled"]).ConfigureAwait(false);
+        {
+            TimestampTag startTag = new(start, style: TimestampTagStyles.ShortDateTime);
+            await RespondAsync(_localizer["notification.removed", startTag]).ConfigureAwait(false);
+        }
         else
+        {
             await this.RespondWithErrorAsync(disableResult.Errors, _logger).ConfigureAwait(false);
+        }
     }
 
     [SlashCommand("delete-homeworks", "Sets the time a homework gets deleted after its due.")]
