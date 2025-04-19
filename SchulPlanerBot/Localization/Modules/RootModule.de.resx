@@ -97,15 +97,15 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="help.response" xml:space="preserve">
+  <data name="help" xml:space="preserve">
     <value>**Einstellen:**
 1. Installieren Sie die Anwendung auf einem Server.
-2. Führen Sie `/schulplaner benachrichtigungen` um automatisierte Benachrichtigungen zu aktivieren (Administratorberechtigungen erforderlich)
-3. Jeder Nutzer, der bei Hausaufgaben gepinged werden will, muss `/hausausgaben alle-abonnieren` oder `/hausaufgaben abonnieren` ausführen.
+2. Führen Sie `schulplaner sprache` aus um die Sprache des Servers zu setzen (benötigt für nicht-Community Server)(Administratorberechtigungen erforderlich)
+3. Führen Sie `/schulplaner benachrichtigung-hinzufügen` um eine automatisierte Benachrichtigungen hinzu zu fügen (Administratorberechtigungen erforderlich)
+4. Jeder Nutzer, der bei Hausaufgaben gepinged werden will, muss `/hausausgaben alle-abonnieren` oder `/hausaufgaben abonnieren` ausführen.
+5. Erstellen, lesen, aktualisieren oder löschen Sie Hausaufgaben wie Sie wollen. Benachrichtigungen werden im vom Serverbesitzer eingestellten Kanal geposted und Sie werden gepinged wenn eingestellt.
 
-Erstellen, lesen, aktualisieren oder löschen Sie Hausaufgaben wie Sie wollen. Benachrichtigungen werden im vom Serverbesitzer eingestellten Kanal geposted und Sie werden gepinged wenn eingestellt.
-
-Betreuerin: {0}
+Betreuer/-in: {0}
 Projektwebsite: {1}
 Unterstützungs Discord Server: {2}</value>
   </data>

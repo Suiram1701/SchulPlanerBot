@@ -19,7 +19,7 @@ public sealed class RootModule(IStringLocalizer<RootModule> localizer, IOptionsS
     {
         await RespondAsync(
             _localizer[
-                "help.response",
+                "help",
                 _helpOptions.Maintainer,
                 _helpOptions.ProjectWebsite ?? _localizer["help.notAvailable"],
                 _helpOptions.SupportDiscordGuild ?? _localizer["help.notAvailable"]

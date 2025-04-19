@@ -97,13 +97,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="help.response" xml:space="preserve">
+  <data name="help" xml:space="preserve">
     <value>**Setup:**
-1. Install the application on the guild.
-2. Run `/schulplaner notifications` to enable automated notifications (Administrator permissions required).
-3. Each user who want to get a pinged on notification have to run `/homeworks subscribe-all` or `/homeworks subscribe`.
-
-Create, read, update or delete homeworks as you want. Notifications will be posted in a channel setup by the guild owner and you'll be pinged if setup.
+1. Install the application on your guild.
+2. Run `/schulplaner locale` to set the locale of this guild (required when using this in a non-community guild)(Administrator permissions required).
+3. Run `/schulplaner add-notification` to add your first automated notification.
+4. Each user who want to get a pinged on notification have to run `/homeworks subscribe-all` or `/homeworks subscribe`.
+5. Create, read, update or delete homeworks as you want. Notifications will be posted in a channel setup by the guild owner and you'll be pinged if setup.
 
 Maintainer: {0}
 Project website: {1}
