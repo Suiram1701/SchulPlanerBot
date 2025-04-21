@@ -1,6 +1,4 @@
-﻿using AppAny.Quartz.EntityFrameworkCore.Migrations;
-using AppAny.Quartz.EntityFrameworkCore.Migrations.PostgreSQL;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SchulPlanerBot.Business.Models;
 
 namespace SchulPlanerBot.Business;
@@ -15,13 +13,6 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        Action<QuartzModelBuilder> quartzBuilder = Database.ProviderName switch
-        {
-            "Npgsql.EntityFrameworkCore.PostgreSQL" => b => b.UsePostgreSql(),
-            _ => throw new NotSupportedException($"The database provider '{Database.ProviderName}' is not supported by the quartz job store!")
-        };
-        modelBuilder.AddQuartz(quartzBuilder);
-
         modelBuilder.Entity<Guild>(builder =>
         {
             builder.HasKey(g => g.Id);

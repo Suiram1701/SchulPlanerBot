@@ -6,10 +6,10 @@ namespace SchulPlanerBot.OpenTelemetry;
 
 public static class Extensions
 {
-    public static TracerProviderBuilder AddBotDatabaseInstrumentation(this TracerProviderBuilder builder)
+    public static TracerProviderBuilder AddBotInstrumentation(this TracerProviderBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        return builder.AddSource(DatabaseStartup.ActivitySourceName);
+        return builder.AddSource(DatabaseStartup.ActivitySourceName, RegisterTriggers.ActivitySourceName);
     }
 
     public static TracerProviderBuilder AddDiscordNetInstrumentation(this TracerProviderBuilder builder)

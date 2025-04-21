@@ -8,6 +8,7 @@ using SchulPlanerBot.OpenTelemetry;
 using SchulPlanerBot.Options;
 using SchulPlanerBot.Quartz;
 using SchulPlanerBot.ServiceDefaults;
+using SchulPlanerBot.Services;
 using System.Globalization;
 
 namespace SchulPlanerBot;
@@ -24,7 +25,9 @@ public class Program
         builder.AddServiceDefaults();
 
         builder.AddBotDatabase(ResourceNames.BotDatabase);
-        builder.Services.AddDatabaseManagers();
+        builder.Services
+            .AddDatabaseManagers()
+            .AddHostedService<RegisterTriggers>();
 
         builder.Services
             .AddQuartz(ConfigureQuartz)
@@ -56,7 +59,7 @@ public class Program
         builder.Services.AddOpenTelemetry()
             .WithTracing(provider => provider
                 .SetSampler(new NoRootNameSampler(new AlwaysOnSampler(), ResourceNames.BotDatabase))
-                .AddBotDatabaseInstrumentation()
+                .AddBotInstrumentation()
                 .AddQuartzInstrumentation(options => options.RecordException = true)
                 .AddDiscordNetInstrumentation())
             .WithMetrics(provider => provider
@@ -89,15 +92,5 @@ public class Program
                 .WithIntervalInMinutes(30)
                 .RepeatForever()
                 .WithMisfireHandlingInstructionFireNow()));
-
-        options.UsePersistentStore(ado =>
-        {
-            ado.UseNewtonsoftJsonSerializer();
-            ado.UsePostgres(pg =>
-            {
-                pg.ConnectionStringName = ResourceNames.BotDatabase;
-                pg.TablePrefix = "quartz.qrtz_";     // Configure the used database schema
-            });
-        });
     }
 }

@@ -7,7 +7,7 @@ namespace SchulPlanerBot.Services;
 
 public sealed class DatabaseStartup(IServiceScopeFactory scopeFactory, ILogger<DatabaseStartup> logger) : IHostedService, IDisposable
 {
-    public const string ActivitySourceName = "BotDatabase.Initialization";
+    public const string ActivitySourceName = "Bot.DatabaseInitialization";
 
     private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
     private readonly ILogger _logger = logger;

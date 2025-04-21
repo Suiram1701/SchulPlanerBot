@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Quartz;
+using Quartz.Impl;
 using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Options;
 using SchulPlanerBot.Quartz;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace SchulPlanerBot.Business;
@@ -123,9 +125,12 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, ISchedulerFa
         return UpdateResult.Succeeded();
     }
 
-    private async Task AddNotificationToSchedulerAsync(ulong guildId, Notification notification, CancellationToken ct)
+    internal async Task AddNotificationToSchedulerAsync(ulong guildId, Notification notification, CancellationToken ct)
     {
-        IScheduler scheduler = await _schedulerFactory.GetScheduler(ct).ConfigureAwait(false);
+        Activity? activity = Activity.Current;
+        Activity.Current = null;
+        IScheduler scheduler = await _schedulerFactory.GetScheduler(ct).ConfigureAwait(false);     // When called the first time no activity must be active because if so it will be the parent of every jobs
+        Activity.Current = activity;
 
         TriggerKey triggerKey = Keys.NotificationTrigger(guildId, notification.StartAt);
         ITrigger trigger = TriggerBuilder.Create()
@@ -148,10 +153,11 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, ISchedulerFa
         DateTimeOffset? nextFiring = !triggerExists
             ? await scheduler.ScheduleJob(trigger, ct).ConfigureAwait(false)
             : await scheduler.RescheduleJob(triggerKey, trigger, ct).ConfigureAwait(false);
-        _logger.LogTrace("Notifications for guild {guildId} scheduled. Next firing at {next}", guildId, nextFiring!);
+
+        _logger.LogInformation("Notifications for guild {guildId} scheduled. Next firing at {next}", guildId, nextFiring!);
     }
 
-    private async Task RemoveNotificationFromSchedulerAsync(ulong guildId, Notification notification, CancellationToken ct)
+    internal async Task RemoveNotificationFromSchedulerAsync(ulong guildId, Notification notification, CancellationToken ct)
     {
         IScheduler scheduler = await _schedulerFactory.GetScheduler(ct).ConfigureAwait(false);
 
