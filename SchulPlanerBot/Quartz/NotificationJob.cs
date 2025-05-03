@@ -11,7 +11,6 @@ namespace SchulPlanerBot.Quartz;
 
 internal sealed class NotificationJob(
     ILogger<NotificationJob> logger,
-    ISchedulerFactory schedulerFactory,
     IStringLocalizer<NotificationJob> localizer,
     SchulPlanerManager manager,
     HomeworkManager homeworkManager,
@@ -20,7 +19,6 @@ internal sealed class NotificationJob(
     ComponentService componentService) : IJob
 {
     private readonly ILogger _logger = logger;
-    private readonly ISchedulerFactory _schedulerFactory = schedulerFactory;
     private readonly IStringLocalizer _localizer = localizer;
     private readonly SchulPlanerManager _manager = manager;
     private readonly HomeworkManager _homeworkManager = homeworkManager;
@@ -54,9 +52,10 @@ internal sealed class NotificationJob(
             if (channel is not ITextChannel textChannel)
             {
                 _logger.LogWarning("Unable to retrieve the notification text channel for guild! Removing notification trigger...");
-                await UnScheduleTriggerAsync(context).ConfigureAwait(false);
-
-                throw new JobExecutionException("Unable to retrieve notification channel for guild!");
+                throw new JobExecutionException("Unable to retrieve notification channel for guild!")
+                {
+                    UnscheduleFiringTrigger = true
+                };
             }
 
             // Real notification part
@@ -68,7 +67,7 @@ internal sealed class NotificationJob(
             {
                 IEnumerable<HomeworkSubscription> userSubscriptions = await _homeworkManager.GetSubscriptionsAsync(guildId, context.CancellationToken).ConfigureAwait(false);
                 ulong[] usersToMention = [.. userSubscriptions
-                    .Where(s => ShouldNotifyUser(s, homeworks))
+                    .Where(s => ShouldNotify(s, homeworks))
                     .Select(s => s.UserId)];
 
                 string message = string.Empty;
@@ -81,13 +80,21 @@ internal sealed class NotificationJob(
 
                 Embed overviewEmbed = _embedsService.HomeworksOverview(homeworks, DateTimeOffset.UtcNow, endDateTime);
                 MessageComponent selectComp = _componentService.SelectHomework(homeworks, cacheId: Guid.NewGuid().ToString());
-                await textChannel.SendMessageAsync(message, embeds: [overviewEmbed], components: selectComp, allowedMentions: AllowedMentions.All).ConfigureAwait(false);
+                await textChannel.SendMessageAsync(
+                    text: message,
+                    embeds: [overviewEmbed],
+                    components: selectComp,
+                    allowedMentions: new AllowedMentions(AllowedMentionTypes.Users),
+                    flags: MessageFlags.SuppressNotification)
+                    .ConfigureAwait(false);
             }
-            else
+            else if (_manager.Options.MessageWhenNoHomework)
             {
-                await textChannel.SendMessageAsync(_localizer["noHomeworks", TimestampTag.FromDateTimeOffset(endDateTime.ToLocalTime(), TimestampTagStyles.Relative)]).ConfigureAwait(false);
+                await textChannel.SendMessageAsync(
+                    text: _localizer["noHomeworks", TimestampTag.FromDateTimeOffset(endDateTime.ToLocalTime(), TimestampTagStyles.Relative)],
+                    flags: MessageFlags.SuppressNotification)
+                    .ConfigureAwait(false);
             }
-
         }
         catch (Exception ex) when (ex is not JobExecutionException)
         {
@@ -96,13 +103,7 @@ internal sealed class NotificationJob(
         }
     }
 
-    private async Task UnScheduleTriggerAsync(IJobExecutionContext context)
-    {
-        IScheduler scheduler = await _schedulerFactory.GetScheduler(context.CancellationToken).ConfigureAwait(false);
-        await scheduler.UnscheduleJob(context.RecoveringTriggerKey, context.CancellationToken).ConfigureAwait(false);
-    }
-
-    private bool ShouldNotifyUser(HomeworkSubscription subscription, IEnumerable<Homework> homeworks)
+    private bool ShouldNotify(HomeworkSubscription subscription, IEnumerable<Homework> homeworks)
     {
         if (subscription.AnySubject)
             return true;

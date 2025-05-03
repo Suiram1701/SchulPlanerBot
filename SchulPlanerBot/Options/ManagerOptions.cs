@@ -9,4 +9,6 @@ public class ManagerOptions
     public bool SubjectsCaseSensitive { get; set; } = false;
 
     public TimeSpan MaxDeleteHomeworksAfterDue { get; set; } = TimeSpan.FromDays(31);
+
+    public bool MessageWhenNoHomework { get; set; } = false;
 }
