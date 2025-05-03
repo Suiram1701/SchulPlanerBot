@@ -112,21 +112,10 @@ public sealed class HomeworksModule(
     [ModalInteraction(ComponentIds.CreateHomeworkModal, ignoreGroupNames: true)]
     public async Task CreateHomework_SubmitAsync(HomeworkModal homeworkModal)
     {
-        if (!DateTime.TryParse(homeworkModal.Due, out DateTime due))
-        {
-            await RespondAsync(_localizer["create.parseDueFailed"], ephemeral: true).ConfigureAwait(false);
-            return;
-        }
-
-        // ComponentConverters with modals are buggy.
-        DateTimeOffset dueWithOffset = due.Kind == DateTimeKind.Unspecified
-            ? new(due, TimeSpan.FromHours(2))
-            : new(due);
-
         (Homework? homework, UpdateResult creationResult) = await _homeworkManager.CreateHomeworkAsync(
             Guild.Id,
             User.Id,
-            dueWithOffset.ToUniversalTime(),
+            homeworkModal.Due.ToUniversalTime(),
             homeworkModal.Subject,
             homeworkModal.Title,
             homeworkModal.Details,
@@ -164,7 +153,7 @@ public sealed class HomeworksModule(
 
         HomeworkModal modal = new()
         {
-            Due = homework.Due.ToLocalTime().ToString("g"),     // g Serializes in similar format than the user input
+            Due = homework.Due,
             Subject = homework.Subject,
             Title = homework.Title,
             Details = homework.Details
@@ -180,21 +169,10 @@ public sealed class HomeworksModule(
     public async Task ModifyHomework_SubmitAsync(string id, HomeworkModal homeworkModal)
     {
         Guid homeworkId = Guid.Parse(id);
-        if (!DateTime.TryParse(homeworkModal.Due, out DateTime due))
-        {
-            await RespondAsync(_localizer["modify.parseDueFailed"], ephemeral: true).ConfigureAwait(false);
-            return;
-        }
-
-        // ComponentConverters with modals are buggy.
-        DateTimeOffset dueWithOffset = due.Kind == DateTimeKind.Unspecified
-            ? new(due, TimeSpan.FromHours(2))
-            : new(due);
-
         (Homework? homework, UpdateResult modifyResult) = await _homeworkManager.ModifyHomeworkAsync(
             homeworkId,
             User.Id,
-            dueWithOffset.ToUniversalTime(),
+            homeworkModal.Due.ToUniversalTime(),
             homeworkModal.Subject,
             homeworkModal.Title,
             homeworkModal.Details,

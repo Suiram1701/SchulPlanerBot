@@ -109,9 +109,6 @@
   <data name="list.selectBeforeReload" xml:space="preserve">
     <value>No homework can be reloaded before one is selected!</value>
   </data>
-  <data name="create.parseDueFailed" xml:space="preserve">
-    <value>An invalid due was provided!</value>
-  </data>
   <data name="create.created" xml:space="preserve">
     <value>Homework created:</value>
   </data>
@@ -120,9 +117,6 @@
   </data>
   <data name="modify.unauthorized" xml:space="preserve">
     <value>You're unauthorized to edit this homework!</value>
-  </data>
-  <data name="modify.parseDueFailed" xml:space="preserve">
-    <value>An invalid due was provided!</value>
   </data>
   <data name="modify.updated" xml:space="preserve">
     <value>Homework updated:</value>

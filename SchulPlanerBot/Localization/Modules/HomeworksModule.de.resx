@@ -100,9 +100,6 @@
   <data name="list.noHomeworks" xml:space="preserve">
     <value>Keine Hausaufgaben verfügbar.</value>
   </data>
-  <data name="create.parseDueFailed" xml:space="preserve">
-    <value>Es wurde kein gültiges Fälligkeitsdatum angegeben!</value>
-  </data>
   <data name="create.created" xml:space="preserve">
     <value>Hausaufgabe erstellt:</value>
   </data>
@@ -120,9 +117,6 @@
   </data>
   <data name="delete.deleted" xml:space="preserve">
     <value>Hausaufgabe {0} gelöscht.</value>
-  </data>
-  <data name="modify.parseDueFailed" xml:space="preserve">
-    <value>Es wurde kein gültiges Fälligkeitsdatum angegeben!</value>
   </data>
   <data name="modify.updated" xml:space="preserve">
     <value>Hausaufgabe aktualisiert:</value>
