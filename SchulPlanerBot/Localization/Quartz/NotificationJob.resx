@@ -106,4 +106,7 @@
   <data name="homeworksNotify" xml:space="preserve">
     <value>{0} you've subscribed to one or more subjects from the homeworks of this notification!</value>
   </data>
+  <data name="channelNotFound" xml:space="preserve">
+    <value>Unable find text channel {1} (used in notifications starting at {2}) on guild {0}! To present more of these messages every affected notification have been removed.</value>
+  </data>
 </root>

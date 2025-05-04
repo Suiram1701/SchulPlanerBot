@@ -106,4 +106,7 @@
   <data name="homeworksNotify" xml:space="preserve">
     <value>{0} Sie haben für eines oder mehrerer Fächer der Hausaufgaben dieser Benachrichtigung abonniert!</value>
   </data>
+  <data name="channelNotFound" xml:space="preserve">
+    <value>Auf dem Server {0} konnte der Textkanal {1} (welcher in den Benachrichtigungen startend ab dem {2} genutzt wird) nicht gefunden werden. Um weitere dieser Nachrichten zu verhindern wurden alle betroffenen Benachrichtigungen entfernt.</value>
+  </data>
 </root>
