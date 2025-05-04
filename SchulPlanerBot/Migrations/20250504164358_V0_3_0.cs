@@ -1,11 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 #nullable disable
 
 namespace SchulPlanerBot.Migrations
 {
     /// <inheritdoc />
-    public partial class RemoveQuartzStorage : Migration
+    public partial class V0_3_0 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -54,12 +57,160 @@ namespace SchulPlanerBot.Migrations
                 name: "qrtz_job_details",
                 schema: "quartz");
 
-            migrationBuilder.DropSchema(name: "quartz");     // Added manually
+            migrationBuilder.AlterColumn<HashSet<string>>(
+                name: "Include",
+                table: "HomeworkSubscriptions",
+                type: "text[]",
+                nullable: false,
+                defaultValueSql: "ARRAY[]::text[]",
+                oldClrType: typeof(string[]),
+                oldType: "text[]");
+
+            migrationBuilder.AddColumn<HashSet<string>>(
+                name: "Exclude",
+                table: "HomeworkSubscriptions",
+                type: "text[]",
+                nullable: false,
+                defaultValueSql: "ARRAY[]::text[]");
+
+            migrationBuilder.AddColumn<string>(
+                name: "Notifications",
+                table: "Guilds",
+                type: "jsonb",
+                nullable: true);
+
+            #region Manually written to prevent a loss of data
+            CheckProvider();
+            migrationBuilder.Sql("""
+                UPDATE public."Guilds"
+                SET "Notifications" = 
+                    CASE
+                        WHEN "NotificationsEnabled" = TRUE THEN
+                            jsonb_build_array(
+                                jsonb_build_object(
+                                    'StartAt', "StartNotifications",
+                                    'Between', TO_CHAR("BetweenNotifications", 'DD HH24:MI:SS'),
+                                    'ChannelId', "ChannelId"
+                                )
+                            )
+                        ELSE
+                            '[]'::jsonb
+                    END
+                """);
+            migrationBuilder.Sql("""
+                UPDATE public."HomeworkSubscriptions"
+                    SET "Include" = "Include" || ARRAY[NULL::TEXT]
+                WHERE "NoSubject" = TRUE;
+                """);
+            #endregion
+
+            migrationBuilder.DropColumn(
+                name: "NoSubject",
+                table: "HomeworkSubscriptions");
+
+            migrationBuilder.DropColumn(
+                name: "BetweenNotifications",
+                table: "Guilds");
+
+            migrationBuilder.DropColumn(
+                name: "ChannelId",
+                table: "Guilds");
+
+            migrationBuilder.DropColumn(
+                name: "NotificationsEnabled",
+                table: "Guilds");
+
+            migrationBuilder.DropColumn(
+                name: "StartNotifications",
+                table: "Guilds");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<bool>(
+                name: "NoSubject",
+                table: "HomeworkSubscriptions",
+                type: "boolean",
+                nullable: false,
+                defaultValue: false);
+
+            migrationBuilder.AddColumn<TimeSpan>(
+                name: "BetweenNotifications",
+                table: "Guilds",
+                type: "interval",
+                nullable: true);
+
+            migrationBuilder.AddColumn<decimal>(
+                name: "ChannelId",
+                table: "Guilds",
+                type: "numeric(20,0)",
+                nullable: true);
+
+            migrationBuilder.AddColumn<bool>(
+                name: "NotificationsEnabled",
+                table: "Guilds",
+                type: "boolean",
+                nullable: false,
+                defaultValue: false);
+
+            migrationBuilder.AddColumn<DateTimeOffset>(
+                name: "StartNotifications",
+                table: "Guilds",
+                type: "timestamp with time zone",
+                nullable: true);
+
+            #region Manually written to minimize the loss of data
+            CheckProvider();
+            migrationBuilder.Sql("""
+                UPDATE public."Guilds"
+                SET 
+                    "NotificationsEnabled" = jsonb_array_length("Notifications") > 0
+                    "StartNotifications" = 
+                        CASE 
+                            WHEN "NotificationsEnabled"
+                            THEN ("Notifications"->0->>'StartAt')::TIMESTAMP WITH TIME ZONE
+                            ELSE NULL 
+                        END,
+                    "BetweenNotifications" = 
+                        CASE 
+                            WHEN "NotificationsEnabled"
+                            THEN ("Notifications"->0->>'Between')::INTERVAL
+                            ELSE NULL 
+                        END,
+                    "ChannelId" = 
+                        CASE 
+                            WHEN "NotificationsEnabled"
+                            THEN ("Notifications"->0->>'ChannelId')::BIGINT 
+                            ELSE NULL 
+                        END
+                """);
+            migrationBuilder.Sql("""
+                UPDATE public."HomeworkSubscriptions"
+                SET
+                    "NoSubject" = TRUE,
+                    "Include" = array_remove("Include", NULL::TEXT)
+                WHERE array_position("Include", NULL::TEXT) != -1
+                """);
+            #endregion
+
+            migrationBuilder.AlterColumn<string[]>(
+                name: "Include",
+                table: "HomeworkSubscriptions",
+                type: "text[]",
+                nullable: false,
+                oldClrType: typeof(HashSet<string>),
+                oldType: "text[]",
+                oldDefaultValueSql: "ARRAY[]::text[]");
+
+            migrationBuilder.DropColumn(
+                name: "Exclude",
+                table: "HomeworkSubscriptions");
+
+            migrationBuilder.DropColumn(
+                name: "Notifications",
+                table: "Guilds");
+
             migrationBuilder.EnsureSchema(
                 name: "quartz");
 
@@ -370,6 +521,19 @@ namespace SchulPlanerBot.Migrations
                 schema: "quartz",
                 table: "qrtz_triggers",
                 columns: new[] { "sched_name", "job_name", "job_group" });
+        }
+
+        private bool CheckProvider()
+        {
+            if (ActiveProvider != "Npgsql.EntityFrameworkCore.PostgreSQL")
+            {
+                Debug.WriteLine($"Warning: Executing migration with provider {ActiveProvider} while SQL update is made for PostgreSQL!");
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
     }
 }
