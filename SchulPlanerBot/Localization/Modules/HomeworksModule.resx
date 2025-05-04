@@ -134,12 +134,9 @@
     <value>No notification subscriptions were configured for you yet.</value>
   </data>
   <data name="subscriptions.anySubject" xml:space="preserve">
-    <value>You will receive notifications for homeworks of any subject.</value>
+    <value>You will receive notifications for any homeworks except for ones with the subjects {0}.</value>
   </data>
-  <data name="subscriptions.subjectsWithNoSubjects" xml:space="preserve">
-    <value>You will receive notifications for homeworks without a subject and with the subjects {0}.</value>
-  </data>
-  <data name="subscriptions.subjectWithSubject" xml:space="preserve">
+  <data name="subscriptions.subjects" xml:space="preserve">
     <value>You will receive notifications only for homeworks with the subjects {0}.</value>
   </data>
   <data name="subscriptions.unsubscribed-all" xml:space="preserve">

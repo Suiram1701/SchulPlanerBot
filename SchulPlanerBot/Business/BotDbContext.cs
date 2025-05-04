@@ -58,8 +58,8 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
             builder.Property(s => s.GuildId).IsRequired();
             builder.Property(s => s.UserId).IsRequired();
             builder.Property(s => s.AnySubject).HasDefaultValue(true);
-            builder.Property(s => s.NoSubject).HasDefaultValue(false);
-            builder.Property(s => s.Include);
+            builder.Property(s => s.Include).HasDefaultValueSql("ARRAY[]::text[]");     // new HashSet<string?>(0) wont be recognized as string array
+            builder.Property(s => s.Exclude).HasDefaultValueSql("ARRAY[]::text[]");
         });
     }
 }

@@ -133,12 +133,11 @@ internal sealed class NotificationJob(
 
     private bool ShouldNotify(HomeworkSubscription subscription, IEnumerable<Homework> homeworks)
     {
-        if (subscription.AnySubject)
-            return true;
-        if (subscription.NoSubject && homeworks.Any(h => string.IsNullOrWhiteSpace(h.Subject)))
-            return true;
-        if (subscription.Include.Any(s => homeworks.Select(h => h.Subject).Contains(s, _manager.SubjectNameComparer)))
-            return true;
-        return false;
+        return homeworks.Any(h =>
+        {
+            return subscription.AnySubject
+                ? !subscription.Exclude.Any(s => _manager.SubjectNameComparer.Equals(s, h.Subject))     // True when any homework doesn't have a excluded subject
+                : subscription.Include.Any(s => _manager.SubjectNameComparer.Equals(s, h.Subject));     // True when any homework contains the included subject
+        });
     }
 }

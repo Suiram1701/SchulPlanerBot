@@ -135,37 +135,50 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
         HomeworkSubscription subscription = await GetOrAddSubscriptionAsync(guildId, userId, ct).ConfigureAwait(false);
 
         subscription.AnySubject = subscribe;
-        if (IsSubscriptionNotNeeded(subscription))
-            _dbContext.HomeworkSubscriptions.Remove(subscription);
+        RemoveNotNeededData(subscription);
 
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return UpdateResult.Succeeded();
     }
 
-    public async Task<UpdateResult> SubscribeToSubjectsAsync(ulong guildId, ulong userId, bool noSubject, string[] subjects, CancellationToken ct = default)
+    public async Task<UpdateResult> SubscribeToSubjectsAsync(ulong guildId, ulong userId, string?[] subjects, CancellationToken ct = default)
     {
         HomeworkSubscription subscription = await GetOrAddSubscriptionAsync(guildId, userId, ct).ConfigureAwait(false);
 
-        subscription.AnySubject = false;
-        subscription.NoSubject = noSubject || subscription.NoSubject;     // Sets NoSubject to true when noSubject true
-        subscription.Include = [.. subscription.Include, .. subjects.Except(subscription.Include, SubjectNameComparer)];
+        subjects = new HashSet<string?>(subjects, SubjectNameComparer).ToArray();     // Ensure only one of each subject
+        if (subscription.AnySubject)
+        {
+            foreach (string? s in subjects)
+                subscription.Exclude.Remove(s);
+        }
+        else
+        {
+            foreach (string? s in subjects)
+                subscription.Include.Add(s);
+        }
 
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return UpdateResult.Succeeded();
     }
 
-    public async Task<UpdateResult> UnsubscribeFromSubjectsAsync(ulong guildId, ulong userId, bool noSubject, string[] subjects, CancellationToken ct = default)
+    public async Task<UpdateResult> UnsubscribeFromSubjectsAsync(ulong guildId, ulong userId, string?[] subjects, CancellationToken ct = default)
     {
         HomeworkSubscription subscription = await GetOrAddSubscriptionAsync(guildId, userId, ct).ConfigureAwait(false);
 
-        subscription.AnySubject = false;
-        subscription.NoSubject = !noSubject && subscription.NoSubject;     // Sets NoSubject to false when noSubject true
-        subscription.Include = [.. subscription.Include.Except(subjects, SubjectNameComparer)];
+        subjects = new HashSet<string?>(subjects, SubjectNameComparer).ToArray();     // Ensure only one of each subject
+        if (subscription.AnySubject)
+        {
+            foreach (string? s in subjects)
+                subscription.Exclude.Add(s);
+        }
+        else
+        {
+            foreach (string? s in subjects)
+                subscription.Include.Remove(s);
+        }
+        RemoveNotNeededData(subscription);
 
-        if (IsSubscriptionNotNeeded(subscription))
-            _dbContext.HomeworkSubscriptions.Remove(subscription);
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
-
         return UpdateResult.Succeeded();
     }
 
@@ -190,5 +203,14 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
         return subscription;
     }
 
-    private static bool IsSubscriptionNotNeeded(HomeworkSubscription subscription) => subscription is { AnySubject: false, NoSubject: false, Include.Length: 0 };
+    private void RemoveNotNeededData(HomeworkSubscription subscription)
+    {
+        if (subscription.AnySubject)
+            subscription.Include.Clear();
+        else
+            subscription.Exclude.Clear();
+
+        if (subscription is { AnySubject: false, Include.Count: 0 })
+            _dbContext.HomeworkSubscriptions.Remove(subscription);
+    }
 }

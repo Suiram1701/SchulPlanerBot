@@ -125,12 +125,9 @@
     <value>Benachrichtigung Abonnements wurde noch nicht konfiguriert.</value>
   </data>
   <data name="subscriptions.anySubject" xml:space="preserve">
-    <value>Sie werden Benachrichtigungen für Hausaufgaben jedes Faches bekommen.</value>
+    <value>Sie werden Benachrichtigungen für alle Hausaufgaben außer, die mit den Fächern {0} bekommen.</value>
   </data>
-  <data name="subscriptions.subjectsWithNoSubjects" xml:space="preserve">
-    <value>Sie werden Benachrichtigungen für Hausaufgaben ohne Fach und mit den Fächern {0} bekommen.</value>
-  </data>
-  <data name="subscriptions.subjectWithSubject" xml:space="preserve">
+  <data name="subscriptions.subjects" xml:space="preserve">
     <value>Sie werden Benachrichtigungen nur für Hausaufgaben mit den Fächern {0} bekommnen.</value>
   </data>
   <data name="subscriptions.unsubscribed-all" xml:space="preserve">

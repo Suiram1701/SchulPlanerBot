@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Humanizer;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Localization;
 using SchulPlanerBot.Business;
@@ -229,11 +230,10 @@ public sealed class HomeworksModule(
         }
         else
         {
-            string subjectsStr = string.Join(", ", subscriptions.Include);
-            if (subscriptions.NoSubject)
-                await RespondAsync(_localizer["subscriptions.subjectsWithNoSubjects", subjectsStr]).ConfigureAwait(false);
+            if (subscriptions.AnySubject)
+                await RespondAsync(_localizer["subscriptions.anySubject", subscriptions.Exclude.Humanize()]).ConfigureAwait(false);
             else
-                await RespondAsync(_localizer["subscriptions.subjectWithSubject", subjectsStr]).ConfigureAwait(false);
+                await RespondAsync(_localizer["subscriptions.subjects", subscriptions.Include.Humanize()]).ConfigureAwait(false);
         }
     }
 
@@ -257,14 +257,20 @@ public sealed class HomeworksModule(
     [SlashCommand("subscribe", "Subscribes to notifications from specific subjects or no subject.")]
     public async Task SubscribeToSubjectsAsync(string[] subjects, [Summary(name: "no-subject")] bool noSubject = false)
     {
-        UpdateResult updateResult = await _homeworkManager.SubscribeToSubjectsAsync(Guild.Id, User.Id, noSubject, subjects, CancellationToken).ConfigureAwait(false);
+        if (!noSubject)
+            subjects = [.. subjects, null!];
+
+        UpdateResult updateResult = await _homeworkManager.SubscribeToSubjectsAsync(Guild.Id, User.Id, subjects, CancellationToken).ConfigureAwait(false);
         await HandleSubscriptionsUpdatedAsync(updateResult).ConfigureAwait(false);
     }
 
     [SlashCommand("unsubscribe", "Unsubscribes from notifications of specific subjects or no subject.")]
     public async Task UnsubscribeFromSubjectsAsync(string[] subjects, [Summary(name: "no-subject")] bool noSubject = false)
     {
-        UpdateResult updateResult = await _homeworkManager.UnsubscribeFromSubjectsAsync(Guild.Id, User.Id, noSubject, subjects, CancellationToken).ConfigureAwait(false);
+        if (!noSubject)
+            subjects = [.. subjects, null!];
+
+        UpdateResult updateResult = await _homeworkManager.UnsubscribeFromSubjectsAsync(Guild.Id, User.Id, subjects, CancellationToken).ConfigureAwait(false);
         if (updateResult.Success)
             await RespondAsync(_localizer["subscriptions.updated"]).ConfigureAwait(false);
         else

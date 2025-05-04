@@ -8,7 +8,7 @@ public class HomeworkSubscription
 
     public bool AnySubject { get; set; }
 
-    public bool NoSubject { get; set; }
+    public HashSet<string?> Include { get; set; } = [];
 
-    public string[] Include { get; set; } = [];
+    public HashSet<string?> Exclude { get; set; } = [];
 }
