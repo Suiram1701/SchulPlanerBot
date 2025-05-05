@@ -145,17 +145,10 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
     {
         HomeworkSubscription subscription = await GetOrAddSubscriptionAsync(guildId, userId, ct).ConfigureAwait(false);
 
-        subjects = new HashSet<string?>(subjects, SubjectNameComparer).ToArray();     // Ensure only one of each subject
         if (subscription.AnySubject)
-        {
-            foreach (string? s in subjects)
-                subscription.Exclude.Remove(s);
-        }
+            subscription.Exclude = [.. subscription.Exclude.Except(subjects, SubjectNameComparer)];
         else
-        {
-            foreach (string? s in subjects)
-                subscription.Include.Add(s);
-        }
+            subscription.Include = ConcatSubjects(subscription.Include, subjects);
 
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return UpdateResult.Succeeded();
@@ -167,15 +160,9 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
 
         subjects = new HashSet<string?>(subjects, SubjectNameComparer).ToArray();     // Ensure only one of each subject
         if (subscription.AnySubject)
-        {
-            foreach (string? s in subjects)
-                subscription.Exclude.Add(s);
-        }
+            subscription.Exclude = ConcatSubjects(subscription.Exclude, subjects);
         else
-        {
-            foreach (string? s in subjects)
-                subscription.Include.Remove(s);
-        }
+            subscription.Include = [.. subscription.Include.Except(subjects, SubjectNameComparer)];
         RemoveNotNeededData(subscription);
 
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -203,14 +190,16 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
         return subscription;
     }
 
+    private string?[] ConcatSubjects(string?[] a, string?[] b) => [.. ((string?[])[.. a, .. b]).Distinct(SubjectNameComparer)];     // concat both arrays and distinct same subjects
+
     private void RemoveNotNeededData(HomeworkSubscription subscription)
     {
         if (subscription.AnySubject)
-            subscription.Include.Clear();
+            subscription.Include = [];
         else
-            subscription.Exclude.Clear();
+            subscription.Exclude = [];
 
-        if (subscription is { AnySubject: false, Include.Count: 0 })
+        if (subscription is { AnySubject: false, Include.Length: 0 })
             _dbContext.HomeworkSubscriptions.Remove(subscription);
     }
 }
