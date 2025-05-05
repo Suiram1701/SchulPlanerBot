@@ -125,16 +125,13 @@
     <value>Benachrichtigung Abonnements wurde noch nicht konfiguriert.</value>
   </data>
   <data name="subscriptions.anySubject" xml:space="preserve">
-    <value>Sie werden Benachrichtigungen für alle Hausaufgaben außer, die mit den Fächern {0} bekommen.</value>
+    <value>Sie werden Benachrichtigungen für alle Hausaufgaben.</value>
   </data>
   <data name="subscriptions.subjects" xml:space="preserve">
     <value>Sie werden Benachrichtigungen nur für Hausaufgaben mit den Fächern {0} bekommnen.</value>
   </data>
-  <data name="subscriptions.unsubscribed-all" xml:space="preserve">
-    <value>Sie werden keine Benachrichtigungen für alle Fächer erhalten. Für manuell hinzugefügte Fächer werden Sie diese trotzdem erhalten.</value>
-  </data>
   <data name="subscriptions.updated" xml:space="preserve">
-    <value>Benachrichtigungs Einstellungen aktualisiert. Die andere Option wurde deaktiviert. Wenn Sie zum Beispiel Fächer hinzugefügt haben wurde die alle Fächer Benachrichtigung deaktiviert.</value>
+    <value>Benachrichtigungs Einstellungen aktualisiert.</value>
   </data>
   <data name="subscriptions.notificationNotEnabled" xml:space="preserve">
     <value>Sie werden weiterhin keine Benachrichtigungen erhalten, da diese auf diesem Server nicht konfiguriert wurden.</value>
@@ -147,5 +144,11 @@
   </data>
   <data name="list.selectBeforeReload" xml:space="preserve">
     <value>Es kann keine Hausaufgabe neu geladen werden bevor eine ausgewählt ist!</value>
+  </data>
+  <data name="subscriptions.anySubjectExcept" xml:space="preserve">
+    <value>Sie werden Benachrichtigungen für alle Hausaufgaben außer, die mit den Fächern {0} bekommen.</value>
+  </data>
+  <data name="empty" xml:space="preserve">
+    <value>(leer)</value>
   </data>
 </root>

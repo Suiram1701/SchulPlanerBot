@@ -134,18 +134,21 @@
     <value>No notification subscriptions were configured for you yet.</value>
   </data>
   <data name="subscriptions.anySubject" xml:space="preserve">
+    <value>You will receive notifications for any homework.</value>
+  </data>
+  <data name="subscriptions.anySubjectExcept" xml:space="preserve">
     <value>You will receive notifications for any homeworks except for ones with the subjects {0}.</value>
   </data>
   <data name="subscriptions.subjects" xml:space="preserve">
     <value>You will receive notifications only for homeworks with the subjects {0}.</value>
   </data>
-  <data name="subscriptions.unsubscribed-all" xml:space="preserve">
-    <value>You will no longer receive notifications for any subjects. Notifications for subjects you manually added will remain.</value>
-  </data>
   <data name="subscriptions.updated" xml:space="preserve">
-    <value>Notification settings updated. The other option get disabled. For example if you added subjects the any subject notification is now disabled.</value>
+    <value>Notification settings updated.</value>
   </data>
   <data name="subscriptions.notificationNotEnabled" xml:space="preserve">
     <value>You will still don't get any notifications because there not configured on this guild.</value>
+  </data>
+  <data name="empty" xml:space="preserve">
+    <value>(empty)</value>
   </data>
 </root>
