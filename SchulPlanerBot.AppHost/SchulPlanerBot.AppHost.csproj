@@ -21,4 +21,8 @@
     <ProjectReference Include="..\SchulPlanerBot\SchulPlanerBot.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+	<Compile Include="..\Shared\KnownResourceNames.cs" />
+  </ItemGroup>
+
 </Project>

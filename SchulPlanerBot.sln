@@ -8,6 +8,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchulPlanerBot.AppHost", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchulPlanerBot.ServiceDefaults", "SchulPlanerBot.ServiceDefaults\SchulPlanerBot.ServiceDefaults.csproj", "{BF30B31A-C3FB-1988-93E9-AFCE0B0052F6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{4F52FD11-658E-A102-6CD3-7D7C16FFA15B}"
+	ProjectSection(SolutionItems) = preProject
+		Shared\KnownResourceNames.cs = Shared\KnownResourceNames.cs
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

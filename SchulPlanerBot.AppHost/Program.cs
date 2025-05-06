@@ -1,5 +1,3 @@
-using SchulPlanerBot.ServiceDefaults;
-
 namespace SchulPlanerBot.AppHost;
 
 public class Program
@@ -13,7 +11,7 @@ public class Program
             .WithDataVolume()
             .WithExternalTcpEndpoints()
             .WithPgAdmin()
-            .AddDatabase(ResourceNames.BotDatabase);
+            .AddDatabase(KnownResourceNames.BotDatabase);
 
         builder.AddProject<Projects.SchulPlanerBot>("discord-bot")
             .WithConfiguration(builder.Configuration.GetSection("DiscordClient"), secretKeys: "Token")

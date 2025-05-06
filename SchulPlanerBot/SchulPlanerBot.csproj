@@ -34,4 +34,8 @@
     <ProjectReference Include="..\SchulPlanerBot.ServiceDefaults\SchulPlanerBot.ServiceDefaults.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+	<Compile Include="..\Shared\KnownResourceNames.cs" />
+  </ItemGroup>
+	
 </Project>

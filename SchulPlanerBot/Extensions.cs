@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Options;
-using SchulPlanerBot.ServiceDefaults;
 using SchulPlanerBot.Services;
 using System.Globalization;
 using System.Reflection;
@@ -19,7 +18,7 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionName);
 
-        builder.AddNpgsqlDbContext<BotDbContext>(ResourceNames.BotDatabase, configureDbContextOptions: options =>
+        builder.AddNpgsqlDbContext<BotDbContext>(KnownResourceNames.BotDatabase, configureDbContextOptions: options =>
         {
             if (builder.Environment.IsDevelopment())
             {

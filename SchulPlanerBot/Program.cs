@@ -7,7 +7,6 @@ using SchulPlanerBot.Discord.TypeConverters;
 using SchulPlanerBot.OpenTelemetry;
 using SchulPlanerBot.Options;
 using SchulPlanerBot.Quartz;
-using SchulPlanerBot.ServiceDefaults;
 using SchulPlanerBot.Services;
 using System.Globalization;
 
@@ -24,7 +23,7 @@ public class Program
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         builder.AddServiceDefaults();
 
-        builder.AddBotDatabase(ResourceNames.BotDatabase);
+        builder.AddBotDatabase(KnownResourceNames.BotDatabase);
         builder.Services
             .AddDatabaseManagers()
             .AddHostedService<RegisterTriggers>();
@@ -58,7 +57,7 @@ public class Program
 
         builder.Services.AddOpenTelemetry()
             .WithTracing(provider => provider
-                .SetSampler(new NoRootNameSampler(new AlwaysOnSampler(), ResourceNames.BotDatabase))
+                .SetSampler(new NoRootNameSampler(new AlwaysOnSampler(), KnownResourceNames.BotDatabase))
                 .AddBotInstrumentation()
                 .AddQuartzInstrumentation(options => options.RecordException = true)
                 .AddDiscordNetInstrumentation())
