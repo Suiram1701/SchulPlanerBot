@@ -12,69 +12,70 @@ using IResult = Discord.Interactions.IResult;
 
 namespace SchulPlanerBot.Services;
 
-internal sealed class InteractionHandler(
-    IHost host,
-    IHostEnvironment environment,
-    IServiceScopeFactory scopeFactory,
-    ILogger<InteractionHandler> logger,
-    ILogger<InteractionService> interactionLogger,
-    IStringLocalizer<InteractionHandler> localizer,
-    IOptions<DiscordClientOptions> optionsAccessor,
-    DiscordSocketClient client,
-    InteractionService interaction)
-    : IHostedService, IDisposable
+internal sealed class InteractionHandler : BackgroundService
 {
     public const string ActivitySourceName = "Discord.InteractionHandler";
 
-    private readonly IHost _host = host;
-    private readonly IHostEnvironment _environment = environment;
-    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
-    private readonly ILogger _logger = logger;
-    private readonly ILogger _interactionLogger = interactionLogger;
-    private readonly IStringLocalizer _localizer = localizer;
-    private readonly DiscordClientOptions _options = optionsAccessor.Value;
-    private readonly DiscordSocketClient _client = client;
-    private readonly InteractionService _interaction = interaction;
+    private readonly IHost _host;
+    private readonly IHostEnvironment _environment;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger _logger;
+    private readonly ILogger _interactionLogger;
+    private readonly IStringLocalizer _localizer;
+    private readonly DiscordClientOptions _options;
+    private readonly DiscordSocketClient _client;
+    private readonly InteractionService _interaction;
 
     private readonly ActivitySource _activitySource = new(ActivitySourceName);
 
-    private bool _modulesAdded = false;
-
-    public Task StartAsync(CancellationToken cancellationToken)
+    public InteractionHandler(
+        IHost host,
+        IHostEnvironment environment,
+        IServiceScopeFactory scopeFactory,
+        ILogger<InteractionHandler> logger,
+        ILogger<InteractionService> interactionLogger,
+        IStringLocalizer<InteractionHandler> localizer,
+        IOptions<DiscordClientOptions> optionsAccessor,
+        DiscordSocketClient client,
+        InteractionService interaction)
     {
-        _client.Ready += Client_ReadyAsync;
+        _host = host;
+        _environment = environment;
+        _scopeFactory = scopeFactory;
+        _logger = logger;
+        _interactionLogger = interactionLogger;
+        _localizer = localizer;
+        _options = optionsAccessor.Value;
+        _client = client;
+        _interaction = interaction;
+
         _client.MessageReceived += Client_MessageReceivedAsync;
         _client.InteractionCreated += Client_InteractionCreatedAsync;
         _interaction.Log += Interaction_Log;
         _interaction.InteractionExecuted += Interaction_InteractionExecutedAsync;
-
-        return Task.CompletedTask;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        _client.Ready -= Client_ReadyAsync;
-        _client.MessageReceived -= Client_MessageReceivedAsync;
-        _client.InteractionCreated -= Client_InteractionCreatedAsync;
-        _interaction.Log -= Interaction_Log;
-        _interaction.InteractionExecuted -= Interaction_InteractionExecutedAsync;
-
-        return Task.CompletedTask;
-    }
-
-    private async Task Client_ReadyAsync()
-    {
-        using Activity? activity = _activitySource.StartActivity("Register commands");
+        using Activity? activity = _activitySource.StartActivity("Initialize interaction handler");
         using IServiceScope scope = _scopeFactory.CreateScope();
 
         try
         {
-            if (!_modulesAdded)
+            IEnumerable<ModuleInfo> modules = await _interaction.AddModulesAsync(typeof(ISchulPlanerBot).Assembly, scope.ServiceProvider).ConfigureAwait(false);
+            _logger.LogInformation("{modulesCount} interaction modules added", modules.Count());
+
+            TaskCompletionSource tcs = new();
+            Task onClientReady()
             {
-                IEnumerable<ModuleInfo> modules = await _interaction.AddModulesAsync(typeof(ISchulPlanerBot).Assembly, scope.ServiceProvider).ConfigureAwait(false);
-                _logger.LogInformation("{modulesCount} interaction modules added", modules.Count());
-                _modulesAdded = true;
+                _client.Ready -= onClientReady;
+                activity?.AddEvent(new("Client ready"));
+                tcs.SetResult();
+
+                return Task.CompletedTask;
             }
+            _client.Ready += onClientReady;
+            await tcs.Task.ConfigureAwait(false);     // Wait for the client to be ready
 
             if (_environment.IsDevelopment() && _options.TestGuild is not null)
             {
@@ -92,7 +93,7 @@ internal sealed class InteractionHandler(
             _logger.LogCritical(ex, "An critical error occurred while registered interaction modules!");
             activity?.AddException(ex);
 
-            await _host.StopAsync().ConfigureAwait(false);     // An error on registration can disturb the whole app
+            await _host.StopAsync(ct).ConfigureAwait(false);     // An error on registration can disturb the whole app
         }
     }
 
@@ -192,5 +193,14 @@ internal sealed class InteractionHandler(
 
     private static string MessageWithEmote(string emote, string message) => $"{Emoji.Parse($":{emote}:")} {message}";
 
-    public void Dispose() => _activitySource.Dispose();
+    public override void Dispose()
+    {
+        base.Dispose();
+        _activitySource.Dispose();
+
+        _client.MessageReceived -= Client_MessageReceivedAsync;
+        _client.InteractionCreated -= Client_InteractionCreatedAsync;
+        _interaction.Log -= Interaction_Log;
+        _interaction.InteractionExecuted -= Interaction_InteractionExecutedAsync;
+    }
 }

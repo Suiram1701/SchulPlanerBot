@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace SchulPlanerBot.Services;
 
-public sealed class DatabaseStartup(IServiceScopeFactory scopeFactory, ILogger<DatabaseStartup> logger) : IHostedService, IDisposable
+public sealed class DatabaseStartup(IServiceScopeFactory scopeFactory, ILogger<DatabaseStartup> logger) : BackgroundService, IDisposable
 {
     public const string ActivitySourceName = "Bot.DatabaseInitialization";
 
@@ -14,7 +14,7 @@ public sealed class DatabaseStartup(IServiceScopeFactory scopeFactory, ILogger<D
 
     private readonly ActivitySource _activitySource = new(ActivitySourceName);
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken ct)
     {
         using Activity? activity = _activitySource.StartActivity("Initialize database");
         using IServiceScope scope = _scopeFactory.CreateScope();
@@ -22,13 +22,13 @@ public sealed class DatabaseStartup(IServiceScopeFactory scopeFactory, ILogger<D
         BotDbContext dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
         DatabaseFacade database = dbContext.Database;
 
-        IEnumerable<string> pendingMigrations = await database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false);
+        IEnumerable<string> pendingMigrations = await database.GetPendingMigrationsAsync(ct).ConfigureAwait(false);
         if (pendingMigrations.Any())
         {
             _logger.LogInformation("{pendingMigrationsCount} migrations aren't applied to the database.", pendingMigrations.Count());
             foreach (string migration in pendingMigrations)
             {
-                await database.MigrateAsync(migration, cancellationToken).ConfigureAwait(false);
+                await database.MigrateAsync(migration, ct).ConfigureAwait(false);
                 _logger.LogInformation("Migration '{name}' applied", migration);
             }
         }
@@ -38,7 +38,9 @@ public sealed class DatabaseStartup(IServiceScopeFactory scopeFactory, ILogger<D
         }
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
-    public void Dispose() => _activitySource.Dispose();
+    public override void Dispose()
+    {
+        base.Dispose();
+        _activitySource.Dispose();
+    }
 }

@@ -1,11 +1,10 @@
-﻿
-using SchulPlanerBot.Business;
+﻿using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Models;
 using System.Diagnostics;
 
 namespace SchulPlanerBot.Services;
 
-public sealed class RegisterTriggers(ILogger<RegisterTriggers> logger, IServiceScopeFactory scopeFactory) : IHostedService, IDisposable
+public sealed class RegisterTriggers(ILogger<RegisterTriggers> logger, IServiceScopeFactory scopeFactory) : BackgroundService
 {
     public const string ActivitySourceName = "Bot.RegisterJobTriggers";
 
@@ -14,13 +13,13 @@ public sealed class RegisterTriggers(ILogger<RegisterTriggers> logger, IServiceS
 
     private readonly ActivitySource _activitySource = new(ActivitySourceName);
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken ct)
     {
         using Activity? activity = _activitySource.StartActivity("Register notification triggers");
         using IServiceScope scope = _scopeFactory.CreateScope();
         SchulPlanerManager manager = scope.ServiceProvider.GetRequiredService<SchulPlanerManager>();
 
-        IEnumerable<Guild> guilds = await manager.GetGuildsAsync(cancellationToken).ConfigureAwait(false);
+        IEnumerable<Guild> guilds = await manager.GetGuildsAsync(ct).ConfigureAwait(false);
         foreach ((ulong guildId, Notification notification) in guilds.SelectMany(g => g.Notifications.Select(n => (g.Id, n))))
         {
             KeyValuePair<string, object?>[] tags = [
@@ -30,7 +29,7 @@ public sealed class RegisterTriggers(ILogger<RegisterTriggers> logger, IServiceS
 
             try
             {
-                await manager.AddNotificationToSchedulerAsync(guildId, notification, cancellationToken).ConfigureAwait(false);
+                await manager.AddNotificationToSchedulerAsync(guildId, notification, ct).ConfigureAwait(false);
                 activity?.AddEvent(new(name: "Added trigger", tags: [.. tags]));
             }
             catch (Exception ex)
@@ -41,7 +40,9 @@ public sealed class RegisterTriggers(ILogger<RegisterTriggers> logger, IServiceS
         }
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
-    public void Dispose() => _activitySource.Dispose();
+    public override void Dispose()
+    {
+        base.Dispose();
+        _activitySource.Dispose();
+    }
 }
