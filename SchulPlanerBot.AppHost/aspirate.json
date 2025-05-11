@@ -1,8 +1,8 @@
 {
   "TemplatePath": null,
   "ContainerSettings": {
-    "Registry": "docker.io",
-    "RepositoryPrefix": "suiram2265",
+    "Registry": "192.168.178.61:5000",
+    "RepositoryPrefix": "schulplanerbot",
     "Tags": [
       "latest",
       "v0.3.1"
