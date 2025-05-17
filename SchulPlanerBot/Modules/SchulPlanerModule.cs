@@ -82,9 +82,9 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
     }
 
     [SlashCommand("add-notification", "Adds a notifications to make on this guild.")]
-    public async Task SetNotificationsAsync(DateTimeOffset start, TimeSpan between, [ChannelTypes(ChannelType.Text)] IChannel channel)
+    public async Task SetNotificationsAsync(DateTimeOffset start, TimeSpan between, [ChannelTypes(ChannelType.Text)] IChannel channel, [Summary(name: "objects-in")] TimeSpan? objectsIn = null)
     {
-        UpdateResult addResult = await _manager.AddNotificationAsync(Guild.Id, start, between, channel.Id, CancellationToken).ConfigureAwait(false);
+        UpdateResult addResult = await _manager.AddNotificationAsync(Guild.Id, start, between, objectsIn ?? between, channel.Id, CancellationToken).ConfigureAwait(false);
         if (addResult.Success)
         {
             await RespondAsync(_localizer[

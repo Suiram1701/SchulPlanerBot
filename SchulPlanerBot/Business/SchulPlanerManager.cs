@@ -71,15 +71,17 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, ISchedulerFa
         return guild.Notifications;
     }
 
-    public async Task<UpdateResult> AddNotificationAsync(ulong guildId, DateTimeOffset startAt, TimeSpan between, ulong channelId, CancellationToken ct = default)
+    public async Task<UpdateResult> AddNotificationAsync(ulong guildId, DateTimeOffset startAt, TimeSpan between, TimeSpan objectsIn, ulong channelId, CancellationToken ct = default)
     {
         if (between < Options.MinBetweenNotifications)
             return _errorService.LowTimeBetween(Options.MinBetweenNotifications);
+        else if (objectsIn < between)
+            return _errorService.ObjectsInLowerThanBetween();
 
-        Guild guild = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);
+            Guild guild = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);
         if (!guild.Notifications.Any(n => n.StartAt == startAt))
         {
-            Notification notification = new(startAt, between, channelId);
+            Notification notification = new(startAt, between, objectsIn, channelId);
             await AddNotificationToSchedulerAsync(guild.Id, notification, ct).ConfigureAwait(false);     // Call before SaveChanges to ensure exceptions are thrown before the changes are persisted
 
             guild.Notifications.Add(notification);

@@ -115,4 +115,7 @@
   <data name="notificationNotFound" xml:space="preserve">
     <value>A notification with this starting point cannot be found!</value>
   </data>
+  <data name="objectsInLowerThanBetween" xml:space="preserve">
+    <value>The objects-in parameter have to be greater or same than the between.</value>
+  </data>
 </root>

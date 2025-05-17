@@ -115,4 +115,7 @@
   <data name="notificationNotFound" xml:space="preserve">
     <value>Eine Benachrichtigung, die an diesem Zeitpunkt startet konnte nicht gefunden werden!</value>
   </data>
+  <data name="objectsInLowerThanBetween" xml:space="preserve">
+    <value>Der Parameter objekte-in muss gleich oder größer sein, als dazwischen.</value>
+  </data>
 </root>

@@ -52,7 +52,7 @@ internal sealed class NotificationJob(
             ITextChannel? textChannel = await ThrowWhenNotFoundAsync(socketGuild, notification.ChannelId).ConfigureAwait(false);
 
             // Real notification part
-            DateTimeOffset endDateTime = DateTimeOffset.UtcNow + notification.Between;
+            DateTimeOffset endDateTime = DateTimeOffset.UtcNow + notification.ObjectsIn;
             IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(guildId, start: DateTime.UtcNow, end: endDateTime, ct: context.CancellationToken).ConfigureAwait(false);
             homeworks = [.. homeworks.OrderBy(h => h.Due)];
 

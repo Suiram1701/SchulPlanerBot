@@ -139,6 +139,12 @@
   <data name="schulplaner.add-notification.between.description" xml:space="preserve">
     <value>The time between each of this notifications. E.g.: 1d.</value>
   </data>
+  <data name="schulplaner.add-notification.objects-in.name" xml:space="preserve">
+    <value>objects-in</value>
+  </data>
+  <data name="schulplaner.add-notification.objects-in.description" xml:space="preserve">
+    <value>The max due of objects (homeworks, etc.) from the notification. E.g.: 1d. By default between.</value>
+  </data>
   <data name="schulplaner.add-notification.channel.name" xml:space="preserve">
     <value>channel</value>
   </data>

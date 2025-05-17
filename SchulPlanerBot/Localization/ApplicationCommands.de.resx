@@ -295,4 +295,10 @@
   <data name="schulplaner.remove-notification.start.description" xml:space="preserve">
     <value>Das Datum und die Uhrzeit, wo die zu entfernende Benachrichtigung startet.</value>
   </data>
+  <data name="schulplaner.add-notification.objects-in.name" xml:space="preserve">
+    <value>objekte-in</value>
+  </data>
+  <data name="schulplaner.add-notification.objects-in.description" xml:space="preserve">
+    <value>Die maximale Fälligkeit von Objekten (Hausaufgaben, usw.) von der Benachrichtigung aus. z.B.: 1d.</value>
+  </data>
 </root>
