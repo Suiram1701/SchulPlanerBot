@@ -15,7 +15,9 @@ This describes how to deploy this service properly when changes on the infrastru
 - Adjust the version of SchulPlanerBot (discord-bot) in `SchulPlanerBot/SchulPlanerBot.csproj`.
 - Open a shell
 - Navigate to the App host project (`cd SchulPlanerBot.AppHost`) if you're not already there.
-- Run `aspirate generate --skip-build -o ./kubernetes/aspirate-output` to generate the latest kubernetes configuration and publish the newest docker image.
+- By the dashboard will be patched to support HTTPS which requires a certificate in the secret `tls-secret`. 
+  To disable this go into `patches/dashboard.yaml` and out comment everything below line 15.
+- Run `aspirate generate --skip-build -o ./kubernetes/aspirate-output` to generate the latest kubernetes configuration. Adjust the arguments to customize your setup.
 - Run `aspirate apply -i ./kubernetes` to apply the changes to your cluster.
 
 ## Debugging:

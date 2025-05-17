@@ -11,6 +11,7 @@
 *.sln.docstates
 
 # Contains sensitive data from aspire
+aspirate.json
 aspirate-state.json
 aspirate-output/
 

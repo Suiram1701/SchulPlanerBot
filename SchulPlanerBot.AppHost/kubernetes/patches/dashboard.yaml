@@ -1,7 +1,8 @@
-# Configures the dashboard
-- op: replace
+- op: add
   path: "/spec/template/spec/containers/0/env"
   value:
+
+# Configures the dashboard
   - name: DASHBOARD__APPLICATIONNAME
     value: SchulPlanerBot
   - name: DASHBOARD__FRONTEND__AUTHMODE
@@ -10,3 +11,26 @@
     value: ApiKey
   - name: DASHBOARD__OTLP__PRIMARYAPIKEY
     value: "Kh)[1te1#.ervPFKBv@6?$NTVZt/U*3qb>j6>+/d"     # Just a random generated value (replace it on your be have)
+
+# Configure TLS endpoint
+  - name: ASPNETCORE_URLS
+    value: https://0.0.0.0:18888
+  - name: KESTREL__ENDPOINTS__BROWSER__URL
+    value: https://0.0.0.0:18888
+  - name: KESTREL__ENDPOINTS__BROWSER__CERTIFICATE__PATH
+    value: "/certs/tls.crt"
+  - name: KESTREL__ENDPOINTS__BROWSER__CERTIFICATE__KEYPATH
+    value: "/certs/tls.key"
+
+- op: add
+  path: "/spec/template/spec/volumes"
+  value:
+  - name: tls-certificate
+    secret:
+      secretName: tls-secret
+- op: add
+  path: "/spec/template/spec/containers/0/volumeMounts"
+  value:
+  - name: tls-certificate  
+    mountPath: "/certs"
+    readOnly: true
