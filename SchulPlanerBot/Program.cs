@@ -9,6 +9,7 @@ using SchulPlanerBot.Options;
 using SchulPlanerBot.Quartz;
 using SchulPlanerBot.Services;
 using System.Globalization;
+using System.Reflection;
 
 namespace SchulPlanerBot;
 
@@ -29,7 +30,7 @@ public class Program
             .AddHostedService<RegisterTriggers>();
 
         builder.Services
-            .AddQuartz(ConfigureQuartz)
+            .AddQuartz(options => ConfigureQuartz(options, builder.Configuration))
             .AddQuartzServer(options =>
             {
                 options.AwaitApplicationStarted = true;
@@ -66,13 +67,29 @@ public class Program
                 .AddDiscordNetInstrumentation());
 
         WebApplication app = builder.Build();
+        app.Lifetime.ApplicationStarted.Register(() =>
+        {
+            AssemblyName appName = typeof(ISchulPlanerBot).Assembly.GetName();
+            app.Logger.LogInformation(
+                "Application {appName} v{version} startet",
+                appName.Name,
+#if !DEBUG
+                appName.Version
+#else
+                $"{appName.Version}-dev"
+#endif
+
+                );
+        });
+
         app.MapDefaultEndpoints(always: true);     // Ok to register every endpoint because this container isn't exposed
 
         app.Run();
     }
 
-    private static void ConfigureQuartz(IServiceCollectionQuartzConfigurator options)
+    private static void ConfigureQuartz(IServiceCollectionQuartzConfigurator options, IConfiguration config)
     {
+
         options.AddJob<NotificationJob>(job => job
             .WithIdentity(Keys.NotificationJob)
             .WithDescription("Notifies users in a text channel at specific times.")
@@ -82,13 +99,14 @@ public class Program
             .WithDescription("Deletes homeworks of guilds a specific amount of time after their due.")
             .DisallowConcurrentExecution());
 
+        TimeSpan interval = config.GetValue<TimeSpan>("DeleteHomeworksJobInterval");
         options.AddTrigger(trigger => trigger
             .WithIdentity(Keys.DeleteHomeworksKey)
-            .WithDescription("Triggers this job every 30m.")
+            .WithDescription("Triggers this job every in a certain interval.")
             .ForJob(Keys.DeleteHomeworksJob)
-            .StartNow()
+            .StartAt(DateTimeOffset.UtcNow.AddMinutes(1))     // Give the DB time to initialize
             .WithSimpleSchedule(scheduler => scheduler
-                .WithIntervalInMinutes(30)
+                .WithInterval(interval)
                 .RepeatForever()
                 .WithMisfireHandlingInstructionFireNow()));
     }
