@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Humanizer;
 using Microsoft.Extensions.Localization;
 using SchulPlanerBot.Business.Models;
 
@@ -44,7 +45,9 @@ public class ComponentService(IStringLocalizer<ComponentService> localizer)
         {
             menuBuilder.AddOption(
                 label: homework.Title,
-                description: !string.IsNullOrEmpty(homework.Details) ? homework.Details : null,
+                description: !string.IsNullOrEmpty(homework.Details)
+                    ? homework.Details.Truncate(SelectMenuOptionBuilder.MaxDescriptionLength)
+                    : null,
                 value: homework.Id.ToString());
         }
 
