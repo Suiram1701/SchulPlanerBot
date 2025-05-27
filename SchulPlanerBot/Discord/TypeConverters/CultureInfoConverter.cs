@@ -18,7 +18,7 @@ public class CultureInfoConverter(bool supportDisplayName = true, CultureInfo[]?
             properties.Choices.Clear();
             foreach (CultureInfo culture in _cultures.OrderBy(c => c.Name))
             {
-                properties.Choices.Add(new()
+                properties.Choices.Add(new ApplicationCommandOptionChoiceProperties()
                 {
                     Name = culture.NativeName,
                     Value = culture.Name
@@ -31,11 +31,11 @@ public class CultureInfoConverter(bool supportDisplayName = true, CultureInfo[]?
 
     public override Task<TypeConverterResult> ReadAsync(IInteractionContext context, IApplicationCommandInteractionDataOption option, IServiceProvider services)
     {
-        string value = option.Value.ToString()!;
+        var value = option.Value.ToString()!;
 
         try
         {
-            CultureInfo info = CultureInfo.GetCultureInfo(value);
+            var info = CultureInfo.GetCultureInfo(value);
             return Task.FromResult(TypeConverterResult.FromSuccess(info));
         }
         catch (CultureNotFoundException)
@@ -48,7 +48,7 @@ public class CultureInfoConverter(bool supportDisplayName = true, CultureInfo[]?
                 .GetCultures(CultureTypes.NeutralCultures | CultureTypes.SpecificCultures)
                 .SingleOrDefault(ci => ci.DisplayName == value || ci.NativeName == value);
             if (info is not null)
-                return Task.FromResult(TypeConverterResult.FromSuccess(info!));
+                return Task.FromResult(TypeConverterResult.FromSuccess(info));
         }
 
         return Task.FromResult(TypeConverterResult.FromError(InteractionCommandError.ConvertFailed, "Provided language could not be recognized."));

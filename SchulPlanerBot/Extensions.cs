@@ -75,7 +75,7 @@ public static class Extensions
             .AddSingleton<DiscordSocketClient>(sp =>
             {
                 IOptionsMonitor<DiscordSocketConfig> monitor = sp.GetRequiredService<IOptionsMonitor<DiscordSocketConfig>>();
-                return new(monitor.CurrentValue);
+                return new DiscordSocketClient(monitor.CurrentValue);
             })
             .AddHostedService<DiscordClientManager>();
     }
@@ -88,13 +88,13 @@ public static class Extensions
             .Configure<InteractionServiceConfig>(config =>
             {
                 config.LogLevel = LogSeverity.Debug;     // Level managed by ILogger<InteractionService>
-                config.DefaultRunMode = RunMode.Sync;     // Idk exactly why but RunMode.Async always fails
+                config.DefaultRunMode = RunMode.Sync;     // IDK exactly why but RunMode.Async always fails
                 config.AutoServiceScopes = false;     // Scopes managed by DiscordInteractionHandler
                 config.UseCompiledLambda = true;
             })
             .AddSingleton(sp =>
             {
-                DiscordSocketClient client = sp.GetRequiredService<DiscordSocketClient>();
+                var client = sp.GetRequiredService<DiscordSocketClient>();
                 IOptionsMonitor<InteractionServiceConfig> monitor = sp.GetRequiredService<IOptionsMonitor<InteractionServiceConfig>>();
 
                 InteractionService service = new(client, monitor.CurrentValue);

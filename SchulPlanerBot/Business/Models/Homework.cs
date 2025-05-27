@@ -8,11 +8,11 @@ public class Homework
 
     public DateTimeOffset Due { get; set; }
 
-    public string? Subject { get; set; } = default!;
+    public string? Subject { get; set; }
 
-    public string Title { get; set; } = default!;
+    public string Title { get; set; } = string.Empty;
 
-    public string? Details { get; set; } = default!;
+    public string? Details { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 

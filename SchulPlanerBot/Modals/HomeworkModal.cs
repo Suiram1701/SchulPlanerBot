@@ -11,7 +11,7 @@ public class HomeworkModal : IModal
     [RequiredInput(isRequired: false)]
     [InputLabel("Subject")]
     [ModalTextInput(ComponentIds.HomeworkModal.Subject, placeholder: "Math", minLength: 0, maxLength: 32)]
-    public string? Subject { get; set; } = default!;
+    public string? Subject { get; set; }
 
     [RequiredInput]
     [InputLabel("Due date")]
@@ -21,7 +21,7 @@ public class HomeworkModal : IModal
     [RequiredInput]
     [InputLabel("Title")]
     [ModalTextInput(ComponentIds.HomeworkModal.Title, placeholder: "Do page 97 task 2d", maxLength: 64)]
-    public string Title { get; set; } = default!;
+    public string Title { get; set; } = string.Empty;
 
     [RequiredInput(isRequired: false)]
     [InputLabel("Details")]

@@ -12,16 +12,15 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
 {
     public StringComparer SubjectNameComparer => Options.SubjectsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
-    public async Task<Homework?> GetHomeworkAsync(ulong guildId, Guid id, CancellationToken ct = default)
+    public Task<Homework?> GetHomeworkAsync(ulong guildId, Guid id, CancellationToken ct = default)
     {
-        return await _dbContext.Homeworks
+        return _dbContext.Homeworks
             .AsNoTracking()
             .Where(h => h.GuildId == guildId)
-            .SingleOrDefaultAsync(h => h.Id == id, ct)
-            .ConfigureAwait(false);
+            .SingleOrDefaultAsync(h => h.Id == id, ct);
     }
 
-    public async Task<IEnumerable<Homework>> GetHomeworksAsync(ulong guildId, string? search = null, string? subject = null, DateTimeOffset? start = null, DateTimeOffset? end = null, CancellationToken ct = default)
+    public async Task<Homework[]> GetHomeworksAsync(ulong guildId, string? search = null, string? subject = null, DateTimeOffset? start = null, DateTimeOffset? end = null, CancellationToken ct = default)
     {
         start ??= DateTimeOffset.MinValue;
         end ??= DateTimeOffset.MaxValue;
@@ -41,13 +40,13 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            string searchPattern = $"%{search.Replace(' ', '%')}%";
+            var searchPattern = $"%{search.Replace(' ', '%')}%";
             query = query.Where(h =>
                 EF.Functions.ILike(h.Title, searchPattern) ||
                 EF.Functions.ILike(h.Details!, searchPattern));
         }
 
-        return await query.ToListAsync(ct).ConfigureAwait(false);
+        return [.. await query.ToListAsync(ct).ConfigureAwait(false)];
     }
 
     public async Task<(Homework? homework, UpdateResult result)> CreateHomeworkAsync(ulong guildId, ulong userId, DateTimeOffset due, string? subject, string title, string? details, CancellationToken ct = default)
@@ -55,7 +54,7 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
         if (due <= DateTimeOffset.UtcNow.Add(Options.MinDueInFuture))
             return (null, _errorService.DueMustInFuture(Options.MinDueInFuture));
 
-        _ = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);     // Ensure the a guild with this id exists
+        _ = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);     // Ensure a guild with this id exists
 
         Homework homework = new()
         {
@@ -113,21 +112,20 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
         return (count, UpdateResult.Succeeded());
     }
 
-    public async Task<HomeworkSubscription?> GetHomeworkSubscriptionAsync(ulong guildId, ulong userId, CancellationToken ct = default)
+    public Task<HomeworkSubscription?> GetHomeworkSubscriptionAsync(ulong guildId, ulong userId, CancellationToken ct = default)
     {
-        return await _dbContext.HomeworkSubscriptions
+        return _dbContext.HomeworkSubscriptions
             .AsNoTracking()
-            .SingleOrDefaultAsync(s => s.GuildId == guildId && s.UserId == userId, ct)
-            .ConfigureAwait(false);
+            .SingleOrDefaultAsync(s => s.GuildId == guildId && s.UserId == userId, ct);
     }
 
-    public async Task<IEnumerable<HomeworkSubscription>> GetSubscriptionsAsync(ulong guildId, CancellationToken ct = default)
+    public async Task<HomeworkSubscription[]> GetSubscriptionsAsync(ulong guildId, CancellationToken ct = default)
     {
-        return await _dbContext.HomeworkSubscriptions
+        return [.. await _dbContext.HomeworkSubscriptions
             .AsNoTracking()
             .Where(s => s.GuildId == guildId)
             .ToListAsync(ct)
-            .ConfigureAwait(false);
+            .ConfigureAwait(false)];
     }
 
     public async Task<UpdateResult> SetSubscribeToAllSubjectsAsync(ulong guildId, ulong userId, bool subscribe, CancellationToken ct = default)
@@ -179,7 +177,7 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
             .ConfigureAwait(false);
         if (subscription is null)
         {
-            subscription = new()
+            subscription = new HomeworkSubscription()
             {
                 GuildId = guildId,
                 UserId = userId

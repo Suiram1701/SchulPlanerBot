@@ -15,14 +15,14 @@ public sealed class RootModule(IStringLocalizer<RootModule> localizer, IOptionsS
     private readonly HelpOptions _helpOptions = optionsSnapshot.Value;
 
     [SlashCommand("help", "Retrieves information to help with this bot")]
-    public async Task GetHelpAsync()
+    public Task GetHelpAsync()
     {
-        await RespondAsync(
+        return RespondAsync(
             _localizer[
                 "help",
                 _helpOptions.Maintainer,
                 _helpOptions.ProjectWebsite ?? _localizer["help.notAvailable"],
                 _helpOptions.SupportDiscordGuild ?? _localizer["help.notAvailable"]
-                ]).ConfigureAwait(false);
+            ]);
     }
 }

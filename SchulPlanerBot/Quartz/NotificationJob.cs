@@ -49,21 +49,21 @@ internal sealed class NotificationJob(
             }
 
             SocketGuild socketGuild = _client.GetGuild(guildId);
-            ITextChannel? textChannel = await ThrowWhenNotFoundAsync(socketGuild, notification.ChannelId).ConfigureAwait(false);
+            ITextChannel textChannel = await ThrowWhenNotFoundAsync(socketGuild, notification.ChannelId).ConfigureAwait(false);
 
             // Real notification part
             DateTimeOffset endDateTime = DateTimeOffset.UtcNow + notification.ObjectsIn;
             IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(guildId, start: DateTime.UtcNow, end: endDateTime, ct: context.CancellationToken).ConfigureAwait(false);
-            homeworks = [.. homeworks.OrderBy(h => h.Due)];
+            Homework[] orderedHomeworks = [.. homeworks.OrderBy(h => h.Due)];
 
-            if (homeworks.Any())
+            if (orderedHomeworks.Length != 0)
             {
                 IEnumerable<HomeworkSubscription> userSubscriptions = await _homeworkManager.GetSubscriptionsAsync(guildId, context.CancellationToken).ConfigureAwait(false);
                 ulong[] usersToMention = [.. userSubscriptions
-                    .Where(s => ShouldNotify(s, homeworks))
+                    .Where(s => ShouldNotify(s, orderedHomeworks))
                     .Select(s => s.UserId)];
 
-                string message = string.Empty;
+                var message = string.Empty;
                 if (usersToMention.Length > 0)
                 {
                     string mentionStr = string.Join(", ", usersToMention.Select(MentionUtils.MentionUser));
@@ -71,8 +71,8 @@ internal sealed class NotificationJob(
                 }
                 message += _localizer["homeworks", TimestampTag.FromDateTimeOffset(endDateTime.ToLocalTime(), TimestampTagStyles.Relative)];
 
-                Embed overviewEmbed = _embedsService.HomeworksOverview(homeworks, DateTimeOffset.UtcNow, endDateTime);
-                MessageComponent selectComp = _componentService.SelectHomework(homeworks, cacheId: Guid.NewGuid().ToString());
+                Embed overviewEmbed = _embedsService.HomeworksOverview(orderedHomeworks, DateTimeOffset.UtcNow, endDateTime);
+                MessageComponent selectComp = _componentService.SelectHomework(orderedHomeworks, cacheId: Guid.NewGuid().ToString());
                 await textChannel.SendMessageAsync(
                     text: message,
                     embeds: [overviewEmbed],

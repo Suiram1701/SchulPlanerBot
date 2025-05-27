@@ -1,5 +1,6 @@
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -58,7 +59,7 @@ public static class Extensions
                     .AddHttpClientInstrumentation();
             });
 
-        builder.AddOpenTelemetryExporters();
+        _ = builder.AddOpenTelemetryExporters();
 
         return builder;
     }
@@ -96,11 +97,11 @@ public static class Extensions
     {
         if (app.Environment.IsDevelopment() || always)
         {
-            app.MapHealthChecks("/health", new()
+            app.MapHealthChecks("/health", new HealthCheckOptions()
             {
                 ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
             });
-            app.MapHealthChecks("/alive", new()
+            app.MapHealthChecks("/alive", new HealthCheckOptions()
             {
                 Predicate = r => r.Tags.Contains("live"),
                 ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse

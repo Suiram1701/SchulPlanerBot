@@ -17,7 +17,7 @@ public sealed class RegisterTriggers(ILogger<RegisterTriggers> logger, IServiceS
     {
         using Activity? activity = _activitySource.StartActivity("Register notification triggers");
         using IServiceScope scope = _scopeFactory.CreateScope();
-        SchulPlanerManager manager = scope.ServiceProvider.GetRequiredService<SchulPlanerManager>();
+        var manager = scope.ServiceProvider.GetRequiredService<SchulPlanerManager>();
 
         IEnumerable<Guild> guilds = await manager.GetGuildsAsync(ct).ConfigureAwait(false);
         foreach ((ulong guildId, Notification notification) in guilds.SelectMany(g => g.Notifications.Select(n => (g.Id, n))))

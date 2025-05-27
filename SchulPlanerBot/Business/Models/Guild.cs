@@ -12,7 +12,7 @@ public class Guild
     [NotMapped]
     public CultureInfo? NotificationCulture
     {
-        get => !string.IsNullOrEmpty(NotificationLocale) ? new(NotificationLocale) : null;
+        get => !string.IsNullOrEmpty(NotificationLocale) ? new CultureInfo(NotificationLocale) : null;
         set => NotificationLocale = value?.ToString();
     }
 

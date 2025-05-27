@@ -9,12 +9,12 @@ internal static class Extensions
     /// Will pass all keys of a specific configuration section as environment parameters to the resource.
     /// </summary>
     /// <remarks>
-    /// The configs will be added a aspire parameters.
+    /// The configs will be added an Aspire parameters.
     /// </remarks>
     /// <typeparam name="TResource">The target resource type.</typeparam>
     /// <param name="builder">The builder of the receiving resource.</param>
     /// <param name="configuration">The configuration section that will be passed.</param>
-    /// <param name="prefix">A prefix that will added to the configuration name of the receiving resource,</param>
+    /// <param name="prefix">A prefix that will be added to the configuration name of the receiving resource,</param>
     /// <param name="secretKeys">Specifies which keys should be added as a secret parameter.</param>
     /// <returns>The builder to chain.</returns>
     public static IResourceBuilder<TResource> WithConfiguration<TResource>(
@@ -53,7 +53,7 @@ internal static class Extensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        if (builder.Resource.TryGetAnnotationsOfType(out IEnumerable<EndpointAnnotation>? endpoints) && endpoints is not null)
+        if (builder.Resource.TryGetAnnotationsOfType(out IEnumerable<EndpointAnnotation>? endpoints) )
         {
             foreach (EndpointAnnotation endpoint in endpoints.Where(p => p.Protocol == ProtocolType.Tcp))
             {

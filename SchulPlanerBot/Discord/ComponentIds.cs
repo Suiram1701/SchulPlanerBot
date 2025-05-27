@@ -30,10 +30,10 @@ public static class ComponentIds
 
     public const string GetHomeworksSelectComponent = $"{_componentPrefix}GetHomeworksSelect:*";
 
-    public static string CreateGetHomeworksSelectComponent(string CacheId) => $"{_componentPrefix}GetHomeworksSelect:{CacheId}";
+    public static string CreateGetHomeworksSelectComponent(string cacheId) => $"{_componentPrefix}GetHomeworksSelect:{cacheId}";
 
     public const string GetHomeworksReloadComponent = $"{_componentPrefix}GetHomeworksReload:*";
 
-    public static string CreateGetHomeworksReloadComponent(string CacheId) => $"{_componentPrefix}GetHomeworksReload:{CacheId}";
+    public static string CreateGetHomeworksReloadComponent(string cacheId) => $"{_componentPrefix}GetHomeworksReload:{cacheId}";
     #endregion
 }

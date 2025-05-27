@@ -47,12 +47,12 @@ public sealed class HomeworksModule(
         start ??= DateTimeOffset.UtcNow;
         end ??= DateTimeOffset.UtcNow.AddDays(7);
 
-        IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, search, subject, start?.ToUniversalTime(), end?.ToUniversalTime(), CancellationToken).ConfigureAwait(false);
+        Homework[] homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, search, subject, start.Value.ToUniversalTime(), end.Value.ToUniversalTime(), CancellationToken).ConfigureAwait(false);
         homeworks = [.. homeworks.OrderBy(h => h.Due)];
 
-        if (homeworks.Any())
+        if (homeworks.Length > 0)
         {
-            Embed overview = _embedsService.HomeworksOverview(homeworks, start!.Value, end!.Value);
+            Embed overview = _embedsService.HomeworksOverview(homeworks, start.Value, end.Value);
             MessageComponent select = _componentService.SelectHomework(homeworks, cacheId: Guid.NewGuid().ToString());
             await RespondAsync(_localizer["list.listed"], embeds: [overview], components: select).ConfigureAwait(false);
         }
@@ -99,15 +99,14 @@ public sealed class HomeworksModule(
 
     // Components created by global::SchulPlanerBot.Discord.ComponentService
     [ComponentInteraction(ComponentIds.GetHomeworksReloadComponent, ignoreGroupNames: true)]
-    public async Task GetHomeworks_ReloadInteractAsync(string cacheId) => await GetHomeworks_InteractAsync(cacheId, value: null).ConfigureAwait(false);
+    public Task GetHomeworks_ReloadInteractAsync(string cacheId) => GetHomeworks_InteractAsync(cacheId, value: null);
 
     [SlashCommand("create", "Opens the form to create a new homework.")]
-    public async Task CreateHomeworkAsync()
+    public Task CreateHomeworkAsync()
     {
-        await RespondWithModalAsync<HomeworkModal>(
+        return RespondWithModalAsync<HomeworkModal>(
             customId: ComponentIds.CreateHomeworkModal,
-            modifyModal: builder => _componentService.LocalizeHomeworkModal(builder, createHomework: true))
-            .ConfigureAwait(false);
+            modifyModal: builder => _componentService.LocalizeHomeworkModal(builder, createHomework: true));
     }
 
     [ModalInteraction(ComponentIds.CreateHomeworkModal, ignoreGroupNames: true)]
@@ -146,7 +145,7 @@ public sealed class HomeworksModule(
 
         // Check authorization
         SocketGuildUser guildUser = Guild.GetUser(User.Id);
-        if (!guildUser.GuildPermissions.Has(GuildPermission.ModerateMembers) && homework?.CreatedBy != User.Id)
+        if (!guildUser.GuildPermissions.Has(GuildPermission.ModerateMembers) && homework.CreatedBy != User.Id)
         {
             await RespondAsync(_localizer["modify.unauthorized"], ephemeral: true).ConfigureAwait(false);
             return;
@@ -203,7 +202,7 @@ public sealed class HomeworksModule(
 
         // Check authorization
         SocketGuildUser guildUser = Guild.GetUser(User.Id);
-        if (!guildUser.GuildPermissions.Has(GuildPermission.ModerateMembers) && homework?.CreatedBy != User.Id)
+        if (!guildUser.GuildPermissions.Has(GuildPermission.ModerateMembers) && homework.CreatedBy != User.Id)
         {
             await RespondAsync(_localizer["delete.unauthorized"], ephemeral: true).ConfigureAwait(false);
             return;

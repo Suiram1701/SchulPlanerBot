@@ -69,7 +69,6 @@ internal sealed class InteractionHandler : BackgroundService
             Task onClientReady()
             {
                 _client.Ready -= onClientReady;
-                activity?.AddEvent(new("Client ready"));
                 tcs.SetResult();
 
                 return Task.CompletedTask;

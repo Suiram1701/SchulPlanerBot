@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Quartz;
-using Quartz.Impl;
 using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Options;
@@ -26,7 +25,7 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, ISchedulerFa
             .ConfigureAwait(false);
         if (guild is null)
         {
-            guild = new()
+            guild = new Guild()
             {
                 Id = guildId,
                 DeleteHomeworksAfterDue = Options.MaxDeleteHomeworksAfterDue
@@ -78,8 +77,8 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, ISchedulerFa
         else if (objectsIn < between)
             return _errorService.ObjectsInLowerThanBetween();
 
-            Guild guild = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);
-        if (!guild.Notifications.Any(n => n.StartAt == startAt))
+        Guild guild = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);
+        if (guild.Notifications.All(n => n.StartAt == startAt))
         {
             Notification notification = new(startAt, between, objectsIn, channelId);
             await AddNotificationToSchedulerAsync(guild.Id, notification, ct).ConfigureAwait(false);     // Call before SaveChanges to ensure exceptions are thrown before the changes are persisted

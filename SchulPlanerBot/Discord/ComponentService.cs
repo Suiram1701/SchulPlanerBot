@@ -32,9 +32,10 @@ public class ComponentService(IStringLocalizer<ComponentService> localizer)
     /// Creates a new select menu for showing more information about a specific homework.
     /// </summary>
     /// <remarks>
-    /// Handled by <see cref="Modules.HomeworksModule.GetHomeworks_InteractAsync(string[])"/>
+    /// Handled by <see cref="Modules.HomeworksModule.GetHomeworks_InteractAsync(string,string?)"/>
     /// </remarks>
     /// <param name="homeworks">The homeworks to show as an option.</param>
+    /// <param name="cacheId">The id of the cache entry the homework</param>
     /// <returns>The build component</returns>
     public MessageComponent SelectHomework(IEnumerable<Homework> homeworks, string cacheId)
     {

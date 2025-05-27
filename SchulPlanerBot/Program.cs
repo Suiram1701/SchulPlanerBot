@@ -13,7 +13,7 @@ using System.Reflection;
 
 namespace SchulPlanerBot;
 
-public class Program
+public static class Program
 {
     private const string _commandsLocalizationResource = "SchulplanerBot.Localization.ApplicationCommands";
 
@@ -71,7 +71,7 @@ public class Program
         {
             AssemblyName appName = typeof(ISchulPlanerBot).Assembly.GetName();
             app.Logger.LogInformation(
-                "Application {appName} v{version} startet",
+                "Application {appName} v{version} started",
                 appName.Name,
 #if !DEBUG
                 appName.Version

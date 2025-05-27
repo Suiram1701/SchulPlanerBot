@@ -46,7 +46,7 @@ internal sealed class DiscordClientMetrics : IDisposable
             });
     }
 
-    private async Task Client_ReadyAsync() => await UpdateGuildsAmountAsync().ConfigureAwait(false);
+    private Task Client_ReadyAsync() => UpdateGuildsAmountAsync();
 
     private Task Client_LatencyUpdated(int old, int value)
     {
@@ -56,9 +56,9 @@ internal sealed class DiscordClientMetrics : IDisposable
         return Task.CompletedTask;
     }
 
-    private async Task Client_JoinedGuildAsync(SocketGuild guild) => await UpdateGuildsAmountAsync().ConfigureAwait(false);
+    private Task Client_JoinedGuildAsync(SocketGuild guild) => UpdateGuildsAmountAsync();
 
-    private async Task Client_LeftGuildAsync(SocketGuild guild) => await UpdateGuildsAmountAsync().ConfigureAwait(false);
+    private  Task Client_LeftGuildAsync(SocketGuild guild) => UpdateGuildsAmountAsync();
 
     private async Task UpdateGuildsAmountAsync()
     {

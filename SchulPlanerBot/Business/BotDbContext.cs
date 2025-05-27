@@ -10,7 +10,7 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<Homework> Homeworks => Set<Homework>();
 
     public DbSet<HomeworkSubscription> HomeworkSubscriptions => Set<HomeworkSubscription>();
-
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Guild>(builder =>
@@ -42,9 +42,9 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
             builder.Property(h => h.Id).ValueGeneratedOnAdd().IsRequired();
             builder.Property(h => h.GuildId).IsRequired();
             builder.Property(h => h.Due).IsRequired();
-            builder.Property(h => h.Subject);
-            builder.Property(h => h.Title).IsRequired();
-            builder.Property(h => h.Details);
+            builder.Property(h => h.Subject).HasMaxLength(32);     // Limit specified in HomeworkModal
+            builder.Property(h => h.Title).HasMaxLength(64).IsRequired();     // Limit specified in HomeworkModal
+            builder.Property(h => h.Details).HasMaxLength(4000);     // Discords limit for text inputs
             builder.Property(h => h.CreatedAt).ValueGeneratedOnAdd().IsRequired();
             builder.Property(h => h.CreatedBy).IsRequired();
             builder.Property(h => h.LastModifiedAt);
@@ -58,8 +58,8 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
             builder.Property(s => s.GuildId).IsRequired();
             builder.Property(s => s.UserId).IsRequired();
             builder.Property(s => s.AnySubject).HasDefaultValue(true);
-            builder.Property(s => s.Include).HasDefaultValueSql("ARRAY[]::text[]");     // new HashSet<string?>(0) wont be recognized as string array
-            builder.Property(s => s.Exclude).HasDefaultValueSql("ARRAY[]::text[]");
+            builder.Property(s => s.Include);
+            builder.Property(s => s.Exclude);
         });
     }
 }

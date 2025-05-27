@@ -22,11 +22,13 @@ internal sealed class DeleteHomeworksJob(ILogger<DeleteHomeworksJob> logger, Sch
                 {
                     (int? count, UpdateResult deleteResult) = await _homeworkManager.DeleteHomeworksWithDueOlderAsync(guild.Id, olderThan, context.CancellationToken).ConfigureAwait(false);
                     if (deleteResult.Success && count is not null)
-                        _logger.LogTrace("Deleted {deleted} obsolet homeworks for guild {guildId}.", count, guild.Id);
+                    {
+                        _logger.LogTrace("Deleted {deleted} obsolete homeworks for guild {guildId}.", count, guild.Id);
+                    }
                     else
                     {
                         string errors = string.Join(", ", deleteResult.Errors.Select(e => e.Name));
-                        _logger.LogError("An error occurred while deleting obsolet homeworks for guild {guildId}. Errors: {errors}", guild.Id, errors);
+                        _logger.LogError("An error occurred while deleting obsolete homeworks for guild {guildId}. Errors: {errors}", guild.Id, errors);
                     }
                 }
                 catch (Exception ex)

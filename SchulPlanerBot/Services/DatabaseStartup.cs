@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace SchulPlanerBot.Services;
 
-public sealed class DatabaseStartup(IServiceScopeFactory scopeFactory, ILogger<DatabaseStartup> logger) : BackgroundService, IDisposable
+public sealed class DatabaseStartup(IServiceScopeFactory scopeFactory, ILogger<DatabaseStartup> logger) : BackgroundService
 {
     public const string ActivitySourceName = "Bot.DatabaseInitialization";
 
@@ -19,13 +19,13 @@ public sealed class DatabaseStartup(IServiceScopeFactory scopeFactory, ILogger<D
         using Activity? activity = _activitySource.StartActivity("Initialize database");
         using IServiceScope scope = _scopeFactory.CreateScope();
 
-        BotDbContext dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
         DatabaseFacade database = dbContext.Database;
 
-        IEnumerable<string> pendingMigrations = await database.GetPendingMigrationsAsync(ct).ConfigureAwait(false);
-        if (pendingMigrations.Any())
+        string[] pendingMigrations = [.. await database.GetPendingMigrationsAsync(ct).ConfigureAwait(false)];
+        if (pendingMigrations.Length > 0)
         {
-            _logger.LogInformation("{pendingMigrationsCount} migrations aren't applied to the database.", pendingMigrations.Count());
+            _logger.LogInformation("{pendingMigrationsCount} migrations aren't applied to the database.", pendingMigrations.Length);
             foreach (string migration in pendingMigrations)
             {
                 await database.MigrateAsync(migration, ct).ConfigureAwait(false);
