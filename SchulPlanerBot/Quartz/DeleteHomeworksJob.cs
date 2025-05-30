@@ -16,7 +16,16 @@ internal sealed class DeleteHomeworksJob(ILogger<DeleteHomeworksJob> logger, Sch
         {
             foreach (Guild guild in await _manager.GetGuildsAsync(context.CancellationToken).ConfigureAwait(false))
             {
-                DateTimeOffset olderThan = DateTimeOffset.UtcNow - guild.DeleteHomeworksAfterDue;
+                DateTimeOffset olderThan;
+                try
+                {
+                    olderThan = DateTimeOffset.UtcNow - guild.DeleteHomeworksAfterDue;
+                }
+                catch (ArgumentOutOfRangeException ex)
+                {
+                    _logger.LogWarning(ex, "Unable to create a DateTimeOffset for the highest due of homeworks! Skipped");
+                    continue;
+                }
 
                 try
                 {

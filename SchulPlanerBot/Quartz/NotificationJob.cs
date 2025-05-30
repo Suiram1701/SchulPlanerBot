@@ -77,8 +77,7 @@ internal sealed class NotificationJob(
                     text: message,
                     embeds: [overviewEmbed],
                     components: selectComp,
-                    allowedMentions: new AllowedMentions(AllowedMentionTypes.Users),
-                    flags: MessageFlags.SuppressNotification)
+                    allowedMentions: new AllowedMentions(AllowedMentionTypes.Users))
                     .ConfigureAwait(false);
             }
             else if (_manager.Options.MessageWhenNoHomework)
