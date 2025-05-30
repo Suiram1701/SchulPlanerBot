@@ -27,7 +27,7 @@ public static class Program
         builder.AddBotDatabase(KnownResourceNames.BotDatabase);
         builder.Services
             .AddDatabaseManagers()
-            .AddHostedService<RegisterTriggers>();
+            .AddSingleton<IgnoringService>();
 
         builder.Services
             .AddQuartz(options => ConfigureQuartz(options, builder.Configuration))
@@ -35,7 +35,8 @@ public static class Program
             {
                 options.AwaitApplicationStarted = true;
                 options.WaitForJobsToComplete = true;
-            });
+            })
+            .AddHostedService<RegisterTriggers>();
 
         builder.Services.AddLocalization(options => options.ResourcesPath = "Localization");
         builder.Services.AddDiscordSocketClient("DiscordClient")
@@ -78,12 +79,12 @@ public static class Program
 #else
                 $"{appName.Version}-dev"
 #endif
-
                 );
         });
 
         app.MapDefaultEndpoints(always: true);     // Ok to register every endpoint because this container isn't exposed
-
+        app.MapApiEndpoints();
+        
         app.Run();
     }
 

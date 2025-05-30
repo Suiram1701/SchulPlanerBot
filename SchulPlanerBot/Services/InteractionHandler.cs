@@ -25,9 +25,10 @@ internal sealed class InteractionHandler : BackgroundService
     private readonly DiscordClientOptions _options;
     private readonly DiscordSocketClient _client;
     private readonly InteractionService _interaction;
+    private readonly IgnoringService _ignoringService;
 
     private readonly ActivitySource _activitySource = new(ActivitySourceName);
-
+    
     public InteractionHandler(
         IHost host,
         IHostEnvironment environment,
@@ -37,7 +38,8 @@ internal sealed class InteractionHandler : BackgroundService
         IStringLocalizer<InteractionHandler> localizer,
         IOptions<DiscordClientOptions> optionsAccessor,
         DiscordSocketClient client,
-        InteractionService interaction)
+        InteractionService interaction,
+        IgnoringService ignoringService)
     {
         _host = host;
         _environment = environment;
@@ -48,6 +50,7 @@ internal sealed class InteractionHandler : BackgroundService
         _options = optionsAccessor.Value;
         _client = client;
         _interaction = interaction;
+        _ignoringService = ignoringService;
 
         _client.MessageReceived += Client_MessageReceivedAsync;
         _client.InteractionCreated += Client_InteractionCreatedAsync;
@@ -118,17 +121,28 @@ internal sealed class InteractionHandler : BackgroundService
 
         if (_environment.IsDevelopment() && _options.TestGuild is not null && interaction.GuildId != _options.TestGuild)
         {
-            _logger.LogWarning("Interaction cancelled! Sent from non-test channel {guildId} during development!", interaction.GuildId);
-
-            string message = Utils.UseAnsiFormat(
-                MessageWithEmote("warning", "Cannot execute interactions outside of the development guild during dev environment!"),
-                Utils.AnsiColor.Yellow);
-            await interaction.RespondAsync(message).ConfigureAwait(false);
-
+            _logger.LogInformation("Interaction cancelled! Sent from non-test guild {guildId} during development!", interaction.GuildId);
+            
             activity?.Dispose();
             return;
         }
 
+        if (_ignoringService.IsIgnoredUser(interaction.User.Id))
+        {
+            _logger.LogInformation("Interaction cancelled! Sent from ignored user {userId}!", interaction.User.Id);
+            
+            activity?.Dispose();
+            return;
+        }
+        
+        if (interaction.GuildId is not null && _ignoringService.IsIgnoredGuild(interaction.GuildId.Value))
+        {
+            _logger.LogInformation("Interaction cancelled! Sent from ignored user {guildId}!", interaction.GuildId);
+            
+            activity?.Dispose();
+            return;
+        }
+        
         // Required by IStringLocalizer and Humanizer
         CultureInfo userCulture = new(interaction.UserLocale);
         Utils.SetCulture(userCulture);
