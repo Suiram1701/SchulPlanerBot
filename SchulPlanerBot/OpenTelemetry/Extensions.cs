@@ -9,7 +9,7 @@ public static class Extensions
     public static TracerProviderBuilder AddBotInstrumentation(this TracerProviderBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        return builder.AddSource(DatabaseStartup.ActivitySourceName, RegisterTriggers.ActivitySourceName);
+        return builder.AddSource(DatabaseMigrator.ActivitySourceName, RegisterTriggers.ActivitySourceName);
     }
 
     public static TracerProviderBuilder AddDiscordNetInstrumentation(this TracerProviderBuilder builder)

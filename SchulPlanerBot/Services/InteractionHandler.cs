@@ -16,7 +16,6 @@ internal sealed class InteractionHandler : BackgroundService
 {
     public const string ActivitySourceName = "Discord.InteractionHandler";
 
-    private readonly IHost _host;
     private readonly IHostEnvironment _environment;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger _logger;
@@ -26,11 +25,11 @@ internal sealed class InteractionHandler : BackgroundService
     private readonly DiscordSocketClient _client;
     private readonly InteractionService _interaction;
     private readonly IgnoringService _ignoringService;
+    private readonly DatabaseMigrator _dbMigrator;
 
     private readonly ActivitySource _activitySource = new(ActivitySourceName);
     
     public InteractionHandler(
-        IHost host,
         IHostEnvironment environment,
         IServiceScopeFactory scopeFactory,
         ILogger<InteractionHandler> logger,
@@ -39,9 +38,9 @@ internal sealed class InteractionHandler : BackgroundService
         IOptions<DiscordClientOptions> optionsAccessor,
         DiscordSocketClient client,
         InteractionService interaction,
-        IgnoringService ignoringService)
+        IgnoringService ignoringService,
+        DatabaseMigrator dbMigrator)
     {
-        _host = host;
         _environment = environment;
         _scopeFactory = scopeFactory;
         _logger = logger;
@@ -51,7 +50,8 @@ internal sealed class InteractionHandler : BackgroundService
         _client = client;
         _interaction = interaction;
         _ignoringService = ignoringService;
-
+        _dbMigrator = dbMigrator;
+        
         _client.MessageReceived += Client_MessageReceivedAsync;
         _client.InteractionCreated += Client_InteractionCreatedAsync;
         _interaction.Log += Interaction_Log;
@@ -60,6 +60,8 @@ internal sealed class InteractionHandler : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
+        await _dbMigrator.MigrationCompleted.ConfigureAwait(false);
+        
         using Activity? activity = _activitySource.StartActivity("Initialize interaction handler");
         using IServiceScope scope = _scopeFactory.CreateScope();
 
@@ -95,7 +97,7 @@ internal sealed class InteractionHandler : BackgroundService
             _logger.LogCritical(ex, "An critical error occurred while registered interaction modules!");
             activity?.AddException(ex);
 
-            await _host.StopAsync(ct).ConfigureAwait(false);     // An error on registration can disturb the whole app
+            throw;
         }
     }
 

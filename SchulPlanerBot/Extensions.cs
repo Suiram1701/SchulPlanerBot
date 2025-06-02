@@ -18,7 +18,7 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionName);
 
-        builder.AddNpgsqlDbContext<BotDbContext>(KnownResourceNames.BotDatabase, configureDbContextOptions: options =>
+        builder.AddNpgsqlDbContext<BotDbContext>(connectionName, configureDbContextOptions: options =>
         {
             if (builder.Environment.IsDevelopment())
             {
@@ -26,8 +26,10 @@ public static class Extensions
                 options.EnableSensitiveDataLogging();
             }
         });
-        builder.Services.AddHostedService<DatabaseStartup>();
-
+        builder.Services
+            .AddSingleton<DatabaseMigrator>()
+            .AddHostedService(sp => sp.GetRequiredService<DatabaseMigrator>());
+        
         return builder;
     }
 

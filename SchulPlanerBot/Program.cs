@@ -90,7 +90,6 @@ public static class Program
 
     private static void ConfigureQuartz(IServiceCollectionQuartzConfigurator options, IConfiguration config)
     {
-
         options.AddJob<NotificationJob>(job => job
             .WithIdentity(Keys.NotificationJob)
             .WithDescription("Notifies users in a text channel at specific times.")
@@ -98,17 +97,7 @@ public static class Program
         options.AddJob<DeleteHomeworksJob>(job => job
             .WithIdentity(Keys.DeleteHomeworksJob)
             .WithDescription("Deletes homeworks of guilds a specific amount of time after their due.")
+            .StoreDurably()
             .DisallowConcurrentExecution());
-
-        TimeSpan interval = config.GetValue<TimeSpan>("DeleteHomeworksJobInterval");
-        options.AddTrigger(trigger => trigger
-            .WithIdentity(Keys.DeleteHomeworksKey)
-            .WithDescription("Triggers this job every in a certain interval.")
-            .ForJob(Keys.DeleteHomeworksJob)
-            .StartAt(DateTimeOffset.UtcNow.AddMinutes(1))     // Give the DB time to initialize
-            .WithSimpleSchedule(scheduler => scheduler
-                .WithInterval(interval)
-                .RepeatForever()
-                .WithMisfireHandlingInstructionFireNow()));
     }
 }

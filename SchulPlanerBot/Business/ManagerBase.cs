@@ -18,7 +18,7 @@ public abstract class ManagerBase(ILogger logger, IOptions<ManagerOptions> optio
         Guild? guild = await _dbContext.Guilds.FindAsync([guildId], ct).AsTask().ConfigureAwait(false);
         if (guild is null)
         {
-            guild = new()
+            guild = new Guild()
             {
                 Id = guildId,
                 DeleteHomeworksAfterDue = Options.MaxDeleteHomeworksAfterDue

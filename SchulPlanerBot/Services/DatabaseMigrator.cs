@@ -5,18 +5,21 @@ using System.Diagnostics;
 
 namespace SchulPlanerBot.Services;
 
-public sealed class DatabaseStartup(IServiceScopeFactory scopeFactory, ILogger<DatabaseStartup> logger) : BackgroundService
+internal sealed class DatabaseMigrator(IServiceScopeFactory scopeFactory, ILogger<DatabaseMigrator> logger) : BackgroundService
 {
-    public const string ActivitySourceName = "Bot.DatabaseInitialization";
-
     private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
     private readonly ILogger _logger = logger;
 
     private readonly ActivitySource _activitySource = new(ActivitySourceName);
-
+    private readonly TaskCompletionSource _completionSource = new();
+    
+    public Task MigrationCompleted => _completionSource.Task;
+    
+    public const string ActivitySourceName = "Bot.DatabaseMigration";
+    
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        using Activity? activity = _activitySource.StartActivity("Initialize database");
+        using Activity? activity = _activitySource.StartActivity("Migrate database");
         using IServiceScope scope = _scopeFactory.CreateScope();
 
         var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
@@ -36,6 +39,8 @@ public sealed class DatabaseStartup(IServiceScopeFactory scopeFactory, ILogger<D
         {
             _logger.LogInformation("Database is up to date");
         }
+
+        _completionSource.SetResult();
     }
 
     public override void Dispose()
