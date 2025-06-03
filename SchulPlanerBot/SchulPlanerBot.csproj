@@ -37,5 +37,16 @@
   <ItemGroup>
 	<Compile Include="..\Shared\KnownResourceNames.cs" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Localization\Services\PmMessageService.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>PmMessageService.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Localization\Services\PmMessageService.de.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>PmMessageService.de.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 	
 </Project>

@@ -95,39 +95,18 @@ internal sealed class NotificationJob(
         }
     }
 
-    private async Task<ITextChannel> ThrowWhenNotFoundAsync(IGuild guild, ulong textChannelId)
+    private static async Task<ITextChannel> ThrowWhenNotFoundAsync(IGuild guild, ulong textChannelId)
     {
         ITextChannel? channel = await guild.GetTextChannelAsync(textChannelId).ConfigureAwait(false);
-        if (channel is not null)
-            return channel;
-
-        _logger.LogWarning("Unable to retrieve the notification text channel for guild '{guildId}! Removing notification triggers...", guild.Id);
-
-        Notification[] notifications = [.. await _manager.GetNotificationsAsync(guild.Id).ConfigureAwait(false)];
-        foreach (Notification notification in notifications)
+        if (channel is null)
         {
-            try
+            throw new JobExecutionException("Unable to retrieve notification channel for guild!")
             {
-                await _manager.RemoveNotificationAsync(guild.Id, notification.StartAt).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An unexpected error occurred while removing notification!");
-            }
+                UnscheduleFiringTrigger = true
+            };
         }
 
-        IUser owner = await guild.GetOwnerAsync().ConfigureAwait(false);
-        await owner.SendMessageAsync(_localizer[
-            "channelNotFound",
-            $"{guild.Name} ({guild.Id})",
-            MentionUtils.MentionChannel(textChannelId),
-            string.Join(", ", notifications.Select(n => n.StartAt.ToString("g")))
-            ]).ConfigureAwait(false);
-
-        throw new JobExecutionException("Unable to retrieve notification channel for guild!")
-        {
-            UnscheduleFiringTrigger = true
-        };
+        return channel;
     }
 
     private bool ShouldNotify(HomeworkSubscription subscription, IEnumerable<Homework> homeworks)

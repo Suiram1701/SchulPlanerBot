@@ -30,7 +30,7 @@ public static class Program
             .AddSingleton<IgnoringService>();
 
         builder.Services
-            .AddQuartz(options => ConfigureQuartz(options, builder.Configuration))
+            .AddQuartz(ConfigureQuartz)
             .AddQuartzServer(options =>
             {
                 options.AwaitApplicationStarted = true;
@@ -48,6 +48,7 @@ public static class Program
                 service.AddComponentTypeConverter<DateTimeOffset>(new DateTimeOffsetComponentConverter());
             })
             .AddInteractionResXLocalization<ISchulPlanerBot>(_commandsLocalizationResource, SupportedCultures)
+            .AddActivatedSingleton<PmMessageService>()
             .AddTransient<EmbedsService>()
             .AddTransient<ComponentService>();
         builder.Services.AddMemoryCache();
@@ -88,7 +89,7 @@ public static class Program
         app.Run();
     }
 
-    private static void ConfigureQuartz(IServiceCollectionQuartzConfigurator options, IConfiguration config)
+    private static void ConfigureQuartz(IServiceCollectionQuartzConfigurator options)
     {
         options.AddJob<NotificationJob>(job => job
             .WithIdentity(Keys.NotificationJob)

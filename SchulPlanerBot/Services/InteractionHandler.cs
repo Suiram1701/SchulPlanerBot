@@ -52,7 +52,6 @@ internal sealed class InteractionHandler : BackgroundService
         _ignoringService = ignoringService;
         _dbMigrator = dbMigrator;
         
-        _client.MessageReceived += Client_MessageReceivedAsync;
         _client.InteractionCreated += Client_InteractionCreatedAsync;
         _interaction.Log += Interaction_Log;
         _interaction.InteractionExecuted += Interaction_InteractionExecutedAsync;
@@ -100,16 +99,7 @@ internal sealed class InteractionHandler : BackgroundService
             throw;
         }
     }
-
-    private async Task Client_MessageReceivedAsync(SocketMessage message)
-    {
-        // Message is sent by a user (except for the bot its self) in a private way (not from a guild)
-        if (message is IUserMessage && !message.Author.IsBot && message.Channel is IPrivateChannel)
-        {
-            await message.Channel.SendMessageAsync(_localizer["dmResponse"]).ConfigureAwait(false);
-        }
-    }
-
+    
     private async Task Client_InteractionCreatedAsync(SocketInteraction interaction)
     {
         Activity.Current = null;     // This activity doesn't have a parent
@@ -172,10 +162,10 @@ internal sealed class InteractionHandler : BackgroundService
 
     private async Task Interaction_InteractionExecutedAsync(ICommandInfo command, IInteractionContext context, IResult result)
     {
-        if (!result.IsSuccess && result.Error is not null)
+        if (result is { IsSuccess: false, Error: not null })
         {
             string responseMessage = MessageWithEmote("exclamation", _localizer["errorResponse.unknown"]);
-            Utils.AnsiColor responseColor = Utils.AnsiColor.Red;
+            var responseColor = Utils.AnsiColor.Red;
             switch (result)
             {
                 case ExecuteResult executeResult and { Error: InteractionCommandError.Exception }:
@@ -213,7 +203,6 @@ internal sealed class InteractionHandler : BackgroundService
         base.Dispose();
         _activitySource.Dispose();
 
-        _client.MessageReceived -= Client_MessageReceivedAsync;
         _client.InteractionCreated -= Client_InteractionCreatedAsync;
         _interaction.Log -= Interaction_Log;
         _interaction.InteractionExecuted -= Interaction_InteractionExecutedAsync;

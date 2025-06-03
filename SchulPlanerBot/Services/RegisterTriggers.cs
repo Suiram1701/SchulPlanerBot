@@ -2,7 +2,6 @@
 using SchulPlanerBot.Business.Models;
 using System.Diagnostics;
 using Quartz;
-using SchulPlanerBot.Options;
 using SchulPlanerBot.Quartz;
 
 namespace SchulPlanerBot.Services;

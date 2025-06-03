@@ -15,7 +15,11 @@ public static class Extensions
     public static TracerProviderBuilder AddDiscordNetInstrumentation(this TracerProviderBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        return builder.AddSource(DiscordClientManager.ActivitySourceName, DiscordClientMetrics.ActivitySourceName, InteractionHandler.ActivitySourceName);
+        return builder.AddSource(
+            DiscordClientManager.ActivitySourceName,
+            DiscordClientMetrics.ActivitySourceName,
+            PmMessageService.ActivitySourceName,
+            InteractionHandler.ActivitySourceName);
     }
 
     public static MeterProviderBuilder AddDiscordNetInstrumentation(this MeterProviderBuilder builder)

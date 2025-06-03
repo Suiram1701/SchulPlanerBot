@@ -109,7 +109,4 @@
   <data name="errorResponse.typeConverter" xml:space="preserve">
     <value>Ein angegebener Befehlsparameter konnte nicht gelesen werden: {0}.</value>
   </data>
-  <data name="dmResponse" xml:space="preserve">
-    <value>Dieser Bot **muss** auf Servern verwendet werden! Nachrichten in PNs tun nichts.</value>
-  </data>
 </root>
