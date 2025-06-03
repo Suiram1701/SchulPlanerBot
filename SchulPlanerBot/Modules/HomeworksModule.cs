@@ -35,7 +35,7 @@ public sealed class HomeworksModule(
     private readonly EmbedsService _embedsService = embedsService;
     private readonly ComponentService _componentService = componentService;
 
-    public SocketUser User => Context.User;
+    private SocketUser User => Context.User;
 
     private SocketGuild Guild => Context.Guild;
 
@@ -47,7 +47,7 @@ public sealed class HomeworksModule(
         start ??= DateTimeOffset.UtcNow;
         end ??= DateTimeOffset.UtcNow.AddDays(7);
 
-        Homework[] homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, search, subject, start.Value.ToUniversalTime(), end.Value.ToUniversalTime(), CancellationToken).ConfigureAwait(false);
+        Homework[] homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, search, subject, start, end, CancellationToken).ConfigureAwait(false);
         homeworks = [.. homeworks.OrderBy(h => h.Due)];
 
         if (homeworks.Length > 0)
@@ -115,7 +115,7 @@ public sealed class HomeworksModule(
         (Homework? homework, UpdateResult creationResult) = await _homeworkManager.CreateHomeworkAsync(
             Guild.Id,
             User.Id,
-            homeworkModal.Due.ToUniversalTime(),
+            homeworkModal.Due.ToLocalTime(),
             homeworkModal.Subject,
             homeworkModal.Title,
             homeworkModal.Details,
@@ -153,7 +153,7 @@ public sealed class HomeworksModule(
 
         HomeworkModal modal = new()
         {
-            Due = homework.Due,
+            Due = homework.Due.ToLocalTime(),
             Subject = homework.Subject,
             Title = homework.Title,
             Details = homework.Details

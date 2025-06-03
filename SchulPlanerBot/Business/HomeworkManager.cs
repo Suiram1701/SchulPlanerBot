@@ -10,7 +10,7 @@ namespace SchulPlanerBot.Business;
 public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<ManagerOptions> optionsAccessor, BotDbContext dbContext, ErrorService errorService)
     : ManagerBase(logger, optionsAccessor, dbContext, errorService)
 {
-    public StringComparer SubjectNameComparer => Options.SubjectsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+    private StringComparer SubjectNameComparer => Options.SubjectsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
     public Task<Homework?> GetHomeworkAsync(ulong guildId, Guid id, CancellationToken ct = default)
     {
@@ -22,9 +22,12 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
 
     public async Task<Homework[]> GetHomeworksAsync(ulong guildId, string? search = null, string? subject = null, DateTimeOffset? start = null, DateTimeOffset? end = null, CancellationToken ct = default)
     {
+        start = start?.ToUniversalTime();
         start ??= DateTimeOffset.MinValue;
+        
+        end = end?.ToUniversalTime();
         end ??= DateTimeOffset.MaxValue;
-
+        
         IQueryable<Homework> query = _dbContext.Homeworks
             .AsNoTracking()
             .Where(h => h.GuildId == guildId)
@@ -51,6 +54,8 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
 
     public async Task<(Homework? homework, UpdateResult result)> CreateHomeworkAsync(ulong guildId, ulong userId, DateTimeOffset due, string? subject, string title, string? details, CancellationToken ct = default)
     {
+        due = due.ToUniversalTime();
+        
         if (due <= DateTimeOffset.UtcNow.Add(Options.MinDueInFuture))
             return (null, _errorService.DueMustInFuture(Options.MinDueInFuture));
 
@@ -74,6 +79,8 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
 
     public async Task<(Homework? homework, UpdateResult result)> ModifyHomeworkAsync(Guid homeworkId, ulong userId, DateTimeOffset newDue, string? newSubject, string newTitle, string? newDetails, CancellationToken ct = default)
     {
+        newDue = newDue.ToUniversalTime();
+        
         if (newDue <= DateTimeOffset.UtcNow.Add(Options.MinDueInFuture))
             return (null, _errorService.DueMustInFuture(Options.MinDueInFuture));
 
@@ -105,6 +112,8 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
 
     public async Task<(int? deleted, UpdateResult)> DeleteHomeworksWithDueOlderAsync(ulong guildId, DateTimeOffset dateTime, CancellationToken ct = default)
     {
+        dateTime = dateTime.ToUniversalTime();
+        
         int count = await _dbContext.Homeworks
             .Where(h => h.GuildId == guildId && h.Due <= dateTime)
             .ExecuteDeleteAsync(ct)

@@ -15,7 +15,7 @@ public class HomeworkModal : IModal
 
     [RequiredInput]
     [InputLabel("Due date")]
-    [ModalTextInput(ComponentIds.HomeworkModal.DueDate, placeholder: "20.01.2020", maxLength: 19)]     // 19 is the max length using the format 'dd.mm.yyyy hh:MM:ss'
+    [ModalTextInput(ComponentIds.HomeworkModal.DueDate, placeholder: "20.01.2020", maxLength: 26)]     // 26 is the max length using the format 'dd.mm.yyyy hh:MM:ss +00:00'
     public DateTimeOffset Due { get; set; } = default!;
 
     [RequiredInput]

@@ -23,7 +23,7 @@ internal sealed class DeleteHomeworksJob(ILogger<DeleteHomeworksJob> logger, Sch
                 }
                 catch (ArgumentOutOfRangeException ex)
                 {
-                    _logger.LogWarning(ex, "Unable to create a DateTimeOffset for the highest due of homeworks! Skipped");
+                    _logger.LogWarning(ex, "Unable to create a DateTimeOffset for the highest due of homeworks! Skipped cleanup for guild {guildId}", guild.Id);
                     continue;
                 }
 
