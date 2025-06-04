@@ -32,17 +32,17 @@ internal sealed class RegisterTriggers(ILogger<RegisterTriggers> logger, IServic
         {
             KeyValuePair<string, object?>[] tags = [
                 KeyValuePair.Create<string, object?>("guild.id", guildId),
-                KeyValuePair.Create<string, object?>("notification.startAt", notification.StartAt)
+                KeyValuePair.Create<string, object?>("notification.channelId", notification.ChannelId)
             ];
 
             try
             {
-                await manager.AddNotificationToSchedulerAsync(guildId, notification, ct).ConfigureAwait(false);
+                await manager.AddNotificationToSchedulerAsync(notification, ct).ConfigureAwait(false);
                 activity?.AddEvent(new ActivityEvent(name: "Added trigger", tags: [.. tags]));
             }
             catch (Exception ex)
             {
-                activity?.AddException(ex, new TagList(tags));
+                activity?.AddException(ex, new(tags));
                 _logger.LogCritical(ex, "An error occurred while adding a notification trigger!");
             }
         }

@@ -6,7 +6,7 @@ namespace SchulPlanerBot.Business;
 public class BotDbContext(DbContextOptions options) : DbContext(options)
 {
     public DbSet<Guild> Guilds => Set<Guild>();
-
+    
     public DbSet<Homework> Homeworks => Set<Homework>();
 
     public DbSet<HomeworkSubscription> HomeworkSubscriptions => Set<HomeworkSubscription>();
@@ -21,8 +21,20 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
             builder.Property(g => g.NotificationLocale).HasMaxLength(5);     // Max length in format 'en-US'
             builder.Property(g => g.DeleteHomeworksAfterDue).IsRequired();
 
-            builder.OwnsMany(g => g.Notifications).ToJson();
-
+            builder
+                .OwnsMany<Notification>(g => g.Notifications, navigationBuilder =>
+                {
+                    navigationBuilder.HasKey(n => new { n.GuildId, n.ChannelId });
+                    navigationBuilder.WithOwner().HasForeignKey(n => n.GuildId);
+                
+                    navigationBuilder.Property(n => n.GuildId).IsRequired();
+                    navigationBuilder.Property(n => n.ChannelId).IsRequired();
+                    navigationBuilder.Property(n => n.CronExpression).HasMaxLength(256).IsRequired();     // IDK how long they can be but just to be future-proof
+                    navigationBuilder.Property(n => n.ObjectsIn);
+                })
+                .Navigation(g => g.Notifications)
+                .AutoInclude();
+            
             builder.HasMany<Homework>()
                 .WithOne()
                 .HasForeignKey(h => h.GuildId)
@@ -34,7 +46,7 @@ public class BotDbContext(DbContextOptions options) : DbContext(options)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
         });
-
+        
         modelBuilder.Entity<Homework>(builder =>
         {
             builder.HasKey(h => h.Id);

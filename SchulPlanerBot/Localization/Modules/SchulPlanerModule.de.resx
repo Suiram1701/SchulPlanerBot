@@ -98,10 +98,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="notification.removed" xml:space="preserve">
-    <value>Benachrichtigungen ab dem {0} entfernt.</value>
+	  <value>Benachrichtigungen im Kanal {0} entfernt.</value>
   </data>
   <data name="notification.added" xml:space="preserve">
-    <value>Benachrichtige alle {1} ab dem {2} in {0}.</value>
+	  <value>Benachrichtige das nächste mal am {1} in Kanal {0}.</value>
   </data>
   <data name="settings.locale" xml:space="preserve">
     <value>Sprache: {0}</value>
@@ -125,6 +125,9 @@
     <value>Benachrichtigungen: Keine</value>
   </data>
   <data name="settings.notification.item" xml:space="preserve">
-    <value>Ab dem {0} alle {1} im Kanal {2}</value>
+	  <value>Nächtes auslösen am {1} in {2} (Ausdruck: `{0}`) mit Objekten bis zur nächsten Benachrichtigung.</value>
+  </data>
+  <data name="settings.notification.item-objectsIn" xml:space="preserve">
+	  <value>Nächtes auslösen am {1} in {2} (Ausdruck: `{0}`) mit Objekten für die nächsten {3}.</value>
   </data>
 </root>

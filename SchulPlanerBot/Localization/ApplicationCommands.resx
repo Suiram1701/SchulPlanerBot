@@ -127,18 +127,6 @@
   <data name="schulplaner.add-notification.description" xml:space="preserve">
     <value>Adds a notification with certain parameters to this guild.</value>
   </data>
-  <data name="schulplaner.add-notification.start.name" xml:space="preserve">
-    <value>start</value>
-  </data>
-  <data name="schulplaner.add-notification.start.description" xml:space="preserve">
-    <value>The date time when the notification will begin. E.g.: 01.01.2020 10:00 or just 10:00.</value>
-  </data>
-  <data name="schulplaner.add-notification.between.name" xml:space="preserve">
-    <value>between</value>
-  </data>
-  <data name="schulplaner.add-notification.between.description" xml:space="preserve">
-    <value>The time between each of this notifications. E.g.: 1d.</value>
-  </data>
   <data name="schulplaner.add-notification.objects-in.name" xml:space="preserve">
     <value>objects-in</value>
   </data>
@@ -156,12 +144,6 @@
   </data>
   <data name="schulplaner.remove-notification.description" xml:space="preserve">
     <value>Removes a single notification from this guild.</value>
-  </data>
-  <data name="schulplaner.remove-notification.start.name" xml:space="preserve">
-    <value>start</value>
-  </data>
-  <data name="schulplaner.remove-notification.start.description" xml:space="preserve">
-    <value>The date time where the notification to remove starts.</value>
   </data>
   <data name="schulplaner.delete-homeworks.name" xml:space="preserve">
     <value>delete-homeworks</value>
@@ -300,5 +282,17 @@
   </data>
   <data name="help.description" xml:space="preserve">
     <value>Retrieves information for help with this bot.</value>
+  </data>
+  <data name="schulplaner.add-notification.cron.name" xml:space="preserve">
+    <value>cron-expression</value>
+  </data>
+  <data name="schulplaner.add-notification.cron.description" xml:space="preserve">
+    <value>An expression which specifies when the notification should be done. Isn't the regular UNIX style.</value>
+  </data>
+  <data name="schulplaner.remove-notification.channel.name" xml:space="preserve">
+    <value>channel</value>
+  </data>
+  <data name="schulplaner.remove-notification.channel.description" xml:space="preserve">
+    <value>The channel whose notification should be removed.</value>
   </data>
 </root>

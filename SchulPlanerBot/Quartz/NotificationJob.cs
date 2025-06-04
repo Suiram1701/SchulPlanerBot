@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Localization;
 using Quartz;
@@ -31,34 +30,25 @@ internal sealed class NotificationJob(
         try
         {
             // Preparing
-            if (!(context.MergedJobDataMap.TryGetString(Keys.GuildIdData, out string? guildIdStr) && ulong.TryParse(guildIdStr, out ulong guildId)))
-                throw new JobExecutionException($"Unable to retrieve the required job data '{Keys.GuildIdData}'!") { UnscheduleFiringTrigger = true };     // Should never happen
-
             if (!(context.MergedJobDataMap.TryGetValue(Keys.NotificationData, out object value) && value is Notification notification))
                 throw new JobExecutionException($"Unable to retrieve the required job data '{Keys.NotificationData}'!") { UnscheduleFiringTrigger = true };     // Should never happen
 
-            Guild guild = await _manager.GetGuildAsync(guildId, context.CancellationToken).ConfigureAwait(false);
-            if (guild.NotificationCulture is not null)
-            {
-                Utils.SetCulture(guild.NotificationCulture);
-            }
-            else
-            {
-                RestGuild restGuild = await _client.Rest.GetGuildAsync(guildId).ConfigureAwait(false);
-                Utils.SetCulture(restGuild.PreferredCulture);
-            }
+            SocketGuild socketGuild = _client.GetGuild(notification.GuildId);
+            Guild guild = await _manager.GetGuildAsync(notification.GuildId, context.CancellationToken).ConfigureAwait(false);
+            Utils.SetCulture(guild.NotificationCulture ?? socketGuild.PreferredCulture);
 
-            SocketGuild socketGuild = _client.GetGuild(guildId);
             ITextChannel textChannel = await ThrowWhenNotFoundAsync(socketGuild, notification.ChannelId).ConfigureAwait(false);
-
+            
             // Real notification part
-            DateTimeOffset endDateTime = DateTimeOffset.UtcNow + notification.ObjectsIn;
-            IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(guildId, start: DateTime.UtcNow, end: endDateTime, ct: context.CancellationToken).ConfigureAwait(false);
+            DateTimeOffset endDateTime = notification.ObjectsIn is not null
+                ? DateTimeOffset.UtcNow + notification.ObjectsIn.Value
+                : notification.GetNextFiring();
+            IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(notification.GuildId, start: DateTime.UtcNow, end: endDateTime, ct: context.CancellationToken).ConfigureAwait(false);
             Homework[] orderedHomeworks = [.. homeworks.OrderBy(h => h.Due)];
 
             if (orderedHomeworks.Length != 0)
             {
-                IEnumerable<HomeworkSubscription> userSubscriptions = await _homeworkManager.GetSubscriptionsAsync(guildId, context.CancellationToken).ConfigureAwait(false);
+                IEnumerable<HomeworkSubscription> userSubscriptions = await _homeworkManager.GetSubscriptionsAsync(notification.GuildId, context.CancellationToken).ConfigureAwait(false);
                 ulong[] usersToMention = [.. userSubscriptions
                     .Where(s => ShouldNotify(s, orderedHomeworks))
                     .Select(s => s.UserId)];

@@ -262,23 +262,11 @@
   <data name="schulplaner.add-notification.name" xml:space="preserve">
     <value>benachrichtigung-hinzufügen</value>
   </data>
-  <data name="schulplaner.add-notification.start.name" xml:space="preserve">
-    <value>start</value>
-  </data>
-  <data name="schulplaner.add-notification.between.name" xml:space="preserve">
-    <value>dazwischen</value>
-  </data>
   <data name="schulplaner.add-notification.channel.name" xml:space="preserve">
     <value>kanal</value>
   </data>
   <data name="schulplaner.add-notification.description" xml:space="preserve">
     <value>Fügt eine Benachrichtigung mit bestimmten Parametern hinzu.</value>
-  </data>
-  <data name="schulplaner.add-notification.start.description" xml:space="preserve">
-    <value>Datum und Uhrzeit, wann die Benachrichtigungen beginnen sollen. z.B.: 01.01.2020 10:00 oder 10:00.</value>
-  </data>
-  <data name="schulplaner.add-notification.between.description" xml:space="preserve">
-    <value>Die Zeit zwischen jeder dieser Benachrichtigungen. z.B.: 1d.</value>
   </data>
   <data name="schulplaner.add-notification.channel.description" xml:space="preserve">
     <value>Der Kanal in dem die Benachrichtigungen geposted werden sollen. Muss ein Textkanal sein.</value>
@@ -289,16 +277,22 @@
   <data name="schulplaner.remove-notification.description" xml:space="preserve">
     <value>Entfernt eine Benachrichtigung von diesem Server.</value>
   </data>
-  <data name="schulplaner.remove-notification.start.name" xml:space="preserve">
-    <value>start</value>
-  </data>
-  <data name="schulplaner.remove-notification.start.description" xml:space="preserve">
-    <value>Das Datum und die Uhrzeit, wo die zu entfernende Benachrichtigung startet.</value>
-  </data>
   <data name="schulplaner.add-notification.objects-in.name" xml:space="preserve">
     <value>objekte-in</value>
   </data>
   <data name="schulplaner.add-notification.objects-in.description" xml:space="preserve">
     <value>Die maximale Fälligkeit von Objekten (Hausaufgaben, usw.) von der Benachrichtigung aus. z.B.: 1d.</value>
+  </data>
+  <data name="schulplaner.add-notification.cron.name" xml:space="preserve">
+    <value>cron-ausdruck</value>
+  </data>
+  <data name="schulplaner.add-notification.cron.description" xml:space="preserve">
+    <value>Ein Ausdruck, der angibt wann die Benachrichtigung gemacht werden soll. Weicht vom UNIX Still ab.</value>
+  </data>
+  <data name="schulplaner.remove-notification.channel.name" xml:space="preserve">
+    <value>kanal</value>
+  </data>
+  <data name="schulplaner.remove-notification.channel.description" xml:space="preserve">
+    <value>Der Kanal dessen Benachrichtigung entfernt werden soll.</value>
   </data>
 </root>

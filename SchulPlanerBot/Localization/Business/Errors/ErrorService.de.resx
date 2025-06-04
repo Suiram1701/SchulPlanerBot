@@ -97,9 +97,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="lowTimeBetween" xml:space="preserve">
-    <value>Die Zeit zwischen den Benachrichtigungen muss mindestens {0} betragen!</value>
-  </data>
   <data name="dueTooLow" xml:space="preserve">
     <value>Das angegebene Fälligkeitsdatum muss mindestens {0} in der Zukunft liegen!</value>
   </data>
@@ -110,12 +107,15 @@
     <value>Hausaufgaben müssen spätestens {0} nach deren Fälligkeit gelöscht werden. Der angegeben Wert ist zu groß!</value>
   </data>
   <data name="notificationAlreadyExists" xml:space="preserve">
-    <value>Eine Benachrichtigung, die an diesem Zeitpunkt startet existiert bereits! Bitte verwenden Sie einen anderen Startpunkt.</value>
+	  <value>Eine Benachrichtigung, die in diesem Kanal durchgeführt wird gibt es bereits.</value>
   </data>
   <data name="notificationNotFound" xml:space="preserve">
-    <value>Eine Benachrichtigung, die an diesem Zeitpunkt startet konnte nicht gefunden werden!</value>
+	  <value>Eine Benachrichtigung in diesem Kanal konnte nicht gefunden werden!</value>
   </data>
-  <data name="objectsInLowerThanBetween" xml:space="preserve">
-    <value>Der Parameter objekte-in muss gleich oder größer sein, als dazwischen.</value>
+  <data name="notificationCronExpInvalid" xml:space="preserve">
+	  <value>Der Cron-Ausdruck `{0}` is ungültig!</value>
+  </data>
+  <data name="notificationCronExpInvalid-help" xml:space="preserve">
+	  <value>Der Cron-Ausdruck `{0}` is ungültig! Ziehen Sie in betracht [dieses]({1}) Tool zu verwenden um einen Ausdruck zu erstellen.</value>
   </data>
 </root>

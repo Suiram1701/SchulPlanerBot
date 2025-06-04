@@ -1,3 +1,17 @@
-﻿namespace SchulPlanerBot.Business.Models;
+﻿using Quartz;
 
-public record Notification(DateTimeOffset StartAt, TimeSpan Between, TimeSpan ObjectsIn, ulong ChannelId);
+namespace SchulPlanerBot.Business.Models;
+
+public class Notification
+{
+    public ulong GuildId { get; set; }
+    
+    public ulong ChannelId { get; set; }
+    
+    public string CronExpression { get; set; } = string.Empty;
+
+    public DateTimeOffset GetNextFiring() =>
+        new CronExpression(CronExpression).GetNextValidTimeAfter(DateTimeOffset.Now)!.Value;
+    
+    public TimeSpan? ObjectsIn { get; set; }
+}

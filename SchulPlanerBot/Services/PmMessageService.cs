@@ -1,7 +1,5 @@
 using System.Diagnostics;
-using System.Net.Sockets;
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Localization;
 using SchulPlanerBot.Business;
@@ -58,8 +56,8 @@ internal sealed class PmMessageService : IDisposable
                 textChannel.Id,
                 guild.Id);
             
-            await manager.RemoveNotificationFromSchedulerAsync(guild.Id, notification, CancellationToken.None).ConfigureAwait(false);
-            UpdateResult removeResult = await manager.RemoveNotificationAsync(guild.Id, notification.StartAt).ConfigureAwait(false);
+            await manager.RemoveNotificationFromSchedulerAsync(notification, CancellationToken.None).ConfigureAwait(false);
+            UpdateResult removeResult = await manager.RemoveNotificationAsync(guild.Id, notification.ChannelId).ConfigureAwait(false);
             if (!removeResult.Success)
             {
                 string errorsStr = string.Join(", ", removeResult.Errors.Select(e => e.Name));

@@ -107,7 +107,7 @@
     <value>Notifications:</value>
   </data>
   <data name="settings.notification.item" xml:space="preserve">
-    <value>Every {1} starting at {0} in channel {2}</value>
+	  <value>Next firing at {1} in {2} (expression: `{0}`) with items until the nex notification.</value>
   </data>
   <data name="settings.notification.none" xml:space="preserve">
     <value>Notifications: None</value>
@@ -119,12 +119,15 @@
     <value>Notification locale updated! Notifications will be made in {0}.</value>
   </data>
   <data name="notification.added" xml:space="preserve">
-    <value>Notifying in channel {0} every {1} starting at {2}.</value>
+      <value>Notifying in channel {0} next {1}.</value>
   </data>
   <data name="notification.removed" xml:space="preserve">
-    <value>Notifications starting from {0} removed.</value>
+	  <value>Notification in channel {0} removed.</value>
   </data>
   <data name="homeworksDeletedAfter.updated" xml:space="preserve">
     <value>Every homework of this guild will be deleted {0} after its due.</value>
+  </data>
+  <data name="settings.notification.item-objectsIn" xml:space="preserve">
+	  <value>Next firing at {1} in {2} (expression: `{0}`) containing items for the next {3}.</value>
   </data>
 </root>

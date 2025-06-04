@@ -70,18 +70,21 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, ISchedulerFa
         return guild.Notifications;
     }
 
-    public async Task<UpdateResult> AddNotificationAsync(ulong guildId, DateTimeOffset startAt, TimeSpan between, TimeSpan objectsIn, ulong channelId, CancellationToken ct = default)
+    public async Task<UpdateResult> AddNotificationAsync(ulong guildId, string cron, TimeSpan? objectsIn, ulong channelId, CancellationToken ct = default)
     {
-        if (between < Options.MinBetweenNotifications)
-            return _errorService.LowTimeBetween(Options.MinBetweenNotifications);
-        else if (objectsIn < between)
-            return _errorService.ObjectsInLowerThanBetween();
-
+        if (!CronExpression.IsValidExpression(cron))
+            return _errorService.InvalidCronExpression(cron);
+        
         Guild guild = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);
-        if (guild.Notifications.All(n => n.StartAt == startAt))
+        if (guild.Notifications.All(n => n.ChannelId != channelId))
         {
-            Notification notification = new(startAt, between, objectsIn, channelId);
-            await AddNotificationToSchedulerAsync(guild.Id, notification, ct).ConfigureAwait(false);     // Call before SaveChanges to ensure exceptions are thrown before the changes are persisted
+            Notification notification = new()
+            {
+                ChannelId = channelId,
+                CronExpression = cron.Trim(),
+                ObjectsIn = objectsIn
+            };
+            await AddNotificationToSchedulerAsync(notification, ct).ConfigureAwait(false);     // Call before SaveChanges to ensure exceptions are thrown before the changes are persisted
 
             guild.Notifications.Add(notification);
             await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -94,14 +97,14 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, ISchedulerFa
         }
     }
 
-    public async Task<UpdateResult> RemoveNotificationAsync(ulong guildId, DateTimeOffset startAt, CancellationToken ct = default)
+    public async Task<UpdateResult> RemoveNotificationAsync(ulong guildId, ulong channelId, CancellationToken ct = default)
     {
         Guild guild = await GetOrAddGuildAsync(guildId, ct).ConfigureAwait(false);
 
-        Notification? notification = guild.Notifications.FirstOrDefault(n => n.StartAt == startAt);
+        Notification? notification = guild.Notifications.FirstOrDefault(n => n.ChannelId == channelId);
         if (notification is not null)
         {
-            await RemoveNotificationFromSchedulerAsync(guild.Id, notification, ct).ConfigureAwait(false);
+            await RemoveNotificationFromSchedulerAsync(notification, ct).ConfigureAwait(false);
 
             guild.Notifications.Remove(notification);
             await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -126,28 +129,22 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, ISchedulerFa
         return UpdateResult.Succeeded();
     }
 
-    internal async Task AddNotificationToSchedulerAsync(ulong guildId, Notification notification, CancellationToken ct)
+    internal async Task AddNotificationToSchedulerAsync(Notification notification, CancellationToken ct)
     {
         Activity? activity = Activity.Current;
         Activity.Current = null;
         IScheduler scheduler = await _schedulerFactory.GetScheduler(ct).ConfigureAwait(false);     // When called the first time no activity must be active because if so it will be the parent of every jobs
         Activity.Current = activity;
 
-        TriggerKey triggerKey = Keys.NotificationTrigger(guildId, notification.StartAt);
+        TriggerKey triggerKey = Keys.NotificationTrigger(notification.GuildId, notification.ChannelId);
         ITrigger trigger = TriggerBuilder.Create()
             .WithIdentity(triggerKey)
             .WithDescription("Notifies users of a certain server at a configured time.")
             .ForJob(Keys.NotificationJob)
-            .UsingJobData(new JobDataMap
-            {
-                { Keys.GuildIdData, guildId.ToString() },
-                { Keys.NotificationData, notification }
-            })
-            .StartAt(notification.StartAt)
-            .WithSimpleSchedule(schedule => schedule
-                .WithInterval(notification.Between)
-                .RepeatForever()
-                .WithMisfireHandlingInstructionNextWithRemainingCount())
+            .UsingJobData(new JobDataMap { { Keys.NotificationData, notification } })
+            .WithCronSchedule(notification.CronExpression, scheduleBuilder => scheduleBuilder
+                .InTimeZone(TimeZoneInfo.Local)
+                .WithMisfireHandlingInstructionIgnoreMisfires())
             .Build();
 
         bool triggerExists = await scheduler.CheckExists(triggerKey, ct).ConfigureAwait(false);
@@ -155,17 +152,17 @@ public class SchulPlanerManager(ILogger<SchulPlanerManager> logger, ISchedulerFa
             ? await scheduler.ScheduleJob(trigger, ct).ConfigureAwait(false)
             : await scheduler.RescheduleJob(triggerKey, trigger, ct).ConfigureAwait(false);
 
-        _logger.LogInformation("Notifications for guild {guildId} scheduled. Next firing at {next}", guildId, nextFiring!);
+        _logger.LogInformation("Notifications for guild {guildId} scheduled. Next firing at {next}", notification.GuildId, nextFiring!);
     }
 
-    internal async Task RemoveNotificationFromSchedulerAsync(ulong guildId, Notification notification, CancellationToken ct)
+    internal async Task RemoveNotificationFromSchedulerAsync(Notification notification, CancellationToken ct)
     {
         IScheduler scheduler = await _schedulerFactory.GetScheduler(ct).ConfigureAwait(false);
 
-        TriggerKey triggerKey = Keys.NotificationTrigger(guildId, notification.StartAt);
+        TriggerKey triggerKey = Keys.NotificationTrigger(notification.GuildId, notification.ChannelId);
         if (await scheduler.UnscheduleJob(triggerKey, ct).ConfigureAwait(false))
-            _logger.LogTrace("Notification for guild {guildId} removed from scheduler (trigger: {triggerKey}).", guildId, triggerKey.ToString());
+            _logger.LogTrace("Notification for guild {guildId} removed from scheduler (trigger: {triggerKey}).", notification.GuildId, triggerKey.ToString());
         else
-            _logger.LogWarning("Failed to remove notification for guild {guildId} from scheduler (trigger: {triggerKey}).", guildId, triggerKey.ToString());
+            _logger.LogWarning("Failed to remove notification for guild {guildId} from scheduler (trigger: {triggerKey}).", notification.GuildId, triggerKey.ToString());
     }
 }

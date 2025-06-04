@@ -9,6 +9,7 @@ using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.Interactions;
 using System.Globalization;
 using System.Text;
+using Quartz;
 
 namespace SchulPlanerBot.Modules;
 
@@ -47,11 +48,13 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
             build.AppendLine(_localizer["settings.notification"]);
             foreach (Notification notification in guild.Notifications)
             {
-                TimestampTag startTag = new(notification.StartAt, style: TimestampTagStyles.ShortDateTime);
-                string betweenStr = notification.Between.Humanize();
+                TimestampTag nextTag = new(notification.GetNextFiring(), style: TimestampTagStyles.ShortDateTime);
                 string channelStr = MentionUtils.MentionChannel(notification.ChannelId);
-
-                build.AppendLine($"- {_localizer["settings.notification.item", startTag, betweenStr, channelStr]}");
+                
+                if (notification.ObjectsIn is null)
+                    build.AppendLine($"- {_localizer["settings.notification.item", notification.CronExpression, nextTag, channelStr]}");
+                else
+                    build.AppendLine($"- {_localizer["settings.notification.item-objectsIn", notification.CronExpression, nextTag, channelStr, notification.ObjectsIn.Value.Humanize()]}");
             }
         }
         else
@@ -72,7 +75,7 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
             : await _manager.RemoveNotificationCultureAsync(Guild.Id, CancellationToken).ConfigureAwait(false);
         if (updateResult.Success)
         {
-            CultureInfo notificationLocale = culture ?? new(Context.Interaction.GuildLocale);
+            CultureInfo notificationLocale = culture ?? new CultureInfo(Context.Interaction.GuildLocale);
             await RespondAsync(_localizer["locale.updated", notificationLocale.DisplayName]).ConfigureAwait(false);
         }
         else
@@ -82,16 +85,17 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
     }
 
     [SlashCommand("add-notification", "Adds a notifications to make on this guild.")]
-    public async Task SetNotificationsAsync(DateTimeOffset start, TimeSpan between, [ChannelTypes(ChannelType.Text)] IChannel channel, [Summary(name: "objects-in")] TimeSpan? objectsIn = null)
+    public async Task AddNotificationAsync([ChannelTypes(ChannelType.Text)] IChannel channel, string cron, [Summary(name: "objects-in")] TimeSpan? objectsIn = null)
     {
-        UpdateResult addResult = await _manager.AddNotificationAsync(Guild.Id, start, between, objectsIn ?? between, channel.Id, CancellationToken).ConfigureAwait(false);
+        UpdateResult addResult = await _manager.AddNotificationAsync(Guild.Id, cron, objectsIn, channel.Id, CancellationToken).ConfigureAwait(false);
         if (addResult.Success)
         {
+            DateTimeOffset next = new CronExpression(cron).GetNextValidTimeAfter(DateTimeOffset.Now)!.Value;
+            
             await RespondAsync(_localizer[
                     "notification.added",
                     MentionUtils.MentionChannel(channel.Id),
-                    between.Humanize(),
-                    TimestampTag.FromDateTimeOffset(start, TimestampTagStyles.ShortDateTime)])
+                    TimestampTag.FromDateTimeOffset(next, TimestampTagStyles.ShortDateTime)])
                 .ConfigureAwait(false);
         }
         else
@@ -101,18 +105,13 @@ public sealed class SchulPlanerModule(ILogger<SchulPlanerModule> logger, IString
     }
 
     [SlashCommand("remove-notification", "Removes a specific notification for this guild")]
-    public async Task DisableNotificationsAsync(DateTimeOffset start)
+    public async Task RemoveNotificationAsync([ChannelTypes(ChannelType.Text)] IChannel channel)
     {
-        UpdateResult disableResult = await _manager.RemoveNotificationAsync(Guild.Id, start, CancellationToken).ConfigureAwait(false);
+        UpdateResult disableResult = await _manager.RemoveNotificationAsync(Guild.Id, channel.Id, CancellationToken).ConfigureAwait(false);
         if (disableResult.Success)
-        {
-            TimestampTag startTag = new(start, style: TimestampTagStyles.ShortDateTime);
-            await RespondAsync(_localizer["notification.removed", startTag]).ConfigureAwait(false);
-        }
+            await RespondAsync(_localizer["notification.removed", MentionUtils.MentionChannel(channel.Id)]).ConfigureAwait(false);
         else
-        {
             await this.RespondWithErrorAsync(disableResult.Errors, _logger).ConfigureAwait(false);
-        }
     }
 
     [SlashCommand("delete-homeworks", "Sets the time a homework gets deleted after its due.")]
