@@ -115,6 +115,7 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
         dateTime = dateTime.ToUniversalTime();
         
         int count = await _dbContext.Homeworks
+            .IgnoreQueryFilters()
             .Where(h => h.GuildId == guildId && h.Due <= dateTime)
             .ExecuteDeleteAsync(ct)
             .ConfigureAwait(false);

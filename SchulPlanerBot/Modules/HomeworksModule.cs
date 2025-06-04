@@ -285,14 +285,13 @@ public sealed class HomeworksModule(
 
     private string LocalizeSubscriptions(HomeworkSubscription subscription)
     {
-        string nullFormatter(string? str) => str is not null ? str : _localizer["empty"];
+        string nullFormatter(string? str) => str ?? _localizer["empty"];
 
         if (subscription.AnySubject)
         {
-            if (subscription.Include.Length == 0)
-                return _localizer["subscriptions.anySubject"];
-            else
-                return _localizer["subscriptions.anySubjectExcept", subscription.Exclude.Humanize(displayFormatter: nullFormatter)];
+            return subscription.Exclude.Length == 0
+                ? _localizer["subscriptions.anySubject"]
+                : _localizer["subscriptions.anySubjectExcept", subscription.Exclude.Humanize(displayFormatter: nullFormatter)];
         }
         else
         {

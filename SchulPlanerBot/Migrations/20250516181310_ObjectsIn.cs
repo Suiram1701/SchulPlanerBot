@@ -23,9 +23,6 @@ namespace SchulPlanerBot.Migrations
                 )
                 """);
             #endregion
-
-            migrationBuilder.EnsureSchema("quartz");     // When calling DropSchema and the schema doesn't exists it throws
-            migrationBuilder.DropSchema("quartz");     // Correction from last migration
         }
 
         /// <inheritdoc />

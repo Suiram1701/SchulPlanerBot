@@ -56,6 +56,8 @@ namespace SchulPlanerBot.Migrations
             migrationBuilder.DropTable(
                 name: "qrtz_job_details",
                 schema: "quartz");
+            
+            migrationBuilder.DropSchema("quartz");
 
             migrationBuilder.AlterColumn<HashSet<string>>(
                 name: "Include",
