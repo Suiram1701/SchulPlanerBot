@@ -131,7 +131,7 @@
     <value>Homework {0} deleted.</value>
   </data>
   <data name="subscriptions.notConfigured" xml:space="preserve">
-    <value>No notification subscriptions were configured for you yet.</value>
+      <value>No notification subscriptions are configured for you yet.</value>
   </data>
   <data name="subscriptions.anySubject" xml:space="preserve">
     <value>You will receive notifications for any homework.</value>

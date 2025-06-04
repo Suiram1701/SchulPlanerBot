@@ -122,10 +122,10 @@
     <value>Hausaufgabe aktualisiert:</value>
   </data>
   <data name="subscriptions.notConfigured" xml:space="preserve">
-    <value>Benachrichtigung Abonnements wurde noch nicht konfiguriert.</value>
+      <value>Es wurden noch keine Benachrichtigung Abonnements für Sie konfiguriert.</value>
   </data>
   <data name="subscriptions.anySubject" xml:space="preserve">
-    <value>Sie werden Benachrichtigungen für alle Hausaufgaben.</value>
+      <value>Sie werden Benachrichtigungen für alle Hausaufgaben erhalten.</value>
   </data>
   <data name="subscriptions.subjects" xml:space="preserve">
     <value>Sie werden Benachrichtigungen nur für Hausaufgaben mit den Fächern {0} bekommnen.</value>
