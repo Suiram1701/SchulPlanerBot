@@ -361,17 +361,17 @@ public sealed class HomeworksModule(
 
     private string LocalizeSubscriptions(HomeworkSubscription subscription)
     {
-        string nullFormatter(string? str) => str ?? _localizer["empty"];
+        string formatSubject(string? str) => $"`{str ?? _localizer["empty"]}`";
 
         if (subscription.AnySubject)
         {
             return subscription.Exclude.Length == 0
                 ? _localizer["subscriptions.anySubject"]
-                : _localizer["subscriptions.anySubjectExcept", subscription.Exclude.Humanize(displayFormatter: nullFormatter)];
+                : _localizer["subscriptions.anySubjectExcept", subscription.Exclude.Humanize(displayFormatter: formatSubject)];
         }
         else
         {
-            return _localizer["subscriptions.subjects", subscription.Include.Humanize(displayFormatter: nullFormatter)];
+            return _localizer["subscriptions.subjects", subscription.Include.Humanize(displayFormatter: formatSubject)];
         }
     }
 }

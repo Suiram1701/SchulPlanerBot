@@ -128,7 +128,7 @@
     <value>You're unauthorized to delete this homework!</value>
   </data>
   <data name="delete.deleted" xml:space="preserve">
-    <value>Homework {0} deleted.</value>
+      <value>Homework `{0}` deleted.</value>
   </data>
   <data name="subscriptions.notConfigured" xml:space="preserve">
       <value>No notification subscriptions are configured for you yet.</value>

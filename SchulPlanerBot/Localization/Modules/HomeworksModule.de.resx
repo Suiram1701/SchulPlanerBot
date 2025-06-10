@@ -116,7 +116,7 @@
     <value>Sie sind nicht autorisiert diese Hausaufgabe zu löschen!</value>
   </data>
   <data name="delete.deleted" xml:space="preserve">
-    <value>Hausaufgabe {0} gelöscht.</value>
+      <value>Hausaufgabe `{0}` gelöscht.</value>
   </data>
   <data name="modify.updated" xml:space="preserve">
     <value>Hausaufgabe aktualisiert:</value>

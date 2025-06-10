@@ -76,8 +76,11 @@ public class ComponentService(IStringLocalizer<ComponentService> localizer)
             .WithPlaceholder(placeholder);
         foreach (Homework homework in homeworks)
         {
+            string label = string.IsNullOrEmpty(homework.Subject)
+                ? homework.Title
+                : $"{homework.Title} ({homework.Subject})";     // No need to check for MaxLength: 64 (Title) + 32 (Subject) + 3 (chars between) = 99 < 100
             menuBuilder.AddOption(
-                label: homework.Title,
+                label: label,
                 description: !string.IsNullOrEmpty(homework.Details)
                     ? homework.Details.Truncate(SelectMenuOptionBuilder.MaxDescriptionLength)
                     : null,

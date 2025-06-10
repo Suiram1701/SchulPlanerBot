@@ -41,7 +41,11 @@ public class EmbedsService(IStringLocalizer<EmbedsService> localizer)
         foreach (Homework homework in homeworks)
         {
             TimestampTag dueTag = TimestampTag.FromDateTimeOffset(homework.Due.ToLocalTime(), TimestampTagStyles.ShortDate);
-            descBuilder.AppendLine($"**{dueTag}**: {homework.Title}");
+            descBuilder.Append($"**{dueTag}**: {homework.Title}");
+
+            if (!string.IsNullOrEmpty(homework.Subject))
+                descBuilder.Append($" ({homework.Subject})");
+            descBuilder.AppendLine();
         }
 
         return new EmbedBuilder()
