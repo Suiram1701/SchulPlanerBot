@@ -138,7 +138,7 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
             .ConfigureAwait(false)];
     }
 
-    public async Task<UpdateResult> SetSubscribeToAllSubjectsAsync(ulong guildId, ulong userId, bool subscribe, CancellationToken ct = default)
+    public async Task<(UpdateResult, HomeworkSubscription? newSubscription)> SetSubscribeToAllSubjectsAsync(ulong guildId, ulong userId, bool subscribe, CancellationToken ct = default)
     {
         HomeworkSubscription subscription = await GetOrAddSubscriptionAsync(guildId, userId, ct).ConfigureAwait(false);
 
@@ -146,10 +146,10 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
         RemoveNotNeededData(subscription);
 
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
-        return UpdateResult.Succeeded();
+        return (UpdateResult.Succeeded(), subscription);
     }
 
-    public async Task<UpdateResult> SubscribeToSubjectsAsync(ulong guildId, ulong userId, string?[] subjects, CancellationToken ct = default)
+    public async Task<(UpdateResult, HomeworkSubscription? newSubscription)> SubscribeToSubjectsAsync(ulong guildId, ulong userId, string?[] subjects, CancellationToken ct = default)
     {
         HomeworkSubscription subscription = await GetOrAddSubscriptionAsync(guildId, userId, ct).ConfigureAwait(false);
 
@@ -159,10 +159,10 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
             subscription.Include = ConcatSubjects(subscription.Include, subjects);
 
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
-        return UpdateResult.Succeeded();
+        return (UpdateResult.Succeeded(), subscription);
     }
 
-    public async Task<UpdateResult> UnsubscribeFromSubjectsAsync(ulong guildId, ulong userId, string?[] subjects, CancellationToken ct = default)
+    public async Task<(UpdateResult, HomeworkSubscription? newSubscription)> UnsubscribeFromSubjectsAsync(ulong guildId, ulong userId, string?[] subjects, CancellationToken ct = default)
     {
         HomeworkSubscription subscription = await GetOrAddSubscriptionAsync(guildId, userId, ct).ConfigureAwait(false);
 
@@ -174,7 +174,7 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
         RemoveNotNeededData(subscription);
 
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
-        return UpdateResult.Succeeded();
+        return (UpdateResult.Succeeded(), subscription);
     }
 
     private async Task<HomeworkSubscription> GetOrAddSubscriptionAsync(ulong guildId, ulong userId, CancellationToken ct)
