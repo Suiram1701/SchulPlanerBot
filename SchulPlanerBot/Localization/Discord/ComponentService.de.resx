@@ -130,4 +130,13 @@
   <data name="homeworkModal.titleCreate" xml:space="preserve">
     <value>Hausaufgabe erstellen</value>
   </data>
+  <data name="selectHomework.noHomework" xml:space="preserve">
+      <value>Keine Hausaufgaben verfügbar</value>
+  </data>
+  <data name="modifyHomework.placeholder" xml:space="preserve">
+      <value>Zu bearbeitende Hausaufgabe</value>
+  </data>
+  <data name="deleteHomework.placeholder" xml:space="preserve">
+      <value>Hausaufgabe zum löschen</value>
+  </data>
 </root>

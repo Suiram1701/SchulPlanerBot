@@ -53,7 +53,7 @@ public sealed class HomeworksModule(
         if (homeworks.Length > 0)
         {
             Embed overview = _embedsService.HomeworksOverview(homeworks, start.Value, end.Value);
-            MessageComponent select = _componentService.SelectHomework(homeworks, cacheId: Guid.NewGuid().ToString());
+            MessageComponent select = _componentService.SelectOverviewHomework(homeworks, cacheId: Guid.NewGuid().ToString());
             await RespondAsync(_localizer["list.listed"], embeds: [overview], components: select).ConfigureAwait(false);
         }
         else
@@ -128,8 +128,18 @@ public sealed class HomeworksModule(
     }
 
     [SlashCommand("modify", "Modifies an existing homework.")]
-    public async Task ModifyHomeworkAsync(string id)
+    public async Task ModifyHomeworkAsync(string? id = null)
     {
+        if (id is null)
+        {
+            SocketGuildUser user = Guild.GetUser(User.Id);
+            IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, ct: CancellationToken).ConfigureAwait(false);
+            
+            MessageComponent component = _componentService.SelectModifyHomework(homeworks.Where(h => HomeworkEditAllowed(h, user)));
+            await RespondAsync(_localizer["modify.select"], components: component).ConfigureAwait(false);
+            return;
+        }
+        
         if (!Guid.TryParse(id, out Guid homeworkId))
         {
             await RespondAsync(_localizer["modify.parseIdFailed"], ephemeral: true).ConfigureAwait(false);
@@ -142,10 +152,8 @@ public sealed class HomeworksModule(
             await this.RespondWithErrorAsync(_errorService.HomeworkNotFound().Errors, _logger).ConfigureAwait(false);
             return;
         }
-
-        // Check authorization
-        SocketGuildUser guildUser = Guild.GetUser(User.Id);
-        if (!guildUser.GuildPermissions.Has(GuildPermission.ModerateMembers) && homework.CreatedBy != User.Id)
+        
+        if (!HomeworkEditAllowed(homework, Guild.GetUser(User.Id)))
         {
             await RespondAsync(_localizer["modify.unauthorized"], ephemeral: true).ConfigureAwait(false);
             return;
@@ -165,6 +173,38 @@ public sealed class HomeworksModule(
             .ConfigureAwait(false);
     }
 
+    // Components created by global::SchulPlanerBot.Discord.ComponentService
+    [ComponentInteraction(ComponentIds.ModifyHomeworkSelectComponent, ignoreGroupNames: true)]
+    public async Task ModifyHomework_SelectAsync(string value)
+    {
+        Guid homeworkId = Guid.Parse(value);
+        Homework? homework = await _homeworkManager.GetHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
+        if (homework is null)
+        {
+            await this.RespondWithErrorAsync(_errorService.HomeworkNotFound().Errors, _logger).ConfigureAwait(false);
+            return;
+        }
+        
+        if (!HomeworkEditAllowed(homework, Guild.GetUser(User.Id)))
+        {
+            await RespondAsync(_localizer["modify.selectUnauthorized"], ephemeral: true).ConfigureAwait(false);
+            return;
+        }
+        
+        HomeworkModal modal = new()
+        {
+            Due = homework.Due.ToLocalTime(),
+            Subject = homework.Subject,
+            Title = homework.Title,
+            Details = homework.Details
+        };
+        await RespondWithModalAsync(
+                customId: ComponentIds.CreateModifyHomeworkModal(homework.Id.ToString()),
+                modal: modal,
+                modifyModal: builder => _componentService.LocalizeHomeworkModal(builder, createHomework: false))
+            .ConfigureAwait(false);
+    }
+    
     [ModalInteraction(ComponentIds.ModifyHomeworkModal, ignoreGroupNames: true)]
     public async Task ModifyHomework_SubmitAsync(string id, HomeworkModal homeworkModal)
     {
@@ -185,8 +225,18 @@ public sealed class HomeworksModule(
     }
 
     [SlashCommand("delete", "Deletes a homework by its ID. A homework can only be deleted by its creator or a mod.")]
-    public async Task DeleteHomeworkAsync(string id)
+    public async Task DeleteHomeworkAsync(string? id = null)
     {
+        if (id is null)
+        {
+            SocketGuildUser user = Guild.GetUser(User.Id);
+            IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, ct: CancellationToken).ConfigureAwait(false);
+            
+            MessageComponent component = _componentService.SelectDeleteHomework(homeworks.Where(h => HomeworkEditAllowed(h, user)));
+            await RespondAsync(_localizer["delete.select"], components: component).ConfigureAwait(false);
+            return;
+        }
+        
         if (!Guid.TryParse(id, out Guid homeworkId))
         {
             await RespondAsync(_localizer["delete.parseIdFailed"], ephemeral: true).ConfigureAwait(false);
@@ -200,14 +250,37 @@ public sealed class HomeworksModule(
             return;
         }
 
-        // Check authorization
-        SocketGuildUser guildUser = Guild.GetUser(User.Id);
-        if (!guildUser.GuildPermissions.Has(GuildPermission.ModerateMembers) && homework.CreatedBy != User.Id)
+        if (!HomeworkEditAllowed(homework, Guild.GetUser(User.Id)))
         {
             await RespondAsync(_localizer["delete.unauthorized"], ephemeral: true).ConfigureAwait(false);
             return;
         }
 
+        UpdateResult deleteResult = await _homeworkManager.DeleteHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
+        if (deleteResult.Success)
+            await RespondAsync(_localizer["delete.deleted", homework.Title]).ConfigureAwait(false);
+        else
+            await this.RespondWithErrorAsync(deleteResult.Errors, _logger).ConfigureAwait(false);
+    }
+    
+    // Components created by global::SchulPlanerBot.Discord.ComponentService
+    [ComponentInteraction(ComponentIds.DeleteHomeworkSelectComponent, ignoreGroupNames: true)]
+    public async Task DeleteHomework_SelectAsync(string value)
+    {
+        Guid homeworkId = Guid.Parse(value);
+        Homework? homework = await _homeworkManager.GetHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
+        if (homework is null)
+        {
+            await this.RespondWithErrorAsync(_errorService.HomeworkNotFound().Errors, _logger).ConfigureAwait(false);
+            return;
+        }
+        
+        if (!HomeworkEditAllowed(homework, Guild.GetUser(User.Id)))
+        {
+            await RespondAsync(_localizer["delete.selectUnauthorized"], ephemeral: true).ConfigureAwait(false);
+            return;
+        }
+        
         UpdateResult deleteResult = await _homeworkManager.DeleteHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
         if (deleteResult.Success)
             await RespondAsync(_localizer["delete.deleted", homework.Title]).ConfigureAwait(false);
@@ -266,12 +339,15 @@ public sealed class HomeworksModule(
         await HandleSubscriptionsUpdatedAsync(updateResult, subscription).ConfigureAwait(false);
     }
 
+    private bool HomeworkEditAllowed(Homework homework, SocketGuildUser user) =>
+        user.GuildPermissions.Has(GuildPermission.ModerateMembers) || homework.CreatedBy == User.Id;
+    
     private async Task HandleSubscriptionsUpdatedAsync(UpdateResult result, HomeworkSubscription newSubscription)
     {
         if (result.Success)
         {
             Guild guild = await _manager.GetGuildAsync(Guild.Id, CancellationToken).ConfigureAwait(false);
-            string message = $"{_localizer["subscriptions.updated"]} {LocalizeSubscriptions(newSubscription)}";
+            var message = $"{_localizer["subscriptions.updated"]} {LocalizeSubscriptions(newSubscription)}";
 
             if (guild.Notifications.Count == 0)
                 message += $" {_localizer["subscriptions.notificationNotEnabled"]}";

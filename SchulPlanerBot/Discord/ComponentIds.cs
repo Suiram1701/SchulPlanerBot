@@ -35,5 +35,9 @@ public static class ComponentIds
     public const string GetHomeworksReloadComponent = $"{_componentPrefix}GetHomeworksReload:*";
 
     public static string CreateGetHomeworksReloadComponent(string cacheId) => $"{_componentPrefix}GetHomeworksReload:{cacheId}";
+    
+    public const string ModifyHomeworkSelectComponent = $"{_componentPrefix}ModifyHomeworkSelect";
+    
+    public const string DeleteHomeworkSelectComponent = $"{_componentPrefix}DeleteHomeworkSelect";
     #endregion
 }

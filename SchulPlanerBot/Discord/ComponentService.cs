@@ -27,7 +27,7 @@ public class ComponentService(IStringLocalizer<ComponentService> localizer)
                 .WithLabel(localizer["homeworkModal.details"])
                 .WithPlaceholder(localizer["homeworkModal.details.placeholder"]));
     }
-
+    
     /// <summary>
     /// Creates a new select menu for showing more information about a specific homework.
     /// </summary>
@@ -37,20 +37,10 @@ public class ComponentService(IStringLocalizer<ComponentService> localizer)
     /// <param name="homeworks">The homeworks to show as an option.</param>
     /// <param name="cacheId">The id of the cache entry the homework</param>
     /// <returns>The build component</returns>
-    public MessageComponent SelectHomework(IEnumerable<Homework> homeworks, string cacheId)
+    public MessageComponent SelectOverviewHomework(IEnumerable<Homework> homeworks, string cacheId)
     {
-        SelectMenuBuilder menuBuilder = new SelectMenuBuilder()
-                .WithCustomId(ComponentIds.CreateGetHomeworksSelectComponent(cacheId))
-                .WithPlaceholder(_localizer["selectHomework.placeholder"]);
-        foreach (Homework homework in homeworks)
-        {
-            menuBuilder.AddOption(
-                label: homework.Title,
-                description: !string.IsNullOrEmpty(homework.Details)
-                    ? homework.Details.Truncate(SelectMenuOptionBuilder.MaxDescriptionLength)
-                    : null,
-                value: homework.Id.ToString());
-        }
+        SelectMenuBuilder menuBuilder = CreateSelectHomeworkComp(homeworks,
+            ComponentIds.CreateGetHomeworksSelectComponent(cacheId), _localizer["selectHomework.placeholder"]);
 
         ButtonBuilder buttonBuilder = new ButtonBuilder()
             .WithCustomId(ComponentIds.CreateGetHomeworksReloadComponent(cacheId))
@@ -61,5 +51,46 @@ public class ComponentService(IStringLocalizer<ComponentService> localizer)
             .WithSelectMenu(menuBuilder)
             .WithButton(buttonBuilder)
             .Build();
+    }
+
+    public MessageComponent SelectModifyHomework(IEnumerable<Homework> homeworks)
+    {
+        return new ComponentBuilder()
+            .WithSelectMenu(CreateSelectHomeworkComp(homeworks, ComponentIds.ModifyHomeworkSelectComponent,
+                _localizer["modifyHomework.placeholder"]))
+            .Build();
+    }
+
+    public MessageComponent SelectDeleteHomework(IEnumerable<Homework> homeworks)
+    {
+        return new ComponentBuilder()
+            .WithSelectMenu(CreateSelectHomeworkComp(homeworks, ComponentIds.DeleteHomeworkSelectComponent,
+                _localizer["deleteHomework.placeholder"]))
+            .Build();
+    }
+    
+    private SelectMenuBuilder CreateSelectHomeworkComp(IEnumerable<Homework> homeworks, string componentId, string placeholder)
+    {
+        SelectMenuBuilder menuBuilder = new SelectMenuBuilder()
+            .WithCustomId(componentId)
+            .WithPlaceholder(placeholder);
+        foreach (Homework homework in homeworks)
+        {
+            menuBuilder.AddOption(
+                label: homework.Title,
+                description: !string.IsNullOrEmpty(homework.Details)
+                    ? homework.Details.Truncate(SelectMenuOptionBuilder.MaxDescriptionLength)
+                    : null,
+                value: homework.Id.ToString());
+        }
+
+        if (menuBuilder.Options.Count == 0)
+        {
+            menuBuilder
+                .AddOption(label: _localizer["selectHomework.noHomework"], value: "-1", isDefault: true)
+                .WithDisabled(true);
+        }
+        
+        return menuBuilder;
     }
 }

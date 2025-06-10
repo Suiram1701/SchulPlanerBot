@@ -151,4 +151,16 @@
   <data name="empty" xml:space="preserve">
     <value>(empty)</value>
   </data>
+  <data name="modify.select" xml:space="preserve">
+      <value>Please select a homework to modify:</value>
+  </data>
+  <data name="modify.selectUnauthorized" xml:space="preserve">
+      <value>You're not allowed to edit this homework. Run `/homeworks modify` by yourself to see homework available to you.</value>
+  </data>
+  <data name="delete.select" xml:space="preserve">
+      <value>Please select a homework you want to remove:</value>
+  </data>
+  <data name="delete.selectUnauthorized" xml:space="preserve">
+      <value>You're not allowed to delete this homework. Run `/homeworks delete` by yourself to see homework available to you.</value>
+  </data>
 </root>

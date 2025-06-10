@@ -155,7 +155,7 @@
     <value>id</value>
   </data>
   <data name="homeworks.delete.id.description" xml:space="preserve">
-    <value>Die ID der zu entfernenden Hausaufgabe.</value>
+    <value>Die ID der zu entfernenden Hausaufgabe. Wenn leer wird danach gefragt.</value>
   </data>
   <data name="homeworks.modify.name" xml:space="preserve">
     <value>bearbeiten</value>
@@ -167,7 +167,7 @@
     <value>id</value>
   </data>
   <data name="homeworks.modify.id.description" xml:space="preserve">
-    <value>Die ID der zu bearbeitenden Hausaufgabe.</value>
+    <value>Die ID der zu bearbeitenden Hausaufgabe. Wenn leer wird nach dieser gefragt.</value>
   </data>
   <data name="homeworks.subscribe-all.name" xml:space="preserve">
     <value>alle-abonnieren</value>

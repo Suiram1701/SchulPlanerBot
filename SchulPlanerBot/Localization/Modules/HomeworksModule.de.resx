@@ -151,4 +151,16 @@
   <data name="empty" xml:space="preserve">
     <value>(leer)</value>
   </data>
+  <data name="modify.select" xml:space="preserve">
+      <value>Wählen Sie bitte eine Hausaufgabe zum bearbeiten aus:</value>
+  </data>
+  <data name="modify.selectUnauthorized" xml:space="preserve">
+      <value>Sie sind nicht berechtigt diese Hausaufgabe zu bearbeiten. Führen Sie selber `/hausaufgaben bearbeiten` aus um ihnen verfügbare Hausaufgaben zu sehen.</value>
+  </data>
+  <data name="delete.select" xml:space="preserve">
+      <value>Bitte wählen Sie eine Hausaufgabe zum löschen aus:</value>
+  </data>
+  <data name="delete.selectUnauthorized" xml:space="preserve">
+      <value>Sie sind nicht berechtigt diese Hausaufgabe zu löschen. Führen Sie selber `/hausaufgaben löschen` aus um ihnen verfügbare Hausaufgaben zu sehen.</value>
+  </data>
 </root>

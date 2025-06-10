@@ -209,7 +209,7 @@
     <value>id</value>
   </data>
   <data name="homeworks.modify.id.description" xml:space="preserve">
-    <value>The ID of the homework to modify.</value>
+    <value>The ID of the homework to modify. If empty it will be asked for it.</value>
   </data>
   <data name="homeworks.delete.name" xml:space="preserve">
     <value>delete</value>
@@ -221,7 +221,7 @@
     <value>id</value>
   </data>
   <data name="homeworks.delete.id.description" xml:space="preserve">
-    <value>The ID of the homework to remove.</value>
+    <value>The ID of the homework to remove. If empty it will be asked for.</value>
   </data>
   <data name="homeworks.subscriptions.name" xml:space="preserve">
     <value>subscriptions</value>

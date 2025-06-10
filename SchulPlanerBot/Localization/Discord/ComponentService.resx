@@ -130,4 +130,13 @@
   <data name="homeworkModal.titleCreate" xml:space="preserve">
     <value>Create homework</value>
   </data>
+  <data name="modifyHomework.placeholder" xml:space="preserve">
+      <value>Homework to modify</value>
+  </data>
+  <data name="deleteHomework.placeholder" xml:space="preserve">
+      <value>Homework to delete</value>
+  </data>
+  <data name="selectHomework.noHomework" xml:space="preserve">
+      <value>No homeworks to display</value>
+  </data>
 </root>
