@@ -100,9 +100,6 @@
   <data name="selectHomework.placeholder" xml:space="preserve">
     <value>Hausaufgabe zum anzeigen</value>
   </data>
-  <data name="selectHomework.reloadBtn" xml:space="preserve">
-    <value>Hausaufgabe neuladen</value>
-  </data>
   <data name="homeworkModal.details.placeholder" xml:space="preserve">
     <value>quadratische Gleichung lösen.</value>
   </data>
@@ -138,5 +135,11 @@
   </data>
   <data name="deleteHomework.placeholder" xml:space="preserve">
       <value>Hausaufgabe zum löschen</value>
+  </data>
+  <data name="page.back" xml:space="preserve">
+      <value>Zurück</value>
+  </data>
+  <data name="page.forward" xml:space="preserve">
+      <value>Weiter</value>
   </data>
 </root>

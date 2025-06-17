@@ -57,6 +57,10 @@ public static class Program
             .BindConfiguration("Help")
             .ValidateDataAnnotations()
             .ValidateOnStart();
+        builder.Services.AddOptions<ResponseOptions>()
+            .BindConfiguration("Response")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         builder.Services.AddOpenTelemetry()
             .WithTracing(provider => provider

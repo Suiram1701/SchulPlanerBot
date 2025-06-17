@@ -97,9 +97,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="list.noHomeworks" xml:space="preserve">
-    <value>Keine Hausaufgaben verfügbar.</value>
-  </data>
   <data name="create.created" xml:space="preserve">
     <value>Hausaufgabe erstellt:</value>
   </data>
@@ -142,9 +139,6 @@
   <data name="list.notFound" xml:space="preserve">
     <value>Die angefragte Hausaufgabe konnte nicht gefunden werden!</value>
   </data>
-  <data name="list.selectBeforeReload" xml:space="preserve">
-    <value>Es kann keine Hausaufgabe neu geladen werden bevor eine ausgewählt ist!</value>
-  </data>
   <data name="subscriptions.anySubjectExcept" xml:space="preserve">
     <value>Sie werden Benachrichtigungen für alle Hausaufgaben außer, die mit den Fächern {0} bekommen.</value>
   </data>
@@ -162,5 +156,8 @@
   </data>
   <data name="delete.selectUnauthorized" xml:space="preserve">
       <value>Sie sind nicht berechtigt diese Hausaufgabe zu löschen. Führen Sie selber `/hausaufgaben löschen` aus um ihnen verfügbare Hausaufgaben zu sehen.</value>
+  </data>
+  <data name="cacheIdMissing" xml:space="preserve">
+      <value>Die Cache ID dieser Nachricht konnte nicht gefunden werden. Bitte führen Sie den Befehl erneut aus.</value>
   </data>
 </root>

@@ -118,4 +118,10 @@
   <data name="homeworkOverviewEmbed.title" xml:space="preserve">
     <value>Hausaufgaben vom {0} bis {1}:</value>
   </data>
+  <data name="homeworkOverviewEmbed.placeholder" xml:space="preserve">
+	  <value>Keine Hausaufgaben anzuzeigen.</value>
+  </data>
+  <data name="homeworkOverviewEmbed.titleNoEnd" xml:space="preserve">
+	  <value>Hausaufgaben seit dem {0}:</value>
+  </data>
 </root>

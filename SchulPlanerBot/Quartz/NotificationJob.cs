@@ -1,15 +1,18 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Localization;
 using Quartz;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Discord;
+using SchulPlanerBot.Modules;
 
 namespace SchulPlanerBot.Quartz;
 
 internal sealed class NotificationJob(
     ILogger<NotificationJob> logger,
+    IMemoryCache cache,
     IStringLocalizer<NotificationJob> localizer,
     SchulPlanerManager manager,
     HomeworkManager homeworkManager,
@@ -18,6 +21,7 @@ internal sealed class NotificationJob(
     ComponentService componentService) : IJob
 {
     private readonly ILogger _logger = logger;
+    private readonly IMemoryCache _cache = cache;
     private readonly IStringLocalizer _localizer = localizer;
     private readonly SchulPlanerManager _manager = manager;
     private readonly HomeworkManager _homeworkManager = homeworkManager;
@@ -40,10 +44,17 @@ internal sealed class NotificationJob(
             ITextChannel textChannel = await ThrowWhenNotFoundAsync(socketGuild, notification.ChannelId).ConfigureAwait(false);
             
             // Real notification part
+            DateTimeOffset startDateTime = DateTimeOffset.Now;
             DateTimeOffset endDateTime = notification.ObjectsIn is not null
                 ? DateTimeOffset.UtcNow + notification.ObjectsIn.Value
                 : notification.GetNextFiring();
-            IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(notification.GuildId, start: DateTime.UtcNow, end: endDateTime, ct: context.CancellationToken).ConfigureAwait(false);
+            
+            IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(
+                    guildId: notification.GuildId,
+                    start: startDateTime,
+                    end: endDateTime,
+                    ct: context.CancellationToken)
+                .ConfigureAwait(false);
             Homework[] orderedHomeworks = [.. homeworks.OrderBy(h => h.Due)];
 
             if (orderedHomeworks.Length != 0)
@@ -60,14 +71,17 @@ internal sealed class NotificationJob(
                     message += $"{_localizer["homeworksNotify", mentionStr]} ";
                 }
                 message += _localizer["homeworks", TimestampTag.FromDateTimeOffset(endDateTime.ToLocalTime(), TimestampTagStyles.Relative)];
-
-                Embed overviewEmbed = _embedsService.HomeworksOverview(orderedHomeworks, DateTimeOffset.UtcNow, endDateTime);
-                MessageComponent selectComp = _componentService.SelectOverviewHomework(orderedHomeworks, cacheId: Guid.NewGuid().ToString());
-                await textChannel.SendMessageAsync(
-                    text: message,
-                    embeds: [overviewEmbed],
-                    components: selectComp,
-                    allowedMentions: new AllowedMentions(AllowedMentionTypes.Users))
+                
+                var cacheId = Guid.NewGuid().ToString();
+                HomeworksModule.HomeworkSearchMessage searchOptions = new(Search: null, Subject: null, startDateTime, endDateTime);
+                _cache.Set(key: cacheId, value: searchOptions, new MemoryCacheEntryOptions
+                {
+                    SlidingExpiration = TimeSpan.FromDays(7)     // Should be enough for the user to interact with
+                });
+                
+                Embed overviewEmbed = _embedsService.HomeworksOverview(orderedHomeworks, 0, startDateTime, endDateTime);
+                MessageComponent selectComp = _componentService.SelectOverviewHomework(orderedHomeworks, 0, cacheId: cacheId);
+                await textChannel.SendMessageAsync(text: message, embeds: [overviewEmbed], components: selectComp)
                     .ConfigureAwait(false);
             }
             else if (_manager.Options.MessageWhenNoHomework)

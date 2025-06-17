@@ -6,7 +6,15 @@ namespace SchulPlanerBot.Discord;
 
 public static class Extensions
 {
-    public static  Task RespondWithErrorAsync<TContext>(this InteractionModuleBase<TContext> module, UpdateError[] errors, ILogger? logger = null)
+    public static Task RespondWithWarningAsync<TContext>(this InteractionModuleBase<TContext> module, string message)
+        where TContext : class, IInteractionContext
+    {
+        return module.Context.Interaction.RespondAsync(
+            Utils.UseAnsiFormat($"{Emoji.Parse(":warning:")} {message}", Utils.AnsiColor.Yellow),
+            ephemeral: true);
+    }
+    
+    public static Task RespondWithErrorAsync<TContext>(this InteractionModuleBase<TContext> module, UpdateError[] errors, ILogger? logger = null)
         where TContext : class, IInteractionContext
     {
         string message;
@@ -28,7 +36,16 @@ public static class Extensions
                 break;
         }
 
-        message = Utils.UseAnsiFormat($"{Emoji.Parse(":warning:")} {message}", Utils.AnsiColor.Yellow);
-        return module.Context.Interaction.RespondAsync(message, ephemeral: true);
+        return RespondWithWarningAsync(module, message);
+    }
+
+    public static Task ModifyComponentMessageAsync<TContext>(this InteractionModuleBase<TContext> module, Action<MessageProperties> func,
+        RequestOptions? options = null)
+        where TContext : class, IInteractionContext
+    {
+        if (module.Context.Interaction is not IComponentInteraction interaction)
+            throw new InvalidOperationException("Event not issued by a component!");
+
+        return interaction.UpdateAsync(func, options);
     }
 }

@@ -28,13 +28,15 @@ public static class ComponentIds
     #region Components
     private const string _componentPrefix = "Component_";
 
+    public static string CreateGetHomeworkPageComponent(int pageIndex, string cacheId) =>
+        $"{_componentPrefix}GetHomeworkPage:{pageIndex},{cacheId}";
+    
+    public const string GetHomeworkPageComponent = $"{_componentPrefix}GetHomeworkPage:*,*";
+    
     public const string GetHomeworksSelectComponent = $"{_componentPrefix}GetHomeworksSelect:*";
 
-    public static string CreateGetHomeworksSelectComponent(string cacheId) => $"{_componentPrefix}GetHomeworksSelect:{cacheId}";
-
-    public const string GetHomeworksReloadComponent = $"{_componentPrefix}GetHomeworksReload:*";
-
-    public static string CreateGetHomeworksReloadComponent(string cacheId) => $"{_componentPrefix}GetHomeworksReload:{cacheId}";
+    public static string CreateGetHomeworksSelectComponent(string cacheId) =>
+        $"{_componentPrefix}GetHomeworksSelect:{cacheId}";
     
     public const string ModifyHomeworkSelectComponent = $"{_componentPrefix}ModifyHomeworkSelect";
     

@@ -100,9 +100,6 @@
   <data name="selectHomework.placeholder" xml:space="preserve">
     <value>Homework to display</value>
   </data>
-  <data name="selectHomework.reloadBtn" xml:space="preserve">
-    <value>Reload homework</value>
-  </data>
   <data name="homeworkModal.details.placeholder" xml:space="preserve">
     <value>Solve quadratic equation.</value>
   </data>
@@ -138,5 +135,11 @@
   </data>
   <data name="selectHomework.noHomework" xml:space="preserve">
       <value>No homeworks to display</value>
+  </data>
+  <data name="page.back" xml:space="preserve">
+      <value>Previous</value>
+  </data>
+  <data name="page.forward" xml:space="preserve">
+      <value>Next</value>
   </data>
 </root>

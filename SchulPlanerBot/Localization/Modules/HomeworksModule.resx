@@ -100,14 +100,8 @@
   <data name="list.listed" xml:space="preserve">
     <value>Select homeworks of this overview to display details of.</value>
   </data>
-  <data name="list.noHomeworks" xml:space="preserve">
-    <value>No homeworks available.</value>
-  </data>
   <data name="list.notFound" xml:space="preserve">
     <value>The requested homework was not found!</value>
-  </data>
-  <data name="list.selectBeforeReload" xml:space="preserve">
-    <value>No homework can be reloaded before one is selected!</value>
   </data>
   <data name="create.created" xml:space="preserve">
     <value>Homework created:</value>
@@ -162,5 +156,8 @@
   </data>
   <data name="delete.selectUnauthorized" xml:space="preserve">
       <value>You're not allowed to delete this homework. Run `/homeworks delete` by yourself to see homework available to you.</value>
+  </data>
+  <data name="cacheIdMissing" xml:space="preserve">
+      <value>Cache ID not found. Please run the command again.</value>
   </data>
 </root>
