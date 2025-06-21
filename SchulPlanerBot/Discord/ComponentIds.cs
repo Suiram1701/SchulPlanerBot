@@ -7,9 +7,10 @@ public static class ComponentIds
 
     public const string CreateHomeworkModal = $"{_modalPrefix}CreateHomework";
 
-    public const string ModifyHomeworkModal = $"{_modalPrefix}ModifyHomework:*";
+    public const string ModifyHomeworkModal = $"{_modalPrefix}ModifyHomework:*,*";
 
-    public static string CreateModifyHomeworkModal(string homeworkId) => $"{_modalPrefix}ModifyHomework:{homeworkId}";
+    public static string CreateModifyHomeworkModal(string homeworkId, ulong? triggerMessage = null) =>
+        $"{_modalPrefix}ModifyHomework:{homeworkId},{triggerMessage}";
 
     public static class HomeworkModal
     {

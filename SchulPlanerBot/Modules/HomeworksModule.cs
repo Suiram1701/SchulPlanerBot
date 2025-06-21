@@ -51,8 +51,9 @@ public sealed partial class HomeworksModule(
         Homework[] homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, search, subject, start, end, CancellationToken).ConfigureAwait(false);
         homeworks = [.. homeworks.OrderBy(h => h.Due)];
 
-        HomeworkOverview options = new(homeworks, start, end, "");
-        await RespondWithHomeworkOverviewAsync(_localizer["list.listed"], options).ConfigureAwait(false);
+        var cacheId = Guid.NewGuid().ToString();
+        HomeworkOverview options = new(homeworks, start, end, ComponentIds.CreateGetHomeworksSelectComponent(cacheId));
+        await RespondWithHomeworkOverviewAsync(_localizer["list.listed"], options, cacheId).ConfigureAwait(false);
     }
     
     [SlashCommand("create", "Opens the form to create a new homework.")]

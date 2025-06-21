@@ -61,6 +61,7 @@ public class ComponentService(IStringLocalizer<ComponentService> loc, IOptionsSn
         }
         
         var pages = (int)Math.Ceiling((float)overview.Homeworks.Length / _options.MaxObjectsPerSelect);
+        
         ActionRowBuilder buttonRow = new ActionRowBuilder()
             .WithButton(
                 label: _loc["selectHomework.pageBack"],
@@ -68,7 +69,7 @@ public class ComponentService(IStringLocalizer<ComponentService> loc, IOptionsSn
                 style: ButtonStyle.Secondary,
                 disabled: overview.PageIndex <= 0)
             .WithButton(
-                label: $"{overview.PageIndex + 1}/{pages}",
+                label: $"{overview.PageIndex + 1}/{Math.Max(pages, 1)}",     // At least one should be displayed
                 customId: "0",
                 style: ButtonStyle.Secondary,
                 disabled: true)     // customId never used

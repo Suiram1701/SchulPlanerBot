@@ -65,7 +65,7 @@ public class EmbedsService(IStringLocalizer<EmbedsService> localizer, IOptionsSn
         }
         
         if (descBuilder.Length == 0)
-            descBuilder.Append(_localizer["homeworksOverviewEmbed.placeholder"]);
+            descBuilder.Append(_localizer["homeworkOverviewEmbed.placeholder"]);
 
         var title = string.Empty;
         if (overview.Start is not null)

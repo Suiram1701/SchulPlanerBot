@@ -83,7 +83,7 @@ public partial class HomeworksModule
     }
     
     [ModalInteraction(ComponentIds.ModifyHomeworkModal, ignoreGroupNames: true)]
-    public async Task ModifyHomework_SubmitAsync(string id, HomeworkModal homeworkModal)
+    public async Task ModifyHomework_SubmitAsync(string id, ulong? triggerMessage, HomeworkModal homeworkModal)
     {
         Guid homeworkId = Guid.Parse(id);
         (Homework? homework, UpdateResult modifyResult) = await _homeworkManager.ModifyHomeworkAsync(
@@ -96,9 +96,28 @@ public partial class HomeworksModule
             CancellationToken).ConfigureAwait(false);
 
         if (modifyResult.Success && homework is not null)
-            await RespondAsync(_localizer["modify.updated"], embed: _embedsService.Homework(homework), allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+        {
+            if (triggerMessage is not null)     // Modal was created by a component
+            {
+                await DeferAsync().ConfigureAwait(false);     // Signalise Discord that we've received the message
+                
+                var sourceMsg = (IUserMessage)await Context.Channel.GetMessageAsync(triggerMessage.Value).ConfigureAwait(false);
+                await sourceMsg.ModifyAsync(msg =>
+                {
+                    msg.Content = _localizer["modify.updated"].ToString();
+                    msg.Embeds = new[] { _embedsService.Homework(homework) };
+                    msg.Components = new ComponentBuilder().Build();
+                }).ConfigureAwait(false);
+            }
+            else
+            {
+                await RespondAsync(_localizer["modify.updated"], embed: _embedsService.Homework(homework)).ConfigureAwait(false);
+            }
+        }
         else
+        {
             await this.RespondWithErrorAsync(modifyResult.Errors, _logger).ConfigureAwait(false);
+        }
     }
     
     // Components created by global::SchulPlanerBot.Discord.ComponentService
@@ -118,6 +137,9 @@ public partial class HomeworksModule
             await RespondAsync(_localizer["modify.selectUnauthorized"], ephemeral: true).ConfigureAwait(false);
             return;
         }
+
+        var componentInteraction = (IComponentInteraction)Context.Interaction;
+        ulong sourceMessageId = componentInteraction.Message.Id;
         
         HomeworkModal modal = new()
         {
@@ -127,7 +149,7 @@ public partial class HomeworksModule
             Details = homework.Details
         };
         await RespondWithModalAsync(
-                customId: ComponentIds.CreateModifyHomeworkModal(homework.Id.ToString()),
+                customId: ComponentIds.CreateModifyHomeworkModal(homework.Id.ToString(), triggerMessage: sourceMessageId),
                 modal: modal,
                 modifyModal: builder => _componentService.LocalizeHomeworkModal(builder, createHomework: false))
             .ConfigureAwait(false);
@@ -153,8 +175,17 @@ public partial class HomeworksModule
         
         UpdateResult deleteResult = await _homeworkManager.DeleteHomeworkAsync(Guild.Id, homeworkId, CancellationToken).ConfigureAwait(false);
         if (deleteResult.Success)
-            await RespondAsync(_localizer["delete.deleted", homework.Title]).ConfigureAwait(false);
+        {
+            await this.ModifyComponentMessageAsync(msg =>
+            {
+                msg.Content = _localizer["delete.deleted", homework.Title].ToString();
+                msg.Embeds = Array.Empty<Embed>();
+                msg.Components = new ComponentBuilder().Build();
+            }).ConfigureAwait(false);
+        }
         else
+        {
             await this.RespondWithErrorAsync(deleteResult.Errors, _logger).ConfigureAwait(false);
+        }
     }
 }
