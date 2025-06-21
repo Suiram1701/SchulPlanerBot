@@ -1,12 +1,12 @@
-﻿using Discord;
+﻿using System.Text;
+using Discord;
 using Microsoft.Extensions.Localization;
-using SchulPlanerBot.Business.Models;
-using System.Text;
 using Microsoft.Extensions.Options;
-using SchulPlanerBot.Modules.Models;
+using SchulPlanerBot.Business.Models;
+using SchulPlanerBot.Discord.UI.Models;
 using SchulPlanerBot.Options;
 
-namespace SchulPlanerBot.Discord;
+namespace SchulPlanerBot.Discord.UI;
 
 public class EmbedsService(IStringLocalizer<EmbedsService> localizer, IOptionsSnapshot<ResponseOptions> optionsSnapshot)
 {

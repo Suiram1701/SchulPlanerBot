@@ -1,6 +1,6 @@
 using SchulPlanerBot.Business.Models;
 
-namespace SchulPlanerBot.Modules.Models;
+namespace SchulPlanerBot.Discord.UI.Models;
 
 public record HomeworkOverview(
     Homework[] Homeworks,

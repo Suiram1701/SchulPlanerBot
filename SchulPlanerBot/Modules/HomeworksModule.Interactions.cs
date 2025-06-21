@@ -4,8 +4,8 @@ using Microsoft.Extensions.Caching.Memory;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Discord;
+using SchulPlanerBot.Discord.UI.Models;
 using SchulPlanerBot.Modals;
-using SchulPlanerBot.Modules.Models;
 
 namespace SchulPlanerBot.Modules;
 

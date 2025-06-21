@@ -9,8 +9,9 @@ using SchulPlanerBot.Business.Errors;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.Interactions;
+using SchulPlanerBot.Discord.UI;
+using SchulPlanerBot.Discord.UI.Models;
 using SchulPlanerBot.Modals;
-using SchulPlanerBot.Modules.Models;
 
 namespace SchulPlanerBot.Modules;
 

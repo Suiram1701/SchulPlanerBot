@@ -33,21 +33,8 @@ public static class Utils
         };
     }
 
-    public static string UseAnsiFormat(string text, AnsiColor color, AnsiFormat format = AnsiFormat.Normal)
-    {
-        return string.Concat([
-            "```ansi\n",
-            "\u001b",
-            "[",
-            (int)format,
-            ";",
-            (int)color,
-            "m",
-            text,
-            "\u001b[0m",
-            "\n```"
-            ]);
-    }
+    public static string UseAnsiFormat(string text, AnsiColor color, AnsiFormat format = AnsiFormat.Normal) =>
+        $"```ansi\n\e[{(int)format};{(int)color}m{text}\e[0m\n```";
 
     public enum AnsiFormat
     {

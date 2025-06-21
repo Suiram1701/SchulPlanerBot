@@ -6,7 +6,8 @@ using Quartz;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Discord;
-using SchulPlanerBot.Modules.Models;
+using SchulPlanerBot.Discord.UI;
+using SchulPlanerBot.Discord.UI.Models;
 
 namespace SchulPlanerBot.Quartz;
 

@@ -3,10 +3,10 @@ using Humanizer;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using SchulPlanerBot.Business.Models;
-using SchulPlanerBot.Modules.Models;
+using SchulPlanerBot.Discord.UI.Models;
 using SchulPlanerBot.Options;
 
-namespace SchulPlanerBot.Discord;
+namespace SchulPlanerBot.Discord.UI;
 
 public class ComponentService(IStringLocalizer<ComponentService> loc, IOptionsSnapshot<ResponseOptions> optionsSnapshot)
 {
