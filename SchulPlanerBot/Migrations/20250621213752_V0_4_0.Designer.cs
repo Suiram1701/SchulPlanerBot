@@ -12,15 +12,15 @@ using SchulPlanerBot.Business;
 namespace SchulPlanerBot.Migrations
 {
     [DbContext(typeof(BotDbContext))]
-    [Migration("20250516181310_ObjectsIn")]
-    partial class ObjectsIn
+    [Migration("20250621213752_V0_4_0")]
+    partial class V0_4_0
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -57,7 +57,8 @@ namespace SchulPlanerBot.Migrations
                         .HasColumnType("numeric(20,0)");
 
                     b.Property<string>("Details")
-                        .HasColumnType("text");
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
 
                     b.Property<DateTimeOffset>("Due")
                         .HasColumnType("timestamp with time zone");
@@ -72,11 +73,13 @@ namespace SchulPlanerBot.Migrations
                         .HasColumnType("numeric(20,0)");
 
                     b.Property<string>("Subject")
-                        .HasColumnType("text");
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.HasKey("Id");
 
@@ -100,15 +103,11 @@ namespace SchulPlanerBot.Migrations
 
                     b.PrimitiveCollection<string[]>("Exclude")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text[]")
-                        .HasDefaultValueSql("ARRAY[]::text[]");
+                        .HasColumnType("text[]");
 
                     b.PrimitiveCollection<string[]>("Include")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text[]")
-                        .HasDefaultValueSql("ARRAY[]::text[]");
+                        .HasColumnType("text[]");
 
                     b.HasKey("GuildId", "UserId");
 
@@ -122,27 +121,21 @@ namespace SchulPlanerBot.Migrations
                             b1.Property<decimal>("GuildId")
                                 .HasColumnType("numeric(20,0)");
 
-                            b1.Property<int>("__synthesizedOrdinal")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("integer");
-
-                            b1.Property<TimeSpan>("Between")
-                                .HasColumnType("interval");
-
                             b1.Property<decimal>("ChannelId")
+                                .ValueGeneratedOnAdd()
                                 .HasColumnType("numeric(20,0)");
 
-                            b1.Property<TimeSpan>("ObjectsIn")
+                            b1.Property<string>("CronExpression")
+                                .IsRequired()
+                                .HasMaxLength(256)
+                                .HasColumnType("character varying(256)");
+
+                            b1.Property<TimeSpan?>("ObjectsIn")
                                 .HasColumnType("interval");
 
-                            b1.Property<DateTimeOffset>("StartAt")
-                                .HasColumnType("timestamp with time zone");
+                            b1.HasKey("GuildId", "ChannelId");
 
-                            b1.HasKey("GuildId", "__synthesizedOrdinal");
-
-                            b1.ToTable("Guilds");
-
-                            b1.ToJson("Notifications");
+                            b1.ToTable("Notification");
 
                             b1.WithOwner()
                                 .HasForeignKey("GuildId");

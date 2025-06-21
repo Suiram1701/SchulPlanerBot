@@ -1,15 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using System.Diagnostics;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace SchulPlanerBot.Migrations
 {
     /// <inheritdoc />
-    public partial class Refactor : Migration
+    public partial class V0_4_0 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "Notifications",
+                table: "Guilds");
+
             migrationBuilder.AlterColumn<string[]>(
                 name: "Include",
                 table: "HomeworkSubscriptions",
@@ -56,11 +62,34 @@ namespace SchulPlanerBot.Migrations
                 oldClrType: typeof(string),
                 oldType: "text",
                 oldNullable: true);
+
+            migrationBuilder.CreateTable(
+                name: "Notification",
+                columns: table => new
+                {
+                    GuildId = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
+                    ChannelId = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
+                    CronExpression = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    ObjectsIn = table.Column<TimeSpan>(type: "interval", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notification", x => new { x.GuildId, x.ChannelId });
+                    table.ForeignKey(
+                        name: "FK_Notification_Guilds_GuildId",
+                        column: x => x.GuildId,
+                        principalTable: "Guilds",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Notification");
+
             migrationBuilder.AlterColumn<string[]>(
                 name: "Include",
                 table: "HomeworkSubscriptions",
@@ -107,6 +136,12 @@ namespace SchulPlanerBot.Migrations
                 oldType: "character varying(4000)",
                 oldMaxLength: 4000,
                 oldNullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "Notifications",
+                table: "Guilds",
+                type: "jsonb",
+                nullable: true);
         }
     }
 }
