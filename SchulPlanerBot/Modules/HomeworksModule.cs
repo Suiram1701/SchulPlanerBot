@@ -10,6 +10,7 @@ using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Discord;
 using SchulPlanerBot.Discord.Interactions;
 using SchulPlanerBot.Modals;
+using SchulPlanerBot.Modules.Models;
 
 namespace SchulPlanerBot.Modules;
 
@@ -49,16 +50,8 @@ public sealed partial class HomeworksModule(
         Homework[] homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, search, subject, start, end, CancellationToken).ConfigureAwait(false);
         homeworks = [.. homeworks.OrderBy(h => h.Due)];
 
-        var cacheId = Guid.NewGuid().ToString();
-        HomeworkSearchMessage searchOptions = new(search, subject, start.Value, end);
-        _cache.Set(key: cacheId, value: searchOptions, new MemoryCacheEntryOptions
-        {
-            SlidingExpiration = TimeSpan.FromDays(7)     // Should be enough for the user to interact with
-        });
-            
-        Embed overview = _embedsService.HomeworksOverview(homeworks, 0, searchOptions.Start, searchOptions.End);
-        MessageComponent components = _componentService.SelectOverviewHomework(homeworks, 0, cacheId: cacheId);
-        await RespondAsync(_localizer["list.listed"], embeds: [overview], components: components).ConfigureAwait(false);
+        HomeworkOverview options = new(homeworks, start, end, "");
+        await RespondWithHomeworkOverviewAsync(_localizer["list.listed"], options).ConfigureAwait(false);
     }
     
     [SlashCommand("create", "Opens the form to create a new homework.")]
@@ -75,10 +68,14 @@ public sealed partial class HomeworksModule(
         if (id is null)
         {
             SocketGuildUser user = Guild.GetUser(User.Id);
-            IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, ct: CancellationToken).ConfigureAwait(false);
-            
-            MessageComponent component = _componentService.SelectModifyHomework(homeworks.Where(h => HomeworkEditAllowed(h, user)));
-            await RespondAsync(_localizer["modify.select"], components: component).ConfigureAwait(false);
+            Homework[] homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, ct: CancellationToken).ConfigureAwait(false);
+
+            HomeworkOverview options = new(
+                [.. homeworks.Where(h => HomeworkEditAllowed(h, user))], 
+                null, 
+                null,
+                ComponentIds.ModifyHomeworkSelectComponent);
+            await RespondWithHomeworkOverviewAsync(_localizer["modify.select"], options).ConfigureAwait(false);
             return;
         }
         
@@ -109,9 +106,9 @@ public sealed partial class HomeworksModule(
             Details = homework.Details
         };
         await RespondWithModalAsync(
-            customId: ComponentIds.CreateModifyHomeworkModal(homework.Id.ToString()),
-            modal: modal,
-            modifyModal: builder => _componentService.LocalizeHomeworkModal(builder, createHomework: false))
+                customId: ComponentIds.CreateModifyHomeworkModal(homework.Id.ToString()),
+                modal: modal,
+                modifyModal: builder => _componentService.LocalizeHomeworkModal(builder, createHomework: false))
             .ConfigureAwait(false);
     }
     
@@ -123,8 +120,12 @@ public sealed partial class HomeworksModule(
             SocketGuildUser user = Guild.GetUser(User.Id);
             IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, ct: CancellationToken).ConfigureAwait(false);
             
-            MessageComponent component = _componentService.SelectDeleteHomework(homeworks.Where(h => HomeworkEditAllowed(h, user)));
-            await RespondAsync(_localizer["delete.select"], components: component).ConfigureAwait(false);
+            HomeworkOverview options = new(
+                [.. homeworks.Where(h => HomeworkEditAllowed(h, user))], 
+                null, 
+                null,
+                ComponentIds.DeleteHomeworkSelectComponent);
+            await RespondWithHomeworkOverviewAsync(_localizer["delete.select"], options).ConfigureAwait(false);
             return;
         }
         
@@ -202,6 +203,19 @@ public sealed partial class HomeworksModule(
         await HandleSubscriptionsUpdatedAsync(updateResult, subscription).ConfigureAwait(false);
     }
 
+    private Task RespondWithHomeworkOverviewAsync(string message, HomeworkOverview options, string? cacheId = null)
+    {
+        cacheId ??= Guid.NewGuid().ToString();
+        _cache.Set(key: cacheId, value: options, new MemoryCacheEntryOptions
+        {
+            SlidingExpiration = TimeSpan.FromDays(7)     // Should be enough for the user to interact with
+        });
+            
+        Embed overview = _embedsService.HomeworksOverview(options);
+        MessageComponent components = _componentService.HomeworkOverviewSelect(options, cacheId);
+        return RespondAsync(message, embeds: [overview], components: components);
+    }
+    
     private bool HomeworkEditAllowed(Homework homework, SocketGuildUser user) =>
         user.GuildPermissions.Has(GuildPermission.ModerateMembers) || homework.CreatedBy == User.Id;
     

@@ -3,6 +3,7 @@ using Humanizer;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using SchulPlanerBot.Business.Models;
+using SchulPlanerBot.Modules.Models;
 using SchulPlanerBot.Options;
 
 namespace SchulPlanerBot.Discord;
@@ -30,52 +31,15 @@ public class ComponentService(IStringLocalizer<ComponentService> loc, IOptionsSn
                 .WithLabel(loc["homeworkModal.details"])
                 .WithPlaceholder(loc["homeworkModal.details.placeholder"]));
     }
-
-    private ActionRowBuilder Pagination(int pageIndex, int pages, Func<int, string> getCustomId)
-    {
-        return new ActionRowBuilder()
-            .WithButton(label: _loc["page.back"], customId: getCustomId(pageIndex - 1), style: ButtonStyle.Secondary, disabled: pageIndex <= 0)
-            .WithButton(label: $"{pageIndex + 1}/{pages}", customId: "0", style: ButtonStyle.Secondary, disabled: true)     // customId never used
-            .WithButton(label: _loc["page.forward"], customId: getCustomId(pageIndex + 1), style: ButtonStyle.Secondary, disabled: pageIndex + 1 >= pages);
-    }
     
-    public MessageComponent SelectOverviewHomework(Homework[] homeworks, int currentPage, string cacheId, Guid? selectedHomeworkId = null)
-    {
-        SelectMenuBuilder menuBuilder = CreateSelectHomeworkComp(
-            homeworks: homeworks.Skip(currentPage * _options.MaxObjectsPerSelect).Take(_options.MaxObjectsPerSelect),
-            componentId: ComponentIds.CreateGetHomeworksSelectComponent(cacheId), 
-            placeholder:_loc["selectHomework.placeholder"],
-            selectHomeworkId: selectedHomeworkId);
-
-        var pages = (int)Math.Ceiling((float)homeworks.Length / _options.MaxObjectsPerSelect);
-        return new ComponentBuilder()
-            .AddRow(Pagination(currentPage, pages, i => ComponentIds.CreateGetHomeworkPageComponent(i, cacheId)))
-            .WithSelectMenu(menuBuilder)
-            .Build();
-    }
-
-    public MessageComponent SelectModifyHomework(IEnumerable<Homework> homeworks)
-    {
-        return new ComponentBuilder()
-            .WithSelectMenu(CreateSelectHomeworkComp(homeworks, ComponentIds.ModifyHomeworkSelectComponent,
-                _loc["modifyHomework.placeholder"]))
-            .Build();
-    }
-
-    public MessageComponent SelectDeleteHomework(IEnumerable<Homework> homeworks)
-    {
-        return new ComponentBuilder()
-            .WithSelectMenu(CreateSelectHomeworkComp(homeworks, ComponentIds.DeleteHomeworkSelectComponent,
-                _loc["deleteHomework.placeholder"]))
-            .Build();
-    }
-    
-    private SelectMenuBuilder CreateSelectHomeworkComp(IEnumerable<Homework> homeworks, string componentId, string placeholder, Guid? selectHomeworkId = null)
+    public MessageComponent HomeworkOverviewSelect(HomeworkOverview overview, string cacheId)
     {
         SelectMenuBuilder menuBuilder = new SelectMenuBuilder()
-            .WithCustomId(componentId)
-            .WithPlaceholder(placeholder);
-        foreach (Homework homework in homeworks)
+            .WithCustomId(overview.SelectCustomId)
+            .WithPlaceholder(_loc["selectHomework.placeholder"]);
+        foreach (Homework homework in overview.Homeworks
+                     .Skip(overview.PageIndex * _options.MaxObjectsPerSelect)
+                     .Take(_options.MaxObjectsPerSelect))
         {
             string label = string.IsNullOrEmpty(homework.Subject)
                 ? homework.Title
@@ -86,7 +50,7 @@ public class ComponentService(IStringLocalizer<ComponentService> loc, IOptionsSn
                     ? homework.Details.Truncate(SelectMenuOptionBuilder.MaxDescriptionLength)
                     : null,
                 value: homework.Id.ToString(),
-                isDefault: homework.Id == selectHomeworkId);
+                isDefault: homework.Id == overview.DisplayedHomeworkId);
         }
 
         if (menuBuilder.Options.Count == 0)
@@ -96,6 +60,27 @@ public class ComponentService(IStringLocalizer<ComponentService> loc, IOptionsSn
                 .WithDisabled(true);
         }
         
-        return menuBuilder;
+        var pages = (int)Math.Ceiling((float)overview.Homeworks.Length / _options.MaxObjectsPerSelect);
+        ActionRowBuilder buttonRow = new ActionRowBuilder()
+            .WithButton(
+                label: _loc["selectHomework.pageBack"],
+                customId: ComponentIds.CreateGetHomeworkPageComponent(pages - 1, cacheId),
+                style: ButtonStyle.Secondary,
+                disabled: overview.PageIndex <= 0)
+            .WithButton(
+                label: $"{overview.PageIndex + 1}/{pages}",
+                customId: "0",
+                style: ButtonStyle.Secondary,
+                disabled: true)     // customId never used
+            .WithButton(
+                label: _loc["selectHomework.pageForward"],
+                customId: ComponentIds.CreateGetHomeworkPageComponent(pages + 1, cacheId),
+                style: ButtonStyle.Secondary,
+                disabled: overview.PageIndex + 1 >= pages);
+
+        return new ComponentBuilder()
+            .AddRow(buttonRow)
+            .WithSelectMenu(menuBuilder)
+            .Build();
     }
 }

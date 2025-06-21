@@ -3,6 +3,7 @@ using Microsoft.Extensions.Localization;
 using SchulPlanerBot.Business.Models;
 using System.Text;
 using Microsoft.Extensions.Options;
+using SchulPlanerBot.Modules.Models;
 using SchulPlanerBot.Options;
 
 namespace SchulPlanerBot.Discord;
@@ -38,18 +39,18 @@ public class EmbedsService(IStringLocalizer<EmbedsService> localizer, IOptionsSn
             .Build();
     }
 
-    public Embed HomeworksOverview(IEnumerable<Homework> homeworks, int pageIndex, DateTimeOffset start, DateTimeOffset? end, Guid? selectedHomeworkId = null)
+    public Embed HomeworksOverview(HomeworkOverview overview)
     {
         StringBuilder descBuilder = new();
-        foreach (Homework homework in homeworks
-                     .Skip(pageIndex * _options.MaxObjectsPerSelect)
+        foreach (Homework homework in overview.Homeworks
+                     .Skip(overview.PageIndex * _options.MaxObjectsPerSelect)
                      .Take(_options.MaxObjectsPerSelect))
         {
             TimestampTag dueTag =
                 TimestampTag.FromDateTimeOffset(homework.Due.ToLocalTime(), TimestampTagStyles.ShortDate);
             descBuilder.Append($"**{dueTag}**: ");
 
-            if (homework.Id == selectedHomeworkId)     // Starts bold
+            if (homework.Id == overview.DisplayedHomeworkId)     // Starts bold
                 descBuilder.Append("**");
                 
             if (string.IsNullOrEmpty(homework.Subject))
@@ -57,7 +58,7 @@ public class EmbedsService(IStringLocalizer<EmbedsService> localizer, IOptionsSn
             else
                 descBuilder.Append($"{homework.Title} ({homework.Subject})");
             
-            if (homework.Id == selectedHomeworkId)     // Ends bold
+            if (homework.Id == overview.DisplayedHomeworkId)     // Ends bold
                 descBuilder.Append("**");
             
             descBuilder.AppendLine();
@@ -66,9 +67,14 @@ public class EmbedsService(IStringLocalizer<EmbedsService> localizer, IOptionsSn
         if (descBuilder.Length == 0)
             descBuilder.Append(_localizer["homeworksOverviewEmbed.placeholder"]);
 
-        string title = end is not null
-            ? _localizer["homeworkOverviewEmbed.title", start.ToString("d"), end.Value.ToString("d")]
-            : _localizer["homeworkOverviewEmbed.titleNoEnd", start.ToString("d")];
+        var title = string.Empty;
+        if (overview.Start is not null)
+        {
+            title = overview.End is not null
+                ? _localizer["homeworkOverviewEmbed.title", overview.Start.Value.ToString("d"),
+                    overview.End.Value.ToString("d")]
+                : _localizer["homeworkOverviewEmbed.titleNoEnd", overview.Start.Value.ToString("d")];
+        }
         return new EmbedBuilder()
             .WithColor(Color.LightGrey)
             .WithAuthor(a => a.WithName(title))

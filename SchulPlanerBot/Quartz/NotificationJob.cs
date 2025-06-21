@@ -6,7 +6,7 @@ using Quartz;
 using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Discord;
-using SchulPlanerBot.Modules;
+using SchulPlanerBot.Modules.Models;
 
 namespace SchulPlanerBot.Quartz;
 
@@ -49,19 +49,18 @@ internal sealed class NotificationJob(
                 ? DateTimeOffset.UtcNow + notification.ObjectsIn.Value
                 : notification.GetNextFiring();
             
-            IEnumerable<Homework> homeworks = await _homeworkManager.GetHomeworksAsync(
+            Homework[] homeworks = await _homeworkManager.GetHomeworksAsync(
                     guildId: notification.GuildId,
                     start: startDateTime,
                     end: endDateTime,
                     ct: context.CancellationToken)
                 .ConfigureAwait(false);
-            Homework[] orderedHomeworks = [.. homeworks.OrderBy(h => h.Due)];
 
-            if (orderedHomeworks.Length != 0)
+            if (homeworks.Length != 0)
             {
                 IEnumerable<HomeworkSubscription> userSubscriptions = await _homeworkManager.GetSubscriptionsAsync(notification.GuildId, context.CancellationToken).ConfigureAwait(false);
                 ulong[] usersToMention = [.. userSubscriptions
-                    .Where(s => ShouldNotify(s, orderedHomeworks))
+                    .Where(s => ShouldNotify(s, homeworks))
                     .Select(s => s.UserId)];
 
                 var message = string.Empty;
@@ -73,15 +72,16 @@ internal sealed class NotificationJob(
                 message += _localizer["homeworks", TimestampTag.FromDateTimeOffset(endDateTime.ToLocalTime(), TimestampTagStyles.Relative)];
                 
                 var cacheId = Guid.NewGuid().ToString();
-                HomeworksModule.HomeworkSearchMessage searchOptions = new(Search: null, Subject: null, startDateTime, endDateTime);
-                _cache.Set(key: cacheId, value: searchOptions, new MemoryCacheEntryOptions
+                HomeworkOverview overview = new(homeworks, startDateTime, endDateTime,
+                    ComponentIds.CreateGetHomeworksSelectComponent(cacheId));
+                _cache.Set(key: cacheId, value: overview, new MemoryCacheEntryOptions
                 {
                     SlidingExpiration = TimeSpan.FromDays(7)     // Should be enough for the user to interact with
                 });
                 
-                Embed overviewEmbed = _embedsService.HomeworksOverview(orderedHomeworks, 0, startDateTime, endDateTime);
-                MessageComponent selectComp = _componentService.SelectOverviewHomework(orderedHomeworks, 0, cacheId: cacheId);
-                await textChannel.SendMessageAsync(text: message, embeds: [overviewEmbed], components: selectComp)
+                Embed overviewEmbed = _embedsService.HomeworksOverview(overview);
+                MessageComponent component = _componentService.HomeworkOverviewSelect(overview, cacheId);
+                await textChannel.SendMessageAsync(text: message, embeds: [overviewEmbed], components: component)
                     .ConfigureAwait(false);
             }
             else if (_manager.Options.MessageWhenNoHomework)

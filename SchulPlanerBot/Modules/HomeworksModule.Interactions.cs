@@ -5,6 +5,7 @@ using SchulPlanerBot.Business;
 using SchulPlanerBot.Business.Models;
 using SchulPlanerBot.Discord;
 using SchulPlanerBot.Modals;
+using SchulPlanerBot.Modules.Models;
 
 namespace SchulPlanerBot.Modules;
 
@@ -14,65 +15,52 @@ public partial class HomeworksModule
     [ComponentInteraction(ComponentIds.GetHomeworkPageComponent, ignoreGroupNames: true)]
     public Task GetHomeworks_SwitchPageAsync(int newIndex, string cacheId)
     {
-        var searchOptions = (HomeworkSearchMessage?)_cache.Get(cacheId);
-        if (searchOptions is not null)
-            return UpdateHomeworkSearchAsync(searchOptions with { PageIndex = newIndex }, cacheId);
+        var overview = (HomeworkOverview?)_cache.Get(cacheId);
+        if (overview is not null)
+            return UpdateHomeworkSearchAsync(overview with { PageIndex = newIndex }, cacheId);
         
         _logger.LogWarning("Received component containing missing cache ID");
         this.RespondWithWarningAsync(_localizer["cacheIdMissing"]);
             
         return Task.CompletedTask;
-
     }
     
     // Components created by global::SchulPlanerBot.Discord.ComponentService
     [ComponentInteraction(ComponentIds.GetHomeworksSelectComponent, ignoreGroupNames: true)]
     public Task GetHomeworks_SelectAsync(string cacheId, string newHomework)
     {
-        var searchOptions = (HomeworkSearchMessage?)_cache.Get(cacheId);
-        if (searchOptions is not null)
+        var overview = (HomeworkOverview?)_cache.Get(cacheId);
+        if (overview is not null)
             return UpdateHomeworkSearchAsync(
-                searchOptions with { DisplayedHomeworkId = Guid.Parse(newHomework) },
-                cacheId);
+                overview with { DisplayedHomeworkId = Guid.Parse(newHomework) }, cacheId);
         
         _logger.LogWarning("Received component containing missing cache ID");
         this.RespondWithWarningAsync(_localizer["cacheIdMissing"]);
             
         return Task.CompletedTask;
-
     }
 
-    private async Task UpdateHomeworkSearchAsync(HomeworkSearchMessage searchOptions, string cacheId)
+    private async Task UpdateHomeworkSearchAsync(HomeworkOverview overview, string cacheId)
     {
-        _cache.Set(cacheId, searchOptions, new MemoryCacheEntryOptions
+        _cache.Set(cacheId, overview, new MemoryCacheEntryOptions
         {
             SlidingExpiration = TimeSpan.FromDays(7)     // Should be enough for the user to interact with
         });
         
-        Homework[] homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, searchOptions.Search,
-            searchOptions.Subject, searchOptions.Start, searchOptions.End, CancellationToken).ConfigureAwait(false);
-
-        Homework? displayHomework = searchOptions.DisplayedHomeworkId is not null
+        Homework? displayHomework = overview.DisplayedHomeworkId is not null
             ? await _homeworkManager
-                .GetHomeworkAsync(Guild.Id, searchOptions.DisplayedHomeworkId.Value, CancellationToken)
+                .GetHomeworkAsync(Guild.Id, overview.DisplayedHomeworkId.Value, CancellationToken)
                 .ConfigureAwait(false)
             : null;
         
         await this.ModifyComponentMessageAsync(msg =>
         {
-            List<Embed> embeds =
-            [
-                _embedsService.HomeworksOverview(homeworks, searchOptions.PageIndex, searchOptions.Start,
-                    searchOptions.End, selectedHomeworkId: searchOptions.DisplayedHomeworkId)
-            ];
+            List<Embed> embeds = [ _embedsService.HomeworksOverview(overview) ];
             if (displayHomework is not null)
                 embeds.Add(_embedsService.Homework(displayHomework));
             
             msg.Embeds = embeds.ToArray();
-            msg.Components = _componentService.SelectOverviewHomework(
-                homeworks, searchOptions.PageIndex,
-                cacheId: cacheId,
-                selectedHomeworkId: searchOptions.DisplayedHomeworkId);
+            msg.Components = _componentService.HomeworkOverviewSelect(overview, cacheId);
         }).ConfigureAwait(false);
     }
     
@@ -169,12 +157,4 @@ public partial class HomeworksModule
         else
             await this.RespondWithErrorAsync(deleteResult.Errors, _logger).ConfigureAwait(false);
     }
-    
-    public record HomeworkSearchMessage(
-        string? Search,
-        string? Subject,
-        DateTimeOffset Start,
-        DateTimeOffset? End,
-        int PageIndex = 0,
-        Guid? DisplayedHomeworkId = null);
 }
