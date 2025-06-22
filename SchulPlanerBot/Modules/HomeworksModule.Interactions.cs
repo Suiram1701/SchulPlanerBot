@@ -97,7 +97,7 @@ public partial class HomeworksModule
 
         if (modifyResult.Success && homework is not null)
         {
-            if (triggerMessage is not null)     // Modal was created by a component
+            if (triggerMessage is not null && triggerMessage != 0)     // Modal was created by a component
             {
                 await DeferAsync().ConfigureAwait(false);     // Signalise Discord that we've received the message
                 

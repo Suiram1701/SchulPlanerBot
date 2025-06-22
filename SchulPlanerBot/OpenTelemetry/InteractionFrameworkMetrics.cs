@@ -35,15 +35,15 @@ internal sealed class InteractionFrameworkMetrics : IDisposable
             });
     }
 
-    private Task Interaction_InteractionExecuted(ICommandInfo command, IInteractionContext context, IResult result)
+    private Task Interaction_InteractionExecuted(ICommandInfo? command, IInteractionContext context, IResult result)
     {
         _totalInteractions.Add(1);
 
         TimeSpan duration = DateTimeOffset.UtcNow - context.Interaction.CreatedAt;
         _interactionDuration.Record(duration.TotalSeconds, [
             KeyValuePair.Create<string, object?>("Type", context.Interaction.Type),
-            KeyValuePair.Create<string, object?>("Module", command.Module.Name),
-            KeyValuePair.Create<string, object?>("Command", command.Name),
+            KeyValuePair.Create<string, object?>("Module", command?.Module.Name),
+            KeyValuePair.Create<string, object?>("Command", command?.Name),
             KeyValuePair.Create<string, object?>("Succeeded", result.IsSuccess),
             KeyValuePair.Create<string, object?>("ErrorType", result.Error)
         ]);

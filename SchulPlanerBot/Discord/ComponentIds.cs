@@ -10,7 +10,7 @@ public static class ComponentIds
     public const string ModifyHomeworkModal = $"{_modalPrefix}ModifyHomework:*,*";
 
     public static string CreateModifyHomeworkModal(string homeworkId, ulong? triggerMessage = null) =>
-        $"{_modalPrefix}ModifyHomework:{homeworkId},{triggerMessage}";
+        $"{_modalPrefix}ModifyHomework:{homeworkId},{triggerMessage ?? 0}";
 
     public static class HomeworkModal
     {
