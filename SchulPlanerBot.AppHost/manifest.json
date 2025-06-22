@@ -13,7 +13,7 @@
     "postgres-server": {
       "type": "container.v0",
       "connectionString": "Host={postgres-server.bindings.tcp.host};Port={postgres-server.bindings.tcp.port};Username=postgres;Password={postgres-server-password.value}",
-      "image": "docker.io/library/postgres:17.2",
+      "image": "docker.io/library/postgres:17.4",
       "volumes": [
         {
           "name": "schulplanerbot.apphost-f57299d648-postgres-server-data",
@@ -52,6 +52,7 @@
         "HTTP_PORTS": "{discord-bot.bindings.http.targetPort}",
         "DiscordClient__TokenType": "{DiscordClient-TokenType.value}",
         "DiscordClient__Token": "{DiscordClient-Token.value}",
+        "DiscordClient__TestGuild": "{DiscordClient-TestGuild.value}",
         "TZ": "{TimeZone.value}",
         "ConnectionStrings__bot-db": "{bot-db.connectionString}"
       },
@@ -84,6 +85,15 @@
         "value": {
           "type": "string",
           "secret": true
+        }
+      }
+    },
+    "DiscordClient-TestGuild": {
+      "type": "parameter.v0",
+      "value": "{DiscordClient-TestGuild.inputs.value}",
+      "inputs": {
+        "value": {
+          "type": "string"
         }
       }
     },
