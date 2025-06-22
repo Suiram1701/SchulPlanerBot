@@ -49,7 +49,7 @@ public class HomeworkManager(ILogger<SchulPlanerManager> logger, IOptions<Manage
                 EF.Functions.ILike(h.Details!, searchPattern));
         }
 
-        return [.. await query.OrderByDescending(h => h.Due).ToListAsync(ct).ConfigureAwait(false)];
+        return [.. await query.OrderBy(h => h.Due).ToListAsync(ct).ConfigureAwait(false)];
     }
 
     public async Task<(Homework? homework, UpdateResult result)> CreateHomeworkAsync(ulong guildId, ulong userId, DateTimeOffset due, string? subject, string title, string? details, CancellationToken ct = default)

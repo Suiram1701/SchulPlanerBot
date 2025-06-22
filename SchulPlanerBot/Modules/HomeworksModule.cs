@@ -49,7 +49,6 @@ public sealed partial class HomeworksModule(
         start ??= DateTimeOffset.Now;
         
         Homework[] homeworks = await _homeworkManager.GetHomeworksAsync(Guild.Id, search, subject, start, end, CancellationToken).ConfigureAwait(false);
-        homeworks = [.. homeworks.OrderBy(h => h.Due)];
 
         var cacheId = Guid.NewGuid().ToString();
         HomeworkOverview options = new(homeworks, start, end, ComponentIds.CreateGetHomeworksSelectComponent(cacheId));

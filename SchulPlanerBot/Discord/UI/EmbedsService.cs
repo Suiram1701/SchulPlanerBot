@@ -54,7 +54,7 @@ public class EmbedsService(IStringLocalizer<EmbedsService> localizer, IOptionsSn
                 descBuilder.Append("**");
                 
             if (string.IsNullOrEmpty(homework.Subject))
-                descBuilder.Append($"({homework.Subject})");
+                descBuilder.Append(homework.Title);
             else
                 descBuilder.Append($"{homework.Title} ({homework.Subject})");
             
