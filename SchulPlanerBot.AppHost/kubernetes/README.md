@@ -6,7 +6,7 @@ If you only made changes in the SchulPlanerBot it is enough to update the image.
 - Adjust the version of SchulPlanerBot (discord-bot) in `SchulPlanerBot/SchulPlanerBot.csproj` and `SchulPlanerBot.AppHost/kubernetes/patches/patch-deployment.yaml`.
 - Open a shell
 - Navigate to the App host project (`cd SchulPlanerBot.AppHost`) if you're not already there.
-- Run `aspirate build --runtime-identifier linux-arm64 -ct "latest;vX.X.X.X"` (replace the X's with the real version) to publish the image.
+- Run `aspirate build --runtime-identifier linux-arm64 -ct "vX.X.X.X;latest"` (replace the X's with the real version) to publish the image.
 - Run `aspirate apply -i ./kubernetes` to apply the changes to your cluster.
 
 ## Deploy infrastructure changes:
