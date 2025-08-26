@@ -64,7 +64,6 @@ public static class Program
         
         builder.Services.AddOpenTelemetry()     // OTel exporter by default in used
             .WithTracing(provider => provider
-                .SetSampler(new NoRootNameSampler(new AlwaysOnSampler(), KnownResourceNames.BotDatabase))
                 .AddBotInstrumentation()
                 .AddQuartzInstrumentation(options => options.RecordException = true)
                 .AddDiscordNetInstrumentation())

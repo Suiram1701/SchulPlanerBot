@@ -1,0 +1,19 @@
+- op: replace
+  path: "/spec/template/spec/containers/0/image"
+  value: "schulplanerbot/discord-bot:v0.4.2"     # It's recommended to use a specific version instead of latest (which is being usded by default). Replace this with the image and tag you want to publish
+- op: add
+  path: "/spec/template/spec/containers/0/livenessProbe"
+  value:
+    httpGet:
+      path: "/alive"
+      port: http
+    failureThreshold: 30
+    periodSeconds: 10
+- op: add
+  path: "/spec/template/spec/containers/0/readinessProbe"
+  value:
+    httpGet:
+      path: "/health"
+      port: http
+    failureThreshold: 30
+    periodSeconds: 10

@@ -10,8 +10,7 @@ This project uses Aspir8 and Kubernetes for publishing.
 - Have a setup Kubernetes cluster available.
 - Make sure the aspirate .NET tool is installed.
 - Navigate to the AppHosts directory.
-- Adjust the external IP's in [dashboard-service.yaml](SchulPlanerBot.AppHost/kubernetes/patches/dashboard-service.yaml) and [postgres-service.yaml](SchulPlanerBot.AppHost/kubernetes/patches/postgres-service.yaml) to th address of your host maschine.
-  You can also disable the availability from outside by removing the last two targets of the patches in [kustomization.yaml](SchulPlanerBot.AppHost/kubernetes/kustomization.yaml)
+- Run `aspirate init` to initialize some default behaviors and values.
 - Run `aspirate generate --skip-build -o ./kubernetes/aspirate-output` to generate the latest output and set your secrets (like the API token).
 - Run `aspirate apply -i ./kubernetes` to apply everything to you Kubernetes cluster.
 

@@ -7,16 +7,8 @@ patches:
 - target:
     kind: Deployment
     name: discord-bot
-  path: ./patches/bot.yaml
-- target:
-    kind: Deployment
-    name: aspire-dashboard
-  path: ./patches/dashboard.yaml
+  path: ./patches/patch-deployment.yaml
 - target:
     kind: Service
-    name: aspire-dashboard
-  path: ./patches/dashboard-service.yaml
-- target:
-    kind: Service
-    name: postgres-server
-  path: ./patches/postgres-service.yaml
+    name: discord-bot
+  path: ./patches/patch-service.yaml

@@ -1,0 +1,12 @@
+- op: add
+  path: "/metadata/annotations"
+  value:
+  - prometheus.io/scrape: "true" 
+- op: add
+  path: "/metadata/annotations"
+  value:
+  - prometheus.io/port: 8080     # Port set by aspirate as default
+- op: add
+  path: "/metadata/annotations"
+  value:
+  - prometheus.io/path: "/metrics"
