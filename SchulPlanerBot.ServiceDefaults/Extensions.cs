@@ -1,6 +1,7 @@
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -68,19 +69,17 @@ public static class Extensions
     private static TBuilder AddOpenTelemetryExporters<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
     {
-        if (!string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]))
-        {
-            builder.Services
-                .AddOpenTelemetry()
-                .UseOtlpExporter();
-        }
-
-        // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-        //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-        //{
-        //    builder.Services.AddOpenTelemetry()
-        //       .UseAzureMonitor();
-        //}
+        builder.Services
+            .AddOpenTelemetry()
+            .UseOtlpExporter()
+            .WithMetrics(metrics =>
+            {
+                if (builder.Configuration.GetValue<bool?>("Prometheus:Enabled") ?? false)
+                {
+                    string scrapePath = builder.Configuration.GetValue<string?>("Prometheus:Path") ?? "/metrics";
+                    metrics.AddPrometheusExporter(c => c.ScrapeEndpointPath = scrapePath);
+                }
+            });
 
         return builder;
     }
@@ -94,9 +93,9 @@ public static class Extensions
         return builder;
     }
 
-    public static WebApplication MapDefaultEndpoints(this WebApplication app, bool always = false)
+    public static WebApplication MapDefaultEndpoints(this WebApplication app, bool inProd = false)
     {
-        if (app.Environment.IsDevelopment() || always)
+        if (app.Environment.IsDevelopment() || inProd)
         {
             app.MapHealthChecks("/health", new HealthCheckOptions()
             {
@@ -107,6 +106,16 @@ public static class Extensions
                 Predicate = r => r.Tags.Contains("live"),
                 ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
             });
+        }
+
+        IConfigurationSection prometheusConfig = app.Configuration.GetSection("Prometheus");
+        if (prometheusConfig.GetValue<bool?>("Enabled") ?? false)
+        {
+            var port = prometheusConfig.GetValue<int?>("Port");
+            string path = prometheusConfig.GetValue<string?>("Path") ?? "/metrics";
+
+            app.UseOpenTelemetryPrometheusScrapingEndpoint(predicate =>
+                (port is null || predicate.Connection.LocalPort == port) && predicate.Request.Path == path);
         }
 
         return app;

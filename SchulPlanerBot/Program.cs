@@ -61,8 +61,8 @@ public static class Program
             .BindConfiguration("Response")
             .ValidateDataAnnotations()
             .ValidateOnStart();
-
-        builder.Services.AddOpenTelemetry()
+        
+        builder.Services.AddOpenTelemetry()     // OTel exporter by default in used
             .WithTracing(provider => provider
                 .SetSampler(new NoRootNameSampler(new AlwaysOnSampler(), KnownResourceNames.BotDatabase))
                 .AddBotInstrumentation()
@@ -87,7 +87,7 @@ public static class Program
                 );
         });
 
-        app.MapDefaultEndpoints(always: true);     // Ok to register every endpoint because this container isn't exposed
+        app.MapDefaultEndpoints(inProd: true);     // Ok to register every endpoint because this container isn't exposed
         app.MapApiEndpoints();
         
         app.Run();
