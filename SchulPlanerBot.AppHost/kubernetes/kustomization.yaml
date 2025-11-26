@@ -1,4 +1,4 @@
-namespace: schulplanerbot
+namespace: discord-bots
 
 resources:
 - aspirate-output
@@ -6,9 +6,9 @@ resources:
 patches:
 - target:
     kind: Deployment
-    name: discord-bot
+    name: schulplanerbot
   path: ./patches/patch-deployment.yaml
 - target:
     kind: Service
-    name: discord-bot
+    name: schulplanerbot
   path: ./patches/patch-service.yaml

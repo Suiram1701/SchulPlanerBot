@@ -21,7 +21,7 @@ public static class Program
             botDb = builder.AddConnectionString(KnownResourceNames.BotDatabase);
         }
 
-        IResourceBuilder<ProjectResource> discordBot = builder.AddProject<Projects.SchulPlanerBot>("discord-bot")
+        IResourceBuilder<ProjectResource> discordBot = builder.AddProject<Projects.SchulPlanerBot>("schulplanerbot")
             .WithConfiguration(builder.Configuration.GetSection("DiscordClient"), secretKeys: "Token")
             .WithEnvironment("TZ", builder.AddParameterFromConfiguration("TimeZone", "TimeZone"))
             .WithReference(botDb)
