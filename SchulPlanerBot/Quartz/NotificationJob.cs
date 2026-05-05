@@ -45,7 +45,7 @@ internal sealed class NotificationJob(
             ITextChannel textChannel = await ThrowWhenNotFoundAsync(socketGuild, notification.ChannelId).ConfigureAwait(false);
             
             // Real notification part
-            DateTimeOffset startDateTime = DateTimeOffset.Now;
+            DateTimeOffset startDateTime = DateTimeOffset.UtcNow;
             DateTimeOffset endDateTime = notification.ObjectsIn is not null
                 ? DateTimeOffset.UtcNow + notification.ObjectsIn.Value
                 : notification.GetNextFiring();

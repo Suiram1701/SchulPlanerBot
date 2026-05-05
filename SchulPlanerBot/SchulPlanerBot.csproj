@@ -6,17 +6,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>2ba4a9c2-ab85-4ce2-86f7-5fa1e4ccd855</UserSecretsId>
 
-	<Version>0.5.0</Version>
+	<Version>0.5.1</Version>
 	<Authors>Suiram1701</Authors>
 	<Company>Suiram1701</Company>
+	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.4.1" />
     <PackageReference Include="Discord.Net.Interactions" Version="3.18.0" />
     <PackageReference Include="Discord.Net.WebSocket" Version="3.18.0" />
-    <PackageReference Include="Humanizer.Core" Version="2.14.1" />
-    <PackageReference Include="Humanizer.Core.de" Version="2.14.1" />
+    <PackageReference Include="Humanizer.Core" Version="3.0.10" />
+    <PackageReference Include="Humanizer.Core.de" Version="3.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -27,7 +28,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Localization" Version="9.0.8" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Quartz" Version="1.12.0-beta.1" />
-    <PackageReference Include="Quartz.AspNetCore" Version="3.15.0" />
+    <PackageReference Include="Quartz.AspNetCore" Version="3.18.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,6 +48,15 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>PmMessageService.de.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\.dockerignore">
+      <Link>.dockerignore</Link>
+    </Content>
+    <Content Include="..\Dockerfile">
+      <Link>Dockerfile</Link>
+    </Content>
   </ItemGroup>
 	
 </Project>
